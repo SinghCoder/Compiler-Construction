@@ -56,9 +56,9 @@
             #define MAX(a,b) blah
             #define IS_ERR(err) blah
             #define	MACRO(v, w, x, y)					\
-            do {									    \
+            do {									        \
                 v = (x) + (y);							\
-                w = (y) + 2;							\
+                w = (y) + 2;							    \
             } while (0)
       ```
 
@@ -131,9 +131,9 @@
               ```
             - If you have else if statements then it is usually a good idea to always have an else block for finding unhandled cases. Maybe put a log message in the else even if there is no corrective action taken.
             - Condition Format
-            - Put the constant on the left hand side of an equality/inequality comparison
-            - If you miss one = sign, compiler will throw error.
-            - ``` if ( 6 == errorNum ) ... ```
+                - Put the constant on the left hand side of an equality/inequality comparison
+                - If you miss one = sign, compiler will throw error.
+                - ``` if ( 6 == errorNum ) ... ```
 
 - Switch formatting
 
@@ -196,13 +196,14 @@
 
 - Replace Macros with Inline Functions
     - ```#define  MAX(x,y)	(((x) > (y) ? (x) : (y))	// Get the maximum```
-            - The macro above can be replaced for integers with the following inline function with no loss of efficiency:
-            - ```
-                    inline int 
-                    max(int x, int y) {
-                        return (x > y ? x : y);
-                    }
-      ```
+        - The macro above can be replaced for integers with the following inline function with no loss of efficiency:
+        - 
+             ```
+                inline int 
+                max(int x, int y) {
+                    return (x > y ? x : y);
+                }
+             ```
 - Always Wrap the Expression in Parenthesis
     - ```#define ADD(x,y) x + y``` must be written as  ```#define ADD(x,y) ((x) + (y))```
 
@@ -220,20 +221,20 @@
 ## Commenting Out Large Code Blocks
 - Sometimes large blocks of code need to be commented out for testing
     - **Using #if 0**
-            - The easiest way to do this is with an #if 0 block:
-            - ```    
-                    void example()
-                    {
-                        great looking code
+        - The easiest way to do this is with an #if 0 block:
+        -   ```
+                void example()
+                {
+                    great looking code
 
-                        #if 0
-                        lots of code
-                        #endif
+                    #if 0
+                    lots of code
+                    #endif
 
-                        more code
-                    }
-              ```
-            - can't use /* */ style comments because comments can't contain comments
+                    more code
+                }
+            ```
+        - can't use /* */ style comments because comments can't contain comments
 
 ## No Data Definitions in Header Files
 
@@ -251,4 +252,4 @@
 
 - Check every call to malloc or realloc. You might want to have your own wrapper for these calls, so you can do the right thing always and don't have to make memory checks everywhere.
 - Lint is a C program checker that examines C source files to detect and report type incompatibilities, inconsistencies between function definitions and calls, potential program bugs, etc.    
-    - The use of lint on all programs is strongly recommended, and it is expected that most projects will require programs to use lint as part of the official acceptance procedure.
+- The use of lint on all programs is strongly recommended, and it is expected that most projects will require programs to use lint as part of the official acceptance procedure.

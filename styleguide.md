@@ -118,15 +118,20 @@
 - If Then Else Formatting
     - Layout
         - Upto you how you use bracing styles. A common approach -:
-        - ```
-            if (condition) {
-            } else if (condition) {
-            } else {
-            }
-          ```
-        - If you have else if statements then it is usually a good idea to always have an else block for finding unhandled cases. Maybe put a log message in the else even if there is no corrective action taken.
-    - Condition Format
-        - Put the constant on the left hand side of an equality/inequality comparison
+            - ```
+                if (condition) 
+                {
+                } 
+                else if (condition) 
+                {
+                } 
+                else 
+                {
+                }
+              ```
+            - If you have else if statements then it is usually a good idea to always have an else block for finding unhandled cases. Maybe put a log message in the else even if there is no corrective action taken.
+            - Condition Format
+            - Put the constant on the left hand side of an equality/inequality comparison
             - If you miss one = sign, compiler will throw error.
             - ``` if ( 6 == errorNum ) ... ```
 
@@ -191,13 +196,13 @@
 
 - Replace Macros with Inline Functions
     - ```#define  MAX(x,y)	(((x) > (y) ? (x) : (y))	// Get the maximum```
-        - The macro above can be replaced for integers with the following inline function with no loss of efficiency:
-        - ```
-                inline int 
-                max(int x, int y) {
-                    return (x > y ? x : y);
-                }
-          ```
+            - The macro above can be replaced for integers with the following inline function with no loss of efficiency:
+            - ```
+                    inline int 
+                    max(int x, int y) {
+                        return (x > y ? x : y);
+                    }
+      ```
 - Always Wrap the Expression in Parenthesis
     - ```#define ADD(x,y) x + y``` must be written as  ```#define ADD(x,y) ((x) + (y))```
 
@@ -215,20 +220,20 @@
 ## Commenting Out Large Code Blocks
 - Sometimes large blocks of code need to be commented out for testing
     - **Using #if 0**
-        - The easiest way to do this is with an #if 0 block:
-        - ```    
-                void example()
-                {
-                    great looking code
+            - The easiest way to do this is with an #if 0 block:
+            - ```    
+                    void example()
+                    {
+                        great looking code
 
-                    #if 0
-                    lots of code
-                    #endif
-                    
-                    more code
-                }
-          ```
-        - can't use /* */ style comments because comments can't contain comments
+                        #if 0
+                        lots of code
+                        #endif
+
+                        more code
+                    }
+              ```
+            - can't use /* */ style comments because comments can't contain comments
 
 ## No Data Definitions in Header Files
 

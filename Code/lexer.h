@@ -3,13 +3,13 @@
 
 #include <stdio.h>
 
-FILE *getStream(FILE *fp);
+FILE *get_stream(FILE *fp);
 
-TOKEN getNextToken();
+TOKEN get_next_token();
 
-void removeComments(char *testcaseFile, char *cleanFile);
+void remove_comments(char *testcaseFile, char *cleanFile);
 
-void lexError(char *errStr);  
+void lex_error(char *errStr);  
 
 void init();
 

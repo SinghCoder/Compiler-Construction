@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #define BUFFER_SIZE 512
+#define TRAP_STATE -1
 
 typedef enum {
     DEF, MODULE, ENDDEF,

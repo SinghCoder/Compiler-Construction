@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include "lexerDef.h"
 
-void lexError(char *errStr, int line_no)
+void lex_error(int line_no, char *errStr)
 {
     printf("%d ) Lexical Error : %s\n", line_no, errStr);
 }
@@ -10,7 +10,7 @@ void lexError(char *errStr, int line_no)
 void init()
 {
     state = 0;
-    buffer[BUFFER_SIZE]
+    //buffer[BUFFER_SIZE]
 }
 
 FILE *getStream(FILE *fp)

@@ -5,6 +5,7 @@
 
 #define BUFFER_SIZE 512
 #define TRAP_STATE -1
+#define MAX_LEXEME_LENGTH 20
 
 typedef enum {
     DEF, MODULE, ENDDEF,
@@ -42,6 +43,9 @@ typedef struct token {
 char look;      // lookahead character
 
 int state;
+int lexLen;
+int id_count;
+int line_count;
 
 char buffer1[BUFFER_SIZE];
 char buffer2[BUFFER_SIZE];

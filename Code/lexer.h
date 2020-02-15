@@ -2,14 +2,23 @@
 #define LEXER_H
 
 #include <stdio.h>
+#include "lexerDef.h"
 
-FILE *getStream(FILE *fp);
+void getStream(FILE *fp);
 
-TOKEN getNextToken();
+TOKEN getNextToken(FILE *fp);
+
+char getChar(FILE *fp); 
 
 void removeComments(char *testcaseFile, char *cleanFile);
 
-void lexError(char *errStr);  
+void lexError(char *errStr, FILE* fp);
+
+TOKEN getToken();
+
+void retract(int num);
+
+token_name searchLookupTable(char* lexeme);
 
 void init();
 

@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define BUFFER_SIZE 512
+#define BUFFER_SIZE 20
 
 typedef enum {
     DEF, MODULE, ENDDEF,
@@ -24,25 +24,29 @@ typedef enum {
     PLUS, MINUS,
     MUL, DIV,
     LT, LE, GT, GE, EQ, NE,
-    AND, OR
+    AND, OR,
+    LEX_ERROR,      //VERIFY
+    END_OF_FILE,    //VERIFY
+    DELIM   //VERIFY
 } token_name;
-
-typedef enum { false, true } bool;  // boolean type
 
 typedef struct token {
     token_name name;
-    union value{
+    union{
         char *str;
         int num;
-        float rnum;
-    }
+        double rnum;
+    };
 } TOKEN;
 
-char look;      // lookahead character
-
 int state;
+int just_retracted;
 
-char buffer1[BUFFER_SIZE];
-char buffer2[BUFFER_SIZE];
+char buffer[BUFFER_SIZE];
+char lexeme[BUFFER_SIZE];
+
+int lexeme_begin;
+int forward_ptr;
+int line_no;
 
 #endif

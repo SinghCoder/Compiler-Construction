@@ -1,9 +1,26 @@
 #include<stdio.h>
-#include<stdbool.h>
 #include<stdlib.h>
-bool is_alphabet(char c)
+#include<stdbool.h>
+#include "lexerDef.h"
+
+char lexeme[MAX_LEXEME_LENGTH];
+
+void addChar(char nextChar) { 
+	if(lexLen <= MAX_LEXEME_LENGTH - 1) 
+		lexeme[lexLen++] = nextChar;
+	else 
+		printf("ERROR- Lexeme too long\n");
+}
+
+char get_char(FILE* fp) {
+	char c = getc(fp);
+	addChar(c);
+	return c;
+}
+
+bool is_alphabet (char c)
 {
-	if((c>='a' && c<='z')||(c>='A' && c<='Z'))
+	if( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') )
 	{
 		return true;
 	}
@@ -12,9 +29,9 @@ bool is_alphabet(char c)
 		return false;
 	}
 }
-bool is_digit(char c)
+bool is_digit (char c)
 {
-	if(c>='0' && c<='9')
+	if(c >= '0' && c <= '9')
 	{
 		return true;
 	}
@@ -24,7 +41,7 @@ bool is_digit(char c)
 	}
 }
 
-bool is_delim( char c )
+bool is_delim (char c)
 {
 	if( (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') )
 	{
@@ -38,38 +55,44 @@ bool is_delim( char c )
 
 /*
 	do getc()  in each non-accepting state
-		ungetc() in each retracting state
-		and nothin in accepting states + non-retracting
+	ungetc() in each retracting state
+	and nothin in (accepting + non-retracting) states
 */
 
-int main(int argc,char* argv[]){
+int main ( int argc, char *argv[] ) {
 	FILE* fp;
-	fp = fopen(argv[1],"r");
-	if(fp==NULL){
-		printf("FILE OPEN ERROR");
+	fp = fopen(argv[1], "r");
+	if(fp == NULL){
+		printf("FILE OPEN ERROR\n");
 		exit(1);
 	}
-	char c= '';
-	int state=0;
-	int id_count=0;
+	char c = '$';
+	state = 0;
+	id_count = 0;
+	line_count = 0;
+	lexLen = 0;
 
-	while(c!=EOF){
+	while(c != EOF){
 	//for identifer and num
 		switch(state){
 			case 0:
 				{
-					c= getc(fp);
+					c = get_char(fp);
 					if(is_alphabet(c)) 
 					{
 						id_count++;
-						state=1;
+						state = 1;
 					}
-					else if(is_digit(c)) 
+					else if( is_digit(c) ) 
 					{
-						state=3;
+						state = 3;
 					}
 					else if( is_delim(c) )
 					{
+						if('\n' == c)
+						{
+							line_count++;
+						}
 						state = 13;
 					}
 					else if( '.' == c)
@@ -144,7 +167,7 @@ int main(int argc,char* argv[]){
 					{
 						state = TRAP_STATE;
 					}
-					c = getc(fp);
+					c = get_char(fp);
 				}
 				break;
 
@@ -152,34 +175,34 @@ int main(int argc,char* argv[]){
 				{
 					if( (is_alphabet(c) || is_digit(c) || '_' == c ) && id_count<20) 
 					{
-						c=getc(fp);
+						c = get_char(fp);
 						id_count++;
 						state = 1;
 					}
 					else
 					{
-						state=2;
+						state = 2;
 					}
 				}
 				break;
 			case 2: 
 				{
-					ungetc(c,fp);
+					ungetc(c, fp);
 					//lookup till end_ptr-1
 					printf("ID ");	// or KW
-					state=0;
+					state = 0;
 				}
 				break;
 			case 3: 
 				{
 					if(is_digit(c))
 					{
-						c = getc(fp);
-						state=3;
+						c = get_char(fp);
+						state = 3;
 					}
 					else if('.' == c)
 					{
-						c = getc(fp);
+						c = get_char(fp);
 						state = 5;
 					}
 					else
@@ -190,18 +213,18 @@ int main(int argc,char* argv[]){
 				break;
 			case 4: 
 				{
-					ungetc(c,fp);
+					ungetc(c, fp);
 					// do atoi() to get value  till end_ptr-1
 					printf("NUM ");
-					state=0;
+					state = 0;
 				}
 				break;
 			case 5:
 				{
 					if(is_digit(c))
 					{
-						c = getc(fp);
-						state=7;
+						c = get_char(fp);
+						state = 7;
 					}
 					else if( '.' == c)
 					{
@@ -225,13 +248,13 @@ int main(int argc,char* argv[]){
 				{
 					if(is_digit(c))
 					{
-						c = getc(fp);
+						c = get_char(fp);
 						state = 7;
 					}
 					else if('E' == c || 'e' == c)
 					{
 						c= getc(fp);
-						state=9;
+						state = 9;
 					}
 					else
 					{
@@ -241,9 +264,9 @@ int main(int argc,char* argv[]){
 				break;
 			case 8: 
 				{
-					ungetc(c,fp);
+					ungetc(c, fp);
 					// do atof()  till end_ptr-1
-					printf("RNUM");
+					printf("RNUM ");
 					state=0;
 				}
 				break;
@@ -251,13 +274,13 @@ int main(int argc,char* argv[]){
 				{
 					if('+' == c || '-' == c)
 					{
-						c = getc(fp);
-						state=10;
+						c = get_char(fp);
+						state = 10;
 					}
 					else if(is_digit(c))
 					{
-						c = getc(fp);
-						state=11;
+						c = get_char(fp);
+						state = 11;
 					}
 					else
 					{
@@ -269,8 +292,8 @@ int main(int argc,char* argv[]){
 				{
 					if(is_digit(c))
 					{
-						c = getc(fp);
-						state=11;
+						c = get_char(fp);
+						state = 11;
 					}
 					else
 					{
@@ -282,12 +305,12 @@ int main(int argc,char* argv[]){
 				{
 					if(is_digit(c))
 					{
-						c = getc(fp);
-						state=11;
+						c = get_char(fp);
+						state = 11;
 					}
 					else 
 					{
-						state=12;
+						state = 12;
 					}
 				}
 				break;
@@ -303,7 +326,11 @@ int main(int argc,char* argv[]){
 				{
 					if ( is_delim(c) )
 					{
-						c = getc(fp);
+						if('\n' == c)
+						{
+							line_count++;
+						}
+						c = get_char(fp);
 						state = 13;
 					}
 					else
@@ -336,7 +363,7 @@ int main(int argc,char* argv[]){
 				{
 					if( '*' == c)
 					{
-						c = getc(fp);
+						c = get_char(fp);
 						state = 19;
 					}
 					else
@@ -357,7 +384,7 @@ int main(int argc,char* argv[]){
 				{	
 					if( '*' == c)
 					{
-						c = getc(fp);
+						c = get_char(fp);
 						state = 20;
 					}
 					else
@@ -374,7 +401,7 @@ int main(int argc,char* argv[]){
 					}
 					else
 					{
-						c = getc(fp);
+						c = get_char(fp);
 						state = 19;
 					}
 				}
@@ -582,16 +609,17 @@ int main(int argc,char* argv[]){
 				break;
 			case 46:
 				{
-					ungetc(c, fp);
+					// ungetc(c, fp);
 					printf("LEXING DONE... ");
 					state = 0;
-					//exit(0);
+					// exit(0);
 				}
 				break;
 			case TRAP_STATE:
 			default:
 				{
 					// ungetc() the character read
+					ungetc(c, fp);
 					//lex_error() line_no, msg
 					// state = 0
 				}

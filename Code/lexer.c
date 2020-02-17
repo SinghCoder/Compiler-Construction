@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -420,10 +422,19 @@ TOKEN getNextToken(FILE* fp)
                 break;
 
             case 26:  ;
-                t.name = DEF;
-                t.str = "<<";
-                lexeme_begin = forward_ptr; state =0; 
-                return t;
+                c = getChar(fp);
+                if('<' == c)
+                {
+                    state = 46;
+                }
+                else
+                {
+                    retract(1);
+                    t.name = DEF;
+                    t.str = "<<";
+                    lexeme_begin = forward_ptr; state =0;
+                    return t;
+                }
                 break;  
 
             case 27:  ;
@@ -455,10 +466,19 @@ TOKEN getNextToken(FILE* fp)
                 break;
 
             case 30:  ;
-                t.name = ENDDEF;
-                t.str = ">>";
-                lexeme_begin = forward_ptr; state =0;
-                return t;
+                c = getChar(fp);
+                if( '>' == c)
+                {
+                    state = 47;
+                }
+                else
+                {
+                    retract(1);
+                    t.name = ENDDEF;
+                    t.str = ">>";
+                    lexeme_begin = forward_ptr; state =0;
+                    return t;
+                }
                 break; 
 
             case 31:  ;
@@ -585,7 +605,18 @@ TOKEN getNextToken(FILE* fp)
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;    
-
+            case 46: ;
+                t.name = DRIVERDEF;
+                t.str = "<<<";
+                lexeme_begin = forward_ptr; state =0;
+                return t;
+                break;
+            case 47: ;
+                t.name = DRIVERENDDEF;
+                t.str = ">>>";
+                lexeme_begin = forward_ptr; state =0;
+                return t;
+                break;
             default:  ;
                 t.name = LEX_ERROR;
                 //printf("%d", state);

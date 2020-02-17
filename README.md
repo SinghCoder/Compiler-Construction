@@ -10,3 +10,11 @@ The language supports features such as
 - Strongly typed language
 
 The language specifications can be found [here](./Language-specifications.pdf)
+
+## Team Members
+
+1. Vishal Mittal
+2. Harpinder Jot Singh
+3. Yash Vijay
+4. Jaladi Lakshmi Teja
+5. Aditya Upadhyay

@@ -10,7 +10,7 @@ TOKEN getNextToken(FILE *fp);
 
 char getChar(FILE *fp); 
 
-void removeComments(char *testcaseFile, char *cleanFile);
+void remove_comments(char *testcaseFile, char *cleanFile);
 
 void lexError(char *errStr, FILE* fp);
 

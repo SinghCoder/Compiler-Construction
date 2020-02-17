@@ -27,26 +27,30 @@ void get_stream(FILE *fp)
 {
    // return fp;
     int num;
-    if(forward_ptr == BUFFER_SIZE)
-        forward_ptr = 0;
+    
 	//Single buffer treated as two buffers.
 	//Forward pointer = -1 at the beginning
 	if( -1 == forward_ptr)
 	{
 		forward_ptr = 0;
-    	num = fread(&buffer[0], sizeof(char), BUFFER_SIZE, fp);
+    	num = fread(&buffer[0], 1, BUFFER_SIZE, fp);
 	}
-	else
+	//Second buffer filled up
+	if( BUFFER_SIZE == forward_ptr)
 	{
-		//Buffer filled up
-		num = fread(&buffer[(forward_ptr + BUFFER_SIZE/2 ) % BUFFER_SIZE], sizeof(char), BUFFER_SIZE/2, fp);
+        forward_ptr = 0;
+    	num = fread(&buffer[forward_ptr + BUFFER_SIZE/2], 1, BUFFER_SIZE/2, fp);
+	}
+	//First buffer filled up
+	else if( BUFFER_SIZE/2 == forward_ptr)
+	{
+		num = fread(&buffer[0], 1, BUFFER_SIZE/2, fp);
 	}
     //If not enough characters left to read, append EOF
 	if(BUFFER_SIZE/2 != num)
 	{
         buffer[num+forward_ptr] = EOF;  
 	}
-
 }
 
 void removeComments(FILE *ifp, FILE* ofp)
@@ -94,8 +98,7 @@ void add_char(char next_char) {
 	}
 }
 
-char get_char(FILE* fp) 
-{
+char get_char(FILE* fp) {
 	/*if(){	// if buffer is read completely
 		getStream(fp);
     }*/
@@ -155,20 +158,11 @@ bool is_delim (char c)
 	}
 }
 
-void retract(int num)
-{
-    forward_ptr -= num;
-    if(forward_ptr < 0)
-	{
-        forward_ptr += BUFFER_SIZE;
-    }
-    //just_retracted = true;
-}
 
 TOKEN getNextToken()
 {
 	TOKEN t;
-	//use the feof instead
+	//use the feof instead o
 	while(true){
 	//for identifer and num
 	la_str[0] = c;
@@ -297,13 +291,10 @@ TOKEN getNextToken()
 					ungetc(c, fp);
 					//lookup till end_ptr-1
 					retract(1);
-					t.name = terminal_string[ID];
-					t.value = lexeme;
-					t.line_no = line_count;
 					lexeme_begin = forward_ptr;
-					//printf("ID (%s)",lexeme);	// or KW
-					// lex_len = 0;
-					// id_count = 0;
+					printf("ID (%s)",lexeme);	// or KW
+					lex_len = 0;
+					id_count = 0;
 					state = 0;
 				}
 				break;
@@ -334,10 +325,7 @@ TOKEN getNextToken()
 					// do atoi() to get value  till end_ptr-1
 					retract(1);
 					lexeme_begin = forward_ptr;
-					t.name = terminal_string[NUM];
-					t.value = atoi(lexeme);
-					t.line_no = line_count;
-					//printf("NUM(%d) ", atoi(lexeme));
+					printf("NUM(%d) ", atoi(lexeme));
 					lex_len = 0;
 					state = 0;
 				}
@@ -370,11 +358,8 @@ TOKEN getNextToken()
 					lex_len--;	//remove one . which was added
 					//add_char('\0');
 					retract(2);
-					t.name = terminal_string[NUM];
-					t.value = atoi(lexeme);
-					t.line_no = line_count;
 					lexeme_begin = forward_ptr;
-					//printf("NUM(%d) ", atoi(lexeme));
+					printf("NUM(%d) ", atoi(lexeme));
 					lex_len = 0;
 					state = 0;
 				}
@@ -403,11 +388,8 @@ TOKEN getNextToken()
 				{
 					ungetc(c, fp);
 					// do atof()  till end_ptr-1
-					retract(1);
-					t.name = terminal_string[RNUM];
-					t.value = atof( lexeme );
-					t.line_no = line_count;
-					//printf("RNUM(%f) ", atof(lexeme));
+					lexeme[forward_ptr-1] = '\0';
+					printf("RNUM(%f) ", atof(lexeme));
 					state=0;
 				}
 				break;
@@ -471,10 +453,7 @@ TOKEN getNextToken()
 					ungetc(c,fp);
 					//atof() end_ptr-1
 					retract(1);
-					t.name = terminal_string[RNUM];
-					t.value = atof(lexeme);
-					t.line_no = line_count;
-					//printf("RNUM(%f) ", atof(lexeme));
+					printf("RNUM(%f) ", atof(lexeme));
 					lex_len = 0;
 					state = 0;
 				}
@@ -506,22 +485,16 @@ TOKEN getNextToken()
 			case 15:
 				{
 					//arith_op , PLUS
-					retract(0);
-					t.name = terminal_string[PLUS];
-					t.value = lexeme;
-					t.line_no = line_count;
-					//printf("PLUS ");
+					lexeme[forward_ptr] = '\0';
+					printf("PLUS ");
 					state = 0;
 				}
 				break;
 			case 16:
 				{
 					//arith_op , MINUS
-					retract(0);
-					t.name = terminal_string[MINUS];
-					t.value = lexeme;
-					t.line_no = line_count;
-					//printf("MINUS ");
+					lexeme[forward_ptr] = '\0';
+					printf("MINUS ");
 					state = 0;
 				}
 				break;
@@ -543,10 +516,7 @@ TOKEN getNextToken()
 					ungetc(c, fp);
 					//arith_op, mul
 					retract(1);
-					t.name = terminal_string[MUL];
-					t.value = lexeme;
-					t.line_no = line_count;
-					//printf("MUL ");
+					printf("MUL ");
 					state = 0;
 				}
 				break;
@@ -578,17 +548,14 @@ TOKEN getNextToken()
 				break;
 			case 21:
 				{
-					// printf("COMMENT ");	//ignore this token
+					printf("COMMENT ");	//ignore this token
 					state = 0;
 				}
 				break;
 			case 22:
 				{
-					retract(0);
-					t.name = terminal_string[DIV];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("DIV ");
+					lexeme[forward_ptr] = '\0';
+					printf("DIV ");
 					state = 0;
 				}
 				break;
@@ -611,30 +578,21 @@ TOKEN getNextToken()
 			case 24:
 				{
 					ungetc(c, fp);
-					retract(1);
-					t.name = terminal_string[LT];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("LT ");
+					lexeme[forward_ptr - 1] = '\0';
+					printf("LT ");
 				}
 				break;
 			case 25:
 				{
-					retract(0);
-					t.name = terminal_string[LE];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("LE ");
+					lexeme[forward_ptr] = '\0';
+					printf("LE ");
 					state = 0;
 				}
 				break;
 			case 26:
 				{
-					retract(0);
-					t.name = terminal_string[DEF];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("DEF ");
+					lexeme[forward_ptr] = '\0';
+					printf("DEF ");
 					state = 0;
 				}
 				break;
@@ -656,31 +614,22 @@ TOKEN getNextToken()
 				break;
 			case 28:
 				{
-					retract(1);
-					t.name = terminal_string[GT];
-					t.value = lexeme;
-					t.line_no = line_count;
+					lexeme[forward_ptr - 1] = '\0';
 					ungetc(c, fp);
-					// printf("GT ");
+					printf("GT ");
 				}
 				break;
 			case 29:
 				{
-					retract(0);
-					t.name = terminal_string[GE];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("GE ");
+					lexeme[forward_ptr] = '\0';
+					printf("GE ");
 					state = 0;
 				}
 				break;
 			case 30:
 				{
-					retract(0);
-					t.name = terminal_string[ENDDEF];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("ENDDEF ");
+					lexeme[forward_ptr] = '\0';
+					printf("ENDDEF ");
 					state = 0;
 				}
 				break;
@@ -700,10 +649,7 @@ TOKEN getNextToken()
 				break;
 			case 32:
 				{
-					retract(0);
-					t.name = terminal_string[EQ];
-					t.value = lexeme;
-					t.line_no = line_count;
+					lexeme[forward_ptr] = '\0';
 					printf("EQ ");
 					state = 0;
 				}
@@ -724,11 +670,8 @@ TOKEN getNextToken()
 				break;
 			case 34:
 				{
-					retract(0);
-					t.name = terminal_string[NE];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("NE ");
+					lexeme[forward_ptr] = '\0';
+					printf("NE ");
 					state = 0;
 				}
 				break;
@@ -746,11 +689,8 @@ TOKEN getNextToken()
 				break;
 			case 36:
 				{
-					retract(0);
-					t.name = terminal_string[ASSIGNOP];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("ASSIGNOP ");
+					lexeme[forward_ptr] = '\0';
+					printf("ASSIGNOP ");
 					state = 0;
 				}
 				break;
@@ -758,10 +698,7 @@ TOKEN getNextToken()
 				{
 					ungetc( c, fp );
 					retract(1);
-					t.name = terminal_string[COLON];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("COLON ");
+					printf("COLON ");
 					state = 0;
 				}
 				break;
@@ -782,10 +719,7 @@ TOKEN getNextToken()
 			case 39:
 				{
 					retract(1);
-					t.name = terminal_string[RANGEOP];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("RANGEOP ");
+					printf("RANGEOP ");
 					state = 0;
 				}
 				break;
@@ -793,10 +727,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[SEMICOL];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("SEMICOL ");
+					printf("SEMICOL ");
 					state = 0;
 				}
 				break;
@@ -804,10 +735,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[COMMA];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("COMMA ");
+					printf("COMMA ");
 					state = 0;
 				}
 				break;
@@ -815,10 +743,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[SQBO];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("SQBO ");
+					printf("SQBO ");
 					state = 0;
 				}
 				break;
@@ -826,10 +751,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[SQBC];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("SQBC ");
+					printf("SQBC ");
 					state = 0;
 				}
 				break;
@@ -837,10 +759,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[BO];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("BO ");
+					printf("BO ");
 					state = 0;
 				}
 				break;
@@ -848,10 +767,7 @@ TOKEN getNextToken()
 				{
 					retract(1);
 					ungetc(c, fp);
-					t.name = terminal_string[BC];
-					t.value = lexeme;
-					t.line_no = line_count;
-					// printf("BC ");
+					printf("BC ");
 					state = 0;
 				}
 				break;

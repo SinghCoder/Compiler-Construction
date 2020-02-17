@@ -27,15 +27,17 @@ typedef enum {
     PLUS, MINUS,
     MUL, DIV,
     LT, LE, GT, GE, EQ, NE,
-    AND, OR
+    AND, OR,
+    END_OF_FILE, LEX_ERROR
 } token_name;
 
 typedef enum { false, true } bool;  // boolean type
 
 typedef struct token {
-    token_name name;
+    char name[MAX_LEXEME_LENGTH];
+    int line_no;
     union value{
-        char *str;
+        char lexeme[MAX_LEXEME_LENGTH];
         int num;
         float rnum;
     };
@@ -47,11 +49,34 @@ int state;
 int lex_len;
 int id_count;
 int line_count;
-int c;
+int f_ptr;
+int lexeme_begin;
+int c; //la char
 
-char buffer1[BUFFER_SIZE];
-char buffer2[BUFFER_SIZE];
+char buffer[BUFFER_SIZE];
+char lexeme[MAX_LEXEME_LENGTH];
 char *err_msg;
 char la_str[2];
-
+char **terminal_string = {
+    "DEF", "MODULE", "ENDDEF",
+    "DRIVERDEF", "DRIVERENDDEF",
+    "TAKES", "INPUT", 
+    "SQBO", "SQBC",
+    "RETURNS",
+    "START", "END",
+    "DECLARE", "ID", "COLON",
+    "ARRAY", "OF", "INTEGER", "REAL", "BOOLEAN", 
+    "TRUE", "FALSE",
+    "ASSIGNOP", "NUM", "RNUM", "SEMICOL",
+    "DRIVER", "PROGRAM",
+    "GET_VALUE", "PRINT",
+    "USE", "WITH", "PARAMETERS", "COMMA",
+    "FOR", "IN", "RANGEOP", "WHILE",
+    "SWITCH", "BO", "BC", "CASE", "BREAK", "DEFAULT",
+    "PLUS", "MINUS",
+    "MUL", "DIV",
+    "LT", "LE", "GT", "GE", "EQ", "NE",
+    "AND", "OR",
+    "END_OF_FILE", "LEX_ERROR"
+}
 #endif

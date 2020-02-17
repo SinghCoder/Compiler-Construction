@@ -6,7 +6,7 @@ declare$ i_1: integer;
 i_1:= val_+ index - 4;
 print(i_1);
 end
-<<driver Program>>
+<<<driver Program>>>
 start
 declare a,b, dummy:integer;
 a:=48;

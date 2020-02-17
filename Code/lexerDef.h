@@ -30,11 +30,12 @@ typedef enum {
 
 typedef struct token {
     token_name name;
-    union{
+    union   {
         char *str;
         int num;
         double rnum;
     };
+    int line_no;
 } TOKEN;
 
 typedef enum { false, true } bool;  // boolean type
@@ -72,4 +73,5 @@ char terminal_string[][20] = {
     "END_OF_FILE",   
     "DELIM"
 };
+
 #endif

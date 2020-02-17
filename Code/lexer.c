@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lexerDef.h"
-#inclu
+
 token_name searchLookupTable(char* lexeme){
     char *lookupTable[30][2];
     return ID;
@@ -17,6 +17,7 @@ TOKEN getToken(){
     }
     TOKEN t;
 
+    t.line_no = line_no;
     int lex_size = forward_ptr - lexeme_begin;
     if(lex_size <0)
 	{
@@ -105,6 +106,7 @@ TOKEN getNextToken(FILE* fp)
     TOKEN t;
     while(1) {
         //printf("%d ", state);
+        t.line_no = line_no;
         switch(state){
             case 0:  ; 
                 c = getChar(fp);
@@ -328,12 +330,14 @@ TOKEN getNextToken(FILE* fp)
 
             case 15:  ;
                 t.name = PLUS;
+                t.str = "+";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 16:  ;
                 t.name = MINUS;
+                t.str = "-";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break; 
@@ -351,6 +355,7 @@ TOKEN getNextToken(FILE* fp)
             case 18:  ;
                 retract(1);
                 t.name = MUL;
+                t.str = "*";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
@@ -381,6 +386,7 @@ TOKEN getNextToken(FILE* fp)
 
             case 22:  ;
                 t.name = DIV;
+                t.str = "/";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
@@ -401,18 +407,21 @@ TOKEN getNextToken(FILE* fp)
             case 24:  ;
                 retract(1);
                 t.name = LT;
+                t.str = "<";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 25:  ;
                 t.name = LE;
+                t.str = "<=";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 26:  ;
                 t.name = DEF;
+                t.str = "<<";
                 lexeme_begin = forward_ptr; state =0; 
                 return t;
                 break;  
@@ -433,18 +442,21 @@ TOKEN getNextToken(FILE* fp)
             case 28:  ;
                 retract(1);
                 t.name = GT;
+                t.str = ">";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 29:  ;
                 t.name = GE;
+                t.str = ">=";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 30:  ;
                 t.name = ENDDEF;
+                t.str = ">>";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break; 
@@ -463,6 +475,7 @@ TOKEN getNextToken(FILE* fp)
 
             case 32:  ;
                 t.name = EQ;
+                t.str = "==";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;  
@@ -481,6 +494,7 @@ TOKEN getNextToken(FILE* fp)
 
             case 34:  ;
                 t.name = NE;
+                t.str = "!=";
                 lexeme_begin = forward_ptr; state =0;
                 return t; 
                 break;   
@@ -497,6 +511,7 @@ TOKEN getNextToken(FILE* fp)
 
             case 36:  ;
                 t.name = ASSIGNOP;
+                t.str = ":=";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
@@ -504,6 +519,7 @@ TOKEN getNextToken(FILE* fp)
             case 37:  ;
                 retract(1);
                 t.name = COLON;
+                t.str = ":";
                 lexeme_begin = forward_ptr; state =0;
                 //printf("colon %c %d", buffer[forward_ptr], forward_ptr);
                 return t;
@@ -523,42 +539,49 @@ TOKEN getNextToken(FILE* fp)
 
             case 39: ;        
                 t.name = RANGEOP;
+                t.str = "..";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 40:  ;  
                 t.name = SEMICOL;
+                t.str = ";";
                 lexeme_begin = forward_ptr; state =0; 
                 return t;
                 break;
 
             case 41: ;   
                 t.name = COMMA;
+                t.str = ",";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 42:  ;  
                 t.name = SQBO;
+                t.str = "[";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 43: ;   
                 t.name = SQBC;
+                t.str = "]";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 44: ;   
                 t.name = BO;
+                t.str = "(";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;
 
             case 45: ;    
                 t.name = BC;
+                t.str = ")";
                 lexeme_begin = forward_ptr; state =0;
                 return t;
                 break;    
@@ -577,12 +600,53 @@ TOKEN getNextToken(FILE* fp)
 void lexError(char *errStr,FILE* fp)
 {
     printf("%d ) Lexical Error : %s\n", line_no, errStr);
-    char c;
-    while(1){
-        if(getChar(fp) == '\n'){
-            line_no++;
-            break;
-        }
-    }
+    // char c;
+    // while(1){
+    //     if(getChar(fp) == '\n'){
+    //         line_no++;
+    //         break;
+    //     }
+    // }
 }
 
+int main()
+{
+    FILE *source = fopen("test.txt", "r");
+    FILE *token_file = fopen("tokens.txt", "w");
+    init();
+    getStream(source);
+    TOKEN t;
+    while(1){
+        t = getNextToken(source);
+        if(t.name == END_OF_FILE){
+            break;
+        }
+        else
+        {
+            if(t.name == LEX_ERROR)
+            {
+                lexError(lexeme,source);
+            }
+            else
+            {
+                if(t.name != DELIM)
+                {
+                    fprintf(token_file, "%s | ", terminal_string[t.name] ); 
+                    switch(t.name)
+                    {
+                        case NUM:  
+                            fprintf(token_file, "%d | ", t.num);
+                            break;
+                        case RNUM:  
+                            fprintf(token_file, "%f | ", t.rnum);
+                            break;
+                        default:
+                            fprintf(token_file, "%s | ", t.str);
+                            break;
+                    }
+                    fprintf(token_file, "%d \n", t.line_no);
+                }
+            }        
+        }
+    }   // end of while
+}   // end of main

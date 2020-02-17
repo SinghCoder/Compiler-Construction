@@ -23,7 +23,7 @@ int main()
             {
                 if(t.name != DELIM)
                 {
-                    fprintf(token_file, "%d ", terminal_string[t.name] ); 
+                    fprintf(token_file, "%s ", terminal_string[t.name] ); 
                 }
                 else
                 {

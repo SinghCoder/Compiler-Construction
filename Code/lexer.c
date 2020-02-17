@@ -1,33 +1,34 @@
 #include <stdio.h>
 #include <ctype.h>
-#include<stdlib.h>
-#include<string.h>
-#include<stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 #include "lexerDef.h"
-
+#inclu
 token_name searchLookupTable(char* lexeme){
     char *lookupTable[30][2];
     return ID;
-    
-
 }
 
 TOKEN getToken(){
 
-    if(lexeme_begin == BUFFER_SIZE){
+    if(lexeme_begin == BUFFER_SIZE)
+	{
         lexeme_begin = 0;
     }
     TOKEN t;
 
     int lex_size = forward_ptr - lexeme_begin;
-    if(lex_size <0){
+    if(lex_size <0)
+	{
         lex_size+= BUFFER_SIZE;
     }
     lexeme[lex_size] = '\0';
     
-    if(2 == state){
+    if(2 == state)
+	{
         
-        if(lex_size >20){
+        if(lex_size >20)
+		{
             t.name = LEX_ERROR;
             return t;    
         }
@@ -38,12 +39,14 @@ TOKEN getToken(){
         return t;
     }    
 
-    if(4 == state || 6 == state){
+    if(4 == state || 6 == state)
+	{
         t.name = NUM;
         t.num = atoi(lexeme);
     }    
 
-    if( 8 == state || 12 == state){
+    if( 8 == state || 12 == state)
+	{
         t.name = RNUM;
         t.rnum = atof(lexeme);
     }
@@ -51,9 +54,11 @@ TOKEN getToken(){
     return t;        
 }
 
-void retract(int num){
+void retract(int num)
+{
     forward_ptr -= num;
-    if(forward_ptr < 0){
+    if(forward_ptr < 0)
+	{
         forward_ptr += BUFFER_SIZE;
     }
     just_retracted = true;
@@ -69,11 +74,6 @@ void init()
 
 void getStream(FILE *fp)
 {
-    //printf("stream: ");
-    //for( int i=0; i<BUFFER_SIZE; i++)
-    //    printf("%c", buffer[i]);
-
-    //printf(" nice ");    
     int num;
     if(forward_ptr == BUFFER_SIZE)
         forward_ptr = 0;
@@ -83,7 +83,8 @@ void getStream(FILE *fp)
 }
 
 char getChar(FILE *fp){
-    if((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE/2) && just_retracted == false){
+    if((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE/2) && just_retracted == false)
+	{
         getStream(fp);
     }
     char c = buffer[forward_ptr];
@@ -584,3 +585,4 @@ void lexError(char *errStr,FILE* fp)
         }
     }
 }
+

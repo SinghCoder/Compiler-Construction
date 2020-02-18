@@ -12,24 +12,23 @@ token_name searchLookupTable(char* lexeme){
 TOKEN getToken(){
 
     if(lexeme_begin == BUFFER_SIZE)
-	{
-        lexeme_begin = 0;
+    {
+	lexeme_begin = 0;
     }
     TOKEN t;
 
     t.line_no = line_no;
     int lex_size = forward_ptr - lexeme_begin;
-    if(lex_size <0)
-	{
-        lex_size+= BUFFER_SIZE;
+    if(lex_size < 0)
+    {
+        lex_size += BUFFER_SIZE;
     }
     lexeme[lex_size] = '\0';
     
     if(2 == state)
-	{
-        
+    {    
         if(lex_size >20)
-		{
+	{
             t.name = LEX_ERROR;
             return t;    
         }
@@ -51,15 +50,14 @@ TOKEN getToken(){
         t.name = RNUM;
         t.rnum = atof(lexeme);
     }
-
     return t;        
 }
 
-void retract(int num)
+void retract(int num_of_char)
 {
-    forward_ptr -= num;
+    forward_ptr -= num_of_char;
     if(forward_ptr < 0)
-	{
+    {
         forward_ptr += BUFFER_SIZE;
     }
     just_retracted = true;
@@ -85,7 +83,7 @@ void getStream(FILE *fp)
 
 char getChar(FILE *fp){
     if((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE/2) && just_retracted == false)
-	{
+    {
         getStream(fp);
     }
     char c = buffer[forward_ptr];
@@ -197,7 +195,8 @@ TOKEN getNextToken(FILE* fp)
                 retract(1);
                 //printf("%c %d ", buffer[forward_ptr], forward_ptr);
                 t = getToken();
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state =0;
                 return t;
                 break;
 
@@ -217,7 +216,8 @@ TOKEN getNextToken(FILE* fp)
             case 4:  ;
                 retract(1);
                 t = getToken();
-                lexeme_begin = forward_ptr; state =0; 
+                lexeme_begin = forward_ptr; 
+		state =0; 
                 return t;
                 break;
 
@@ -239,7 +239,8 @@ TOKEN getNextToken(FILE* fp)
             case 6:  ;
                 retract(2);
                 t = getToken();
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 return t;
                 break;
 
@@ -259,7 +260,8 @@ TOKEN getNextToken(FILE* fp)
             case 8:  ;
                 retract(1);
                 t = getToken();
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 return t;
                 break;
 
@@ -303,15 +305,18 @@ TOKEN getNextToken(FILE* fp)
             case 12:  ;
                 retract(1);
                 t = getToken();
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state =0;
                 return t;
                 break;
 
             case 13:  ;
                 c = getChar(fp);
                 //printf("delim1 %c", c );
-                if(' ' == c || '\n' == c|| '\t' == c){
-                    line_no++;
+                if(' ' == c || '\n' == c|| '\t' == c)
+		{
+		    if('\n' == c)
+                    	line_no++;
                     state = 13;
                 }    
                 else {
@@ -323,7 +328,8 @@ TOKEN getNextToken(FILE* fp)
                 retract(1);
                 t.name = DELIM;
                 //t.num = buffer[forward_ptr-1];
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 //printf("delim %c", buffer[forward_ptr] );
                 return t;
                 break;
@@ -331,14 +337,16 @@ TOKEN getNextToken(FILE* fp)
             case 15:  ;
                 t.name = PLUS;
                 t.str = "+";
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 return t;
                 break;
 
             case 16:  ;
                 t.name = MINUS;
                 t.str = "-";
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 return t;
                 break; 
 
@@ -356,7 +364,8 @@ TOKEN getNextToken(FILE* fp)
                 retract(1);
                 t.name = MUL;
                 t.str = "*";
-                lexeme_begin = forward_ptr; state =0;
+                lexeme_begin = forward_ptr; 
+		state = 0;
                 return t;
                 break;
 

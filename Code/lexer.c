@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <string.h>
 #include "lexerDef.h"
 

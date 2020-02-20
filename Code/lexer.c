@@ -59,7 +59,7 @@ void retract(int num_of_char)
     just_retracted = true;
 }
 
-void init()
+void lexer_init()
 {
     state = 0;
     lexeme_begin = forward_ptr= 0;

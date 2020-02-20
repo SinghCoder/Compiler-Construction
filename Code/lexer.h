@@ -18,6 +18,6 @@ TOKEN getToken();
 
 void retract(int num);
 
-void init();
+void lexer_init();
 
 #endif

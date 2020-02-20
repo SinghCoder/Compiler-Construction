@@ -11,4 +11,6 @@ void insert_at_end(rhsnode_ptr *tail, symbol sym, type_of_sym tag);
 
 void print_grammar();
 
+void parser_init();
+
 #endif

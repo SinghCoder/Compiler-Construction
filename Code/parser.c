@@ -4,42 +4,40 @@
 #include <ctype.h>
 #include "parser.h"
 
-rhsnode_ptr insert(rhsnode_ptr head, symbol sym, type_of_sym tag)
+void insert_at_end(rhsnode_ptr *tail, symbol sym, type_of_sym tag)
 {
-    rhsnode_ptr temp = head;
-    if(head == NULL)
+    // if( tag == T)
+    // {
+    //     printf("T: %s\n", terminal_string[sym.t]);
+    // }
+    // else
+    // {
+    //     printf("NT: %s\n", non_terminal_string[sym.nt]);
+    // }
+    if(tail == NULL || *tail == NULL)
     {
-        temp = (rhsnode_ptr)malloc(sizeof(rhsnode));
+        rhsnode_ptr temp = (rhsnode_ptr)malloc(sizeof(rhsnode));
         temp->s = sym;
         temp->flag = tag;
         temp->next = NULL;
-        return temp;
+        *tail = temp;
+        return;
     }
     
-    // printf("insert: %d\n", sym);
-
-    while(temp->next != NULL)
-    {
-        // perror("hi");
-        // printf(" %d\n", temp->s);
-        temp = temp->next;
-    }
-
     rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
     node->s = sym;
     node->flag = tag;
     node->next = NULL;
 
-    temp->next = node;
-
-    return head;
+    (*tail)->next = node;
+    *tail = node;
+    // return head;
 }
 
-grammar_t get_rules(FILE *fptr)
+void grammar_fill(FILE *fptr)
 {
-    grammar_t g;
     
-    g = (grammar_t)malloc(sizeof(cell) * NUM_OF_RULES);
+    // grammar = (grammar_t)malloc(sizeof(cell) * NUM_OF_RULES);
     
     int rule_index = 0;
 
@@ -52,28 +50,38 @@ grammar_t get_rules(FILE *fptr)
         int i;
         for( i = 0,sym_read = strtok(buffer, " \n"); sym_read != NULL ; sym_read = strtok(NULL, " \n"), i++) 
         {
+            // printf("%s\n", sym_read);
             if(i == 0)  //LHS of a production
             {
-                g[rule_index].sym = get_symbol_val( sym_read ).nt;
-                g[rule_index].head = NULL;
-                // printf("%d\n", g[rule_index].sym);
+                grammar[rule_index].sym = get_symbol_val( sym_read ).nt;
+                grammar[rule_index].head = NULL;
+                grammar[rule_index].tail = NULL;
+                // printf("%d\n", grammar[rule_index].sym);
                 // printf("LHS: = %d\n", get_symbol_val( sym_read ).nt);
             }
             else
             {
                 symbol sym = get_symbol_val(sym_read);
                 type_of_sym tag ;
-                if(sym_read[0] >= 'A' && sym_read[0] <= 'Z')
+                // printf("%c\n", sym_read[0]);
+                if((sym_read[0] >= 'A') && (sym_read[0] <= 'Z'))
                 {
                     tag = NT;
                     // printf("RHS: %d\n", get_symbol_val(sym_read).nt);
                 }
                 else
                 {
+                    // printf("hi\n");
                     tag = T;
+                    // if(sym.t == 32763)
+                        // printf("----------------%s-------------------", sym_read);
                     // printf("RHS: %d\n", get_symbol_val(sym_read).t);
                 }
-                g[rule_index].head = insert(g[rule_index].head, sym, tag);
+                insert_at_end(&(grammar[rule_index].tail), sym, tag);
+                if(grammar[rule_index].head == NULL)
+                {
+                    grammar[rule_index].head = grammar[rule_index].tail;
+                }
             }
         }
 
@@ -82,26 +90,26 @@ grammar_t get_rules(FILE *fptr)
         // break;
     }
 
-    return g;
+    // return g;
 }
 symbol get_symbol_val(char str[])
 {
-    // printf("str: %s, ", str);
-    int isTerminal=0;
+    // printf("str: %s\n", str);
+    bool isTerminal=0;
     symbol s;
-    if(str[0] >='A' && str[0] <= 'Z')
+    if((str[0] >= 'A') && (str[0] <= 'Z'))
     {
-        isTerminal = 0;
+        isTerminal = false;
     }
     else
     {
-        isTerminal = 1;
+        isTerminal = true;
     }
-    if(0 == isTerminal)
+    if(false == isTerminal)
     {
         for(int i=0; i < NUM_OF_NONTERMINALS ;i++)
         {
-            if(strcmp(str,non_terminal_string[i])==0)
+            if(strcmp(str,non_terminal_string[i]) == 0)
             {
                 s.nt = i;
                 break;
@@ -110,32 +118,41 @@ symbol get_symbol_val(char str[])
     }
     else
     {
-        for(int i=0; i<strlen(str); i++)
+        // if(strcmp(str, "epsilon") == 0)
+        // {
+        //     printf("------------------------------------------------------------\n");
+        // }
+        char tmp[strlen(str)];
+        strcpy(tmp, str);
+        for(int i=0; i<strlen(tmp); i++)
         {
-            str[i] = toupper(str[i]);
+            tmp[i] = toupper(tmp[i]);
         }
+        // printf("%s\n", str);
         for(int i=0; i < NUM_OF_TERMINALS; i++)
         {
-            if(strcmp(str,terminal_string[i])==0)
+            if(strcmp(tmp,terminal_string[i]) == 0)
             {
                 s.t = i;
+                // printf("%d\n", s.t);
                 break;
             }
         }
+        
     }
     // printf("fn:%d\n", s);
     return s;
     // here 53 represents the total size of non_terminal_string 
 }
 
-void print_grammar(grammar_t g)
+void print_grammar()
 {
     for(int i=0; i < NUM_OF_RULES; i++)
     {
         // if()
-        printf("%s -> ", non_terminal_string[g[i].sym]);
+        printf("%s -> ", non_terminal_string[grammar[i].sym]);
 
-        rhsnode_ptr temp = g[i].head;
+        rhsnode_ptr temp = grammar[i].head;
         while(temp != NULL)
         {
             if(temp -> flag == NT)
@@ -144,6 +161,7 @@ void print_grammar(grammar_t g)
             }
             else
             {
+                // printf("%d\n", (temp->s).t);
                 printf("%s ", terminal_string[(temp -> s).t]);
             }
             temp = temp->next;
@@ -159,9 +177,7 @@ int main()
     {
         perror("fopen");
     }
-    grammar_t g = get_rules(fptr);
+    grammar_fill(fptr);
 
-    printf("------%s--------\n", terminal_string[EPSILON]);
-
-    print_grammar(g);
+    print_grammar();
 }

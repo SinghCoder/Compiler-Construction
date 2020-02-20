@@ -2,7 +2,7 @@
 #define LEXERDEF_H
 
 #define BUFFER_SIZE 20
-#define NUM_OF_TERMINALS 59
+#define NUM_OF_TERMINALS 60
 
 typedef enum {
     DEF, MODULE, ENDDEF,
@@ -27,7 +27,8 @@ typedef enum {
     LEX_ERROR,      
     END_OF_FILE,   
     DELIM,
-    EPSILON
+    EPSILON,
+    PROGRAM
 } token_name;
 
 typedef struct token {
@@ -74,7 +75,8 @@ char terminal_string[][20] = {
     "LEX_ERROR",    
     "END_OF_FILE",   
     "DELIM",
-    "EPSILON"
+    "EPSILON",
+    "PROGRAM"
 };
 
 #endif

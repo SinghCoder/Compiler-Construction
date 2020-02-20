@@ -7,7 +7,7 @@
 #define NUM_OF_NONTERMINALS 53
 typedef enum
 {
-    PROGRAM,
+    MAINPROGRAM,
     MODULEDECLARATIONS,
     MODULEDECLARATION,
     OTHERMODULES,
@@ -63,7 +63,7 @@ typedef enum
 } nonterminal;
 
 char non_terminal_string [][25] = {
-    "PROGRAM",
+    "MAINPROGRAM",
     "MODULEDECLARATIONS",
     "MODULEDECLARATION",
     "OTHERMODULES",
@@ -140,7 +140,9 @@ typedef struct
 {
     nonterminal sym;
     rhsnode_ptr head;
+    rhsnode_ptr tail;
 } cell;
 
-typedef cell *grammar_t;
+// typedef cell *grammar_t;
+cell grammar[NUM_OF_RULES];
 #endif

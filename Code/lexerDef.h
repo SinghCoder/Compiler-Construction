@@ -2,7 +2,7 @@
 #define LEXERDEF_H
 
 #define BUFFER_SIZE 20
-#define TOTAL_TOKEN_NAMES 59
+#define NUM_OF_TERMINALS 60
 
 typedef enum {
     DEF, MODULE, ENDDEF,
@@ -15,7 +15,7 @@ typedef enum {
     ARRAY, OF, INTEGER, REAL, BOOLEAN, 
     TRUE, FALSE,
     ASSIGNOP, NUM, RNUM, SEMICOL,
-    DRIVER, PROGRAM,
+    DRIVER,
     GET_VALUE, PRINT,
     USE, WITH, PARAMETERS, COMMA,
     FOR, IN, RANGEOP, WHILE,
@@ -26,7 +26,9 @@ typedef enum {
     AND, OR,
     LEX_ERROR,      
     END_OF_FILE,   
-    DELIM, 
+    DELIM,
+    EPSILON,
+    PROGRAM
 } token_name;
 
 typedef struct token {
@@ -50,6 +52,6 @@ char lexeme[BUFFER_SIZE];
 int lexeme_begin;
 int forward_ptr;
 int line_no;
-char *terminal_string[TOTAL_TOKEN_NAMES];
+char *terminal_string[NUM_OF_TERMINALS];
 
 #endif

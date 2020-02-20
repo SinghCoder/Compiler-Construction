@@ -65,9 +65,8 @@ void init()
     lexeme_begin = forward_ptr= 0;
     just_retracted = false;
     line_no = 1;
-    init_hash_table();
 
-    char *terminal_string_copy[TOTAL_TOKEN_NAMES] = {
+    char *terminal_string_copy[NUM_OF_TERMINALS] = {
         "DEF", "MODULE", "ENDDEF",
         "DRIVERDEF", "DRIVERENDDEF",
         "TAKES", "INPUT", 
@@ -78,7 +77,7 @@ void init()
         "ARRAY", "OF", "INTEGER", "REAL", "BOOLEAN", 
         "TRUE", "FALSE",
         "ASSIGNOP", "NUM", "RNUM", "SEMICOL",
-        "DRIVER", "PROGRAM",
+        "DRIVER", 
         "GET_VALUE", "PRINT",
         "USE", "WITH", "PARAMETERS", "COMMA",
         "FOR", "IN", "RANGEOP", "WHILE",
@@ -90,16 +89,19 @@ void init()
         "LEX_ERROR",    
         "END_OF_FILE",   
         "DELIM",
+        "EPSILON",
+        "PROGRAM"
     };
 
-    for(int i = 0; i < TOTAL_TOKEN_NAMES; i++)
+    for(int i = 0; i < NUM_OF_TERMINALS; i++)
     {
         
-        terminal_string[i] = malloc(20 * sizeof(char));
+        terminal_string[i] = (char*)malloc(20 * sizeof(char));
         terminal_string[i] = terminal_string_copy[i];
         // printf("terminal string %s\n", terminal_string[i]);
     }
-        
+
+    init_hash_table();  
 }
 
 void getStream(FILE *fp)

@@ -18,8 +18,6 @@ TOKEN getToken();
 
 void retract(int num);
 
-token_name searchLookupTable(char* lexeme);
-
 void init();
 
 #endif

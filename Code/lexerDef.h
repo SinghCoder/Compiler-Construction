@@ -52,31 +52,6 @@ char lexeme[BUFFER_SIZE];
 int lexeme_begin;
 int forward_ptr;
 int line_no;
-char terminal_string[][20] = {
-    "DEF", "MODULE", "ENDDEF",
-    "DRIVERDEF", "DRIVERENDDEF",
-    "TAKES", "INPUT", 
-    "SQBO", "SQBC",
-    "RETURNS",
-    "START", "END",
-    "DECLARE", "ID", "COLON",
-    "ARRAY", "OF", "INTEGER", "REAL", "BOOLEAN", 
-    "TRUE", "FALSE",
-    "ASSIGNOP", "NUM", "RNUM", "SEMICOL",
-    "DRIVER", 
-    "GET_VALUE", "PRINT",
-    "USE", "WITH", "PARAMETERS", "COMMA",
-    "FOR", "IN", "RANGEOP", "WHILE",
-    "SWITCH", "BO", "BC", "CASE", "BREAK", "DEFAULT",
-    "PLUS", "MINUS",
-    "MUL", "DIV",
-    "LT", "LE", "GT", "GE", "EQ", "NE",
-    "AND", "OR",
-    "LEX_ERROR",    
-    "END_OF_FILE",   
-    "DELIM",
-    "EPSILON",
-    "PROGRAM"
-};
+char *terminal_string[NUM_OF_TERMINALS];
 
 #endif

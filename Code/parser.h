@@ -3,12 +3,12 @@
 
 #include "parserDef.h"
 
-grammar_t get_rules(FILE *fp);
+void grammar_fill(FILE *fp);
 
 symbol get_symbol_val(char str[]);
 
-rhsnode_ptr insert(rhsnode_ptr, symbol sym, type_of_sym tag);
+void insert_at_end(rhsnode_ptr *tail, symbol sym, type_of_sym tag);
 
-void print_grammar(grammar_t g);
+void print_grammar();
 
 #endif

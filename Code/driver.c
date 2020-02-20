@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "lexer.h"
 #include "lexerDef.h"
 
@@ -17,22 +20,29 @@ int main()
         {
             if(t.name == LEX_ERROR)
             {
-                lexError("",source);
+                lexError(lexeme,source);
             }
             else
             {
                 if(t.name != DELIM)
                 {
-                    fprintf(token_file, "%s ", terminal_string[t.name] ); 
-                }
-                else
-                {
-                    if(t.num == '\n')
+                    fprintf(token_file, "%s | ", terminal_string[t.name] ); 
+                    switch(t.name)
                     {
-                        fprintf(token_file, "\n");
+                        case NUM:  
+                            fprintf(token_file, "%d | ", t.num);
+                            break;
+                        case RNUM:  
+                            fprintf(token_file, "%f | ", t.rnum);
+                            break;
+                        default:
+                            fprintf(token_file, "%s | ", t.str);
+                            break;
                     }
+                    fprintf(token_file, "%d \n", t.line_no);
                 }
             }        
         }
     }   // end of while
 }   // end of main
+

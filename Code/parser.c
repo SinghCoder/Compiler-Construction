@@ -14,22 +14,16 @@ void insert_at_end(rhsnode_ptr *tail, symbol sym, type_of_sym tag)
     // {
     //     printf("NT: %s\n", non_terminal_string[sym.nt]);
     // }
-    if(tail == NULL || *tail == NULL)
-    {
-        rhsnode_ptr temp = (rhsnode_ptr)malloc(sizeof(rhsnode));
-        temp->s = sym;
-        temp->flag = tag;
-        temp->next = NULL;
-        *tail = temp;
-        return;
-    }
-    
+
     rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
     node->s = sym;
     node->flag = tag;
     node->next = NULL;
 
-    (*tail)->next = node;
+    if(tail != NULL)
+    {
+       (*tail)->next = node;
+    }
     *tail = node;
     // return head;
 }

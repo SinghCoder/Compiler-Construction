@@ -3,11 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "lexerDef.h"
-
-token_name searchLookupTable(char* lexeme){
-    char *lookupTable[30][2];
-    return ID;
-}
+#include "hashtable.h"
 
 TOKEN getToken(){
 
@@ -69,6 +65,43 @@ void init()
     lexeme_begin = forward_ptr= 0;
     just_retracted = false;
     line_no = 1;
+
+    char *terminal_string_copy[NUM_OF_TERMINALS] = {
+        "DEF", "MODULE", "ENDDEF",
+        "DRIVERDEF", "DRIVERENDDEF",
+        "TAKES", "INPUT", 
+        "SQBO", "SQBC",
+        "RETURNS",
+        "START", "END",
+        "DECLARE", "ID", "COLON",
+        "ARRAY", "OF", "INTEGER", "REAL", "BOOLEAN", 
+        "TRUE", "FALSE",
+        "ASSIGNOP", "NUM", "RNUM", "SEMICOL",
+        "DRIVER", 
+        "GET_VALUE", "PRINT",
+        "USE", "WITH", "PARAMETERS", "COMMA",
+        "FOR", "IN", "RANGEOP", "WHILE",
+        "SWITCH", "BO", "BC", "CASE", "BREAK", "DEFAULT",
+        "PLUS", "MINUS",
+        "MUL", "DIV",
+        "LT", "LE", "GT", "GE", "EQ", "NE",
+        "AND", "OR",
+        "LEX_ERROR",    
+        "END_OF_FILE",   
+        "DELIM",
+        "EPSILON",
+        "PROGRAM"
+    };
+
+    for(int i = 0; i < NUM_OF_TERMINALS; i++)
+    {
+        
+        terminal_string[i] = (char*)malloc(20 * sizeof(char));
+        terminal_string[i] = terminal_string_copy[i];
+        // printf("terminal string %s\n", terminal_string[i]);
+    }
+
+    init_hash_table();  
 }
 
 void getStream(FILE *fp)
@@ -647,44 +680,3 @@ void lexError(char *errStr,FILE* fp)
     // }
 }
 
-int main()
-{
-    FILE *source = fopen("test.txt", "r");
-    FILE *token_file = fopen("tokens.txt", "w");
-    init();
-    getStream(source);
-    TOKEN t;
-    while(1){
-        t = getNextToken(source);
-        if(t.name == END_OF_FILE){
-            break;
-        }
-        else
-        {
-            if(t.name == LEX_ERROR)
-            {
-                lexError(lexeme,source);
-            }
-            else
-            {
-                if(t.name != DELIM)
-                {
-                    fprintf(token_file, "%s | ", terminal_string[t.name] ); 
-                    switch(t.name)
-                    {
-                        case NUM:  
-                            fprintf(token_file, "%d | ", t.num);
-                            break;
-                        case RNUM:  
-                            fprintf(token_file, "%f | ", t.rnum);
-                            break;
-                        default:
-                            fprintf(token_file, "%s | ", t.str);
-                            break;
-                    }
-                    fprintf(token_file, "%d \n", t.line_no);
-                }
-            }        
-        }
-    }   // end of while
-}   // end of main

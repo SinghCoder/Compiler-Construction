@@ -3,12 +3,15 @@
 #include <stdlib.h>
 #include "lexer.h"
 #include "lexerDef.h"
+#include "parser.h"
+
 
 int main()
 {
     FILE *source = fopen("test.txt", "r");
     FILE *token_file = fopen("tokens.txt", "w");
-    init();
+    lexer_init();
+    parser_init();
     getStream(source);
     TOKEN t;
     while(1){
@@ -44,5 +47,17 @@ int main()
             }        
         }
     }   // end of while
+
+
+    FILE *fptr = fopen("grammar.txt", "r");
+    if(fptr == NULL)
+    {
+        perror("fopen");
+    }
+    grammar_fill(fptr);
+
+    print_grammar();
+
+
 }   // end of main
 

@@ -4,27 +4,94 @@
 #include <ctype.h>
 #include "parser.h"
 
-void insert_at_end(rhsnode_ptr *tail, symbol sym, type_of_sym tag)
+void parser_init()
 {
-    // if( tag == T)
-    // {
-    //     printf("T: %s\n", terminal_string[sym.t]);
-    // }
-    // else
-    // {
-    //     printf("NT: %s\n", non_terminal_string[sym.nt]);
-    // }
+    char non_terminal_string_copy[NUM_OF_NONTERMINALS][25] = {
+        "MAINPROGRAM",
+        "MODULEDECLARATIONS",
+        "MODULEDECLARATION",
+        "OTHERMODULES",
+        "DRIVERMODULE",
+        "NTMODULE",
+        "MODULEDEF",
+        "RET",
+        "INPUT_PLIST",
+        "INPUT_PLIST_DASH",
+        "OUTPUT_PLIST",
+        "OUTPUT_PLIST_DASH",
+        "DATATYPE",
+        "TYPE",
+        "STATEMENTS",
+        "STATEMENT",
+        "IOSTMT",
+        "LITERAL",
+        "VAR",
+        "WHICHID",
+        "SIMPLESTMT",
+        "ASSIGNMENTSTMT",
+        "WHICHSTMT",
+        "LVALUEIDSTMT",
+        "LVALUEARRSTMT",
+        "INDEX",
+        "MODULEREUSESTMT",
+        "OPTIONAL",
+        "IDLIST",
+        "IDLIST_DASH",
+        "EXPRESSION",
+        "RESTEXPRESSION",
+        "RELATIONALEXPR",
+        "RESTRELATIONALEXPR",
+        "LOGICALOP",
+        "RELATIONALOP",
+        "UNARYARITHMETICEXPR",
+        "RESTUNARYARITHMETICEXPR",
+        "NONUNARYARITHMETICEXPR",
+        "ARITHMETICEXPRDASH",
+        "TERM",
+        "TERM_DASH",
+        "FACTOR",
+        "ADDSUBOP",
+        "MULDIVOP",
+        "DECLARESTMT",
+        "CONDITIONALSTMT",
+        "CASESTMT",
+        "OTHERCASE",
+        "VALUE",
+        "DEFAULTSTMT",
+        "ITERATIVESTMT",
+        "RANGE"
+    };
+
+    for( int i=0 ; i<NUM_OF_NONTERMINALS; i++)
+    {
+        strcpy(non_terminal_string[i], non_terminal_string_copy[i]);
+    }
+
+}
+
+void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym, type_of_sym tag)
+{
+    if( tag == T)
+    {
+        printf("T: %s\n", terminal_string[sym.t]);
+    }
+    else
+    {
+        printf("NT: %s\n", non_terminal_string[sym.nt]);
+    }
+
+    fflush(stdout);
 
     rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
     node->s = sym;
     node->flag = tag;
     node->next = NULL;
 
-    if(tail != NULL)
+    if(*ptr_tail != NULL)
     {
-       (*tail)->next = node;
+       (*ptr_tail)->next = node;
     }
-    *tail = node;
+    *ptr_tail = node;
     // return head;
 }
 
@@ -162,16 +229,4 @@ void print_grammar()
         }
         printf("\n");
     }
-}
-
-int main()
-{
-    FILE *fptr = fopen("grammar.txt", "r");
-    if(fptr == NULL)
-    {
-        perror("fopen");
-    }
-    grammar_fill(fptr);
-
-    print_grammar();
 }

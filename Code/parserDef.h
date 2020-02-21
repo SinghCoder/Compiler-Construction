@@ -1,94 +1,48 @@
 #ifndef PARSERDEF_H
 #define PARSERDEF_H
-#include "lexerDef.h"
 
-#define MAX_LENGTH 100
+#include "lexerDef.h"
+#include<stdbool.h>
+
+#define RHS_MAX_LENGTH 100
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
 typedef enum
 {
-    MAINPROGRAM,
-    MODULEDECLARATIONS,
-    MODULEDECLARATION,
-    OTHERMODULES,
-    DRIVERMODULE,
-    NTMODULE,
-    MODULEDEF,
-    RET,
-    INPUT_PLIST,
-    INPUT_PLIST_DASH,
-    OUTPUT_PLIST,
-    OUTPUT_PLIST_DASH,
-    DATATYPE,
-    TYPE,
-    STATEMENTS,
-    STATEMENT,
-    IOSTMT,
-    LITERAL,
-    VAR,
-    WHICHID,
-    SIMPLESTMT,
-    ASSIGNMENTSTMT,
-    WHICHSTMT,
-    LVALUEIDSTMT,
-    LVALUEARRSTMT,
-    INDEX,
-    MODULEREUSESTMT,
-    OPTIONAL,
-    IDLIST,
-    IDLIST_DASH,
-    EXPRESSION,
-    RESTEXPRESSION,
-    RELATIONALEXPR,
-    RESTRELATIONALEXPR,
-    LOGICALOP,
-    RELATIONALOP,
-    UNARYARITHMETICEXPR,
-    RESTUNARYARITHMETICEXPR,
-    NONUNARYARITHMETICEXPR,
-    ARITHMETICEXPRDASH,
-    TERM,
-    TERM_DASH,
-    FACTOR,
-    ADDSUBOP,
-    MULDIVOP,
-    DECLARESTMT,
-    CONDITIONALSTMT,
-    CASESTMT,
-    OTHERCASE,
-    VALUE,
-    DEFAULTSTMT,
-    ITERATIVESTMT,
-    RANGE
+    #include "non_terminals.txt"
 } nonterminal;
 
-char non_terminal_string [NUM_OF_NONTERMINALS][25];
+char non_terminal_string [NUM_OF_NONTERMINALS][50];
 
-typedef enum {T, NT} type_of_sym;
-
-typedef union
-{
+typedef struct{
+    union{
     token_name t;
     nonterminal nt;
+    };
+    bool is_terminal;
 } symbol;
 
-struct rhsnode
+typedef struct rhsnode
 {
     symbol s;
-    type_of_sym flag;
     struct rhsnode *next;
-};
+} rhsnode;
 
-typedef struct rhsnode rhsnode;
 typedef struct rhsnode *rhsnode_ptr;
 
-typedef struct 
+typedef struct
 {
-    nonterminal sym;
+    nonterminal lhs;
     rhsnode_ptr head;
     rhsnode_ptr tail;
 } cell;
 
 // typedef cell *grammar_t;
 cell grammar[NUM_OF_RULES];
+
+hash_table terminal_table;
+hash_table non_terminal_table;
+
+int parse_table[NUM_OF_NONTERMINALS][NUM_OF_TERMINALS];
+
 #endif

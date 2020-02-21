@@ -8,6 +8,7 @@
 #define BITSTRING_PART_NUM 3
 #define sz(x) sizeof(x) 
 typedef unsigned long long int ull;
+#define NUM_BITS (8 * sz(ull))
 
 typedef enum
 {

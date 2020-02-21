@@ -1,16 +1,4 @@
-typedef struct {
-    int MAX_SIZE = 50;
-    symbol[MAX_SIZE] stack;
-    int top = 0;
-} stack_adt
-
-stack_adt nt_stack;
-
-void push(symbol s);
-
-symbol top();
-
-void pop();
+#include "stackADT.h"
 
 void push(symbol s) {
     if(top == MAX_SIZE) {

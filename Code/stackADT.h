@@ -10,9 +10,7 @@ void push(symbol s);
 
 symbol top();
 
-void pop();
-
-void push(symbol s) {
+void pop();void push(symbol s) {
     if(top == MAX_SIZE) {
         perror("Stack full, increase MAX_SIZE\n");
         return;

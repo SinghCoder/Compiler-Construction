@@ -56,8 +56,11 @@ int main()
     }
     grammar_fill(fptr);
 
-    print_grammar();
+    // print_grammar();
 
-
+    // get_nullable_set();
+    populate_first_sets();
+    
+    print_first_sets();
 }   // end of main
 

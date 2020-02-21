@@ -13,4 +13,13 @@ void print_grammar();
 
 void parser_init();
 
+void populate_first_sets();
+
+unsigned long long int get_nullable_set();
+
+void print_first_sets();
+
+ull* firstOf(nonterminal nt);
+
+bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM]);
 #endif

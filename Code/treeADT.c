@@ -1,24 +1,21 @@
-struct TREENODE{
-    struct TREENODE* next= NULL;
-    struct TREENODE* child= NULL;
-    bool isterminal = false;
-    symbol s;
-};
+#include "treeADT.h"
+#include <stdio.h>
 
-typedef struct TREENODE treenode
-
-treenode* rootpointer;
-
-void init_tree() {
-    rootpointer = (treenode*)malloc(sizeof(treenode));
-    rootpointer->next = NULL;
-    rootpointer->child = NULL;
-    rootpointer->isterminal = false;
-    rootpointer->
-
+tree_node *create_tree_node() {
+  tree_node *node = (tree_node *)malloc(sizeof(tree_node));
+  node->parent = NULL;
+  node->sibling = NULL;
+  node->leftmost_child = NULL;
+  node->rightmost_child = NULL;
+  return node;
 }
 
-treenode* add_child(treenode* add_loc)
-{
-    treenode* temp -add_loc
+void add_child(tree_node *parent, tree_node *child) {
+
+  if (parent->rightmost_child == NULL) {
+    parent->leftmost_child = parent->rightmost_child = child;
+  } else {
+    parent->rightmost_child->sibling = child;
+    parent->rightmost_child = child;
+  }
 }

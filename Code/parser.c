@@ -67,18 +67,28 @@ void parser_init()
         strcpy(non_terminal_string[i], non_terminal_string_copy[i]);
     }
 
+
+    //initialize all first sets to be null
+    for(int i=0; i<NUM_OF_NONTERMINALS; i++)
+    {
+        // first_set[i] = 0;
+        for(int j = 0; j < BITSTRING_PART_NUM ; j++)
+        {
+            first_set[i][j] = 0;
+        }
+    }
 }
 
 void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym, type_of_sym tag)
 {
-    if( tag == T)
-    {
-        printf("T: %s\n", terminal_string[sym.t]);
-    }
-    else
-    {
-        printf("NT: %s\n", non_terminal_string[sym.nt]);
-    }
+//     if( tag == T)
+//     {
+//         printf("T: %s\n", terminal_string[sym.t]);
+//     }
+//     else
+//     {
+//         printf("NT: %s\n", non_terminal_string[sym.nt]);
+//     }
 
     fflush(stdout);
 
@@ -230,3 +240,134 @@ void print_grammar()
         printf("\n");
     }
 }
+
+unsigned long long int get_nullable_set()
+{
+    unsigned long long int set = 0;
+    int mask = 1;
+    int sym = 0;
+    int flag;
+
+    for(int i=0; i<NUM_OF_RULES; i++)
+    {
+        flag = (grammar[i].head)->flag;
+        if(flag == NT)
+        {
+            sym = (int)( (grammar[i].head)->s ).nt;
+            continue;
+        }
+        else
+        {
+            sym = (int)( (grammar[i].head)->s ).t;
+            if( sym == EPSILON )
+            {
+                set |= (mask << grammar[i].sym);
+                // printf("%d", sym);
+                // printf("%s\n", non_terminal_string[grammar[i].sym]);
+            }
+        }
+    }
+    return set;
+}
+
+// ull 
+
+void print_first_sets()
+{
+    for( int i = 0; i < NUM_OF_NONTERMINALS; i++)
+    {
+        printf("FIRST(%s) = { " , non_terminal_string[i] );
+        for(int j = 0; j< BITSTRING_PART_NUM ; j++)
+        {
+            for(int k = 0; k < sz(ull); k++)
+            {
+                if(first_set[i][j] & (1 << k) != 0)
+                {
+                    printf("%s, ", terminal_string[j*sz(ull) + k]);
+                }
+            }
+        }
+        printf(" }\n");
+    }
+}
+
+ull* firstOf(nonterminal nt)
+{
+    return first_set[nt];
+}
+
+bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM])
+{
+    for(int i=0; i<BITSTRING_PART_NUM; i++)
+    {
+        for(int j=0; j<sz(ull); j++)
+        {
+            if( ~( a[i] & (1<<j) ) && ( b[i] & ( 1<<j ) ) ) //jth bit of a[i] is not set but of b[i] is set => a cannot be superset of b
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void populate_first_sets()
+{
+    // grammar[i].head
+    bool is_changed = true;
+    int lhs;
+    rhsnode_ptr rhs_ptr;
+    while(is_changed == true)
+    {
+        is_changed = false;
+        for(int i=0; i<NUM_OF_RULES; i++)
+        {
+            lhs = grammar[i].sym;
+            rhs_ptr = grammar[i].head;
+            if(rhs_ptr -> flag == T)
+            {
+                token_name t = (rhs_ptr -> s).t;
+                if( ( first_set[lhs][t / sz(ull)] & ( 1 << (t % sz(ull)) ) ) == 0) //check if terminal already there in the first set
+                {
+                    // printf("Adding term %s to first(%s)\n", terminal_string[t], non_terminal_string[lhs]);
+                    first_set[lhs][t / sz(ull)] |= ( 1 << t % sz(ull) );
+                    is_changed = true;
+                }
+            }
+            else
+            {
+                rhsnode_ptr temp = rhs_ptr;
+                ull* first_rhs = firstOf( (temp -> s).nt );
+                while(temp != NULL)
+                {
+                    //first_set[lhs]|=first_set
+                    if(is_superset(first_set[lhs], first_rhs) == false)
+                    {
+                        is_changed = true;
+                        // printf("Adding first(%s) to first(%s)\n", non_terminal_string[ (temp->s).nt ], non_terminal_string[lhs]);
+                        for(int j = 0; j < BITSTRING_PART_NUM; j++)
+                        {
+                            first_set[lhs][j] |= first_rhs[j];
+                        }
+                    }
+                    if( first_rhs[ EPSILON / sz(ull) ] & ( 1 << (EPSILON % sz(ull)) ) == 0)//firstOf( this nt ) does nto contain epsilon
+                    {
+                        printf("first(%s) does not contain epsilon yet\n", non_terminal_string[ (temp->s).nt ]);
+                        break;
+                    }
+                    else
+                    {
+                        // check if the current nt on rhs is last nt of the rule, if no, remove epsilon from first_set(lhs)
+                        if(temp->next != NULL)  //isn't last node
+                        {
+                            first_set[lhs][ EPSILON / sz(ull) ] &= (~ ( 1 << (EPSILON % sz(ull)) ) );
+                            // printf("Removing term %s from first(%s)\n", terminal_string[ EPSILON ], non_terminal_string[lhs]);
+                        }
+                    }
+                    temp = temp -> next;
+                }   // end of rule linked list traversal while loop
+            }   // end of else (non-terminal branch)
+        }   // end of for - grammar traversal
+    }   // end of while - infinite loop until convergence
+}   // end of function
+

@@ -134,12 +134,17 @@ void lookup_table_fill()
   hash_insert(lookup_table, "while", WHILE);
 }
 
-void lexer_init() 
+void reset_lexer_dfa()
 {
   state = 0;
   lexeme_begin = forward_ptr = 0;
   just_retracted = false;
   line_no = 1;
+}
+
+void lexer_init() 
+{
+  reset_lexer_dfa();
   lookup_table_fill();
 }
 
@@ -688,12 +693,15 @@ void lexError(char *errStr, FILE *fp) {
 }
 
 void print_token_stream(FILE *source) {
-  FILE *token_file = fopen("token_stream.txt", "w");
+  // FILE *token_file = fopen("token_stream.txt", "w");
   TOKEN t;
+
+  printf("%-15s  |  %-20s  |  %-20s\n", "Line_number", "lexeme", "Token_name");
+
   while (1) {
     // printf("hi\n");
     t = getNextToken(source);
-    printf("token: %s\n", terminal_string[t.name]);
+    // printf("token: %s\n", terminal_string[t.name]);
     if (t.name == DOLLAR) 
     {
       break;
@@ -702,32 +710,34 @@ void print_token_stream(FILE *source) {
     {
       if (t.name == LEX_ERROR) 
       {
-        lexError(lexeme, source);
+        // lexError(lexeme, source);
+        printf("==========================================================\n");
+        printf("%-15d  |  %-20s  |  %-20s\n", t.line_no , t.str , "LEXICAL ERROR");
+        printf("==========================================================\n");
       } 
       else
       {
         if (t.name != DELIM) 
         {
-          // printf("terminal string is :%s\n", terminal_string[t.name]);
-          fprintf(token_file, "%s | ", terminal_string[t.name]);
+          // fprintf(token_file, "%s | ", terminal_string[t.name]);
+          printf("%-15d  |  ", t.line_no);
           switch (t.name) {
           case NUM:
-            fprintf(token_file, "%d | ", t.num);
+            printf("%-20d  |  ", t.num);
             break;
           case RNUM:
-            fprintf(token_file, "%f | ", t.rnum);
+            printf( "%-20f  |  ", t.rnum);
             break;
           default:
-            printf("%s a\n", t.str);
-            fprintf(token_file, "%s | ", t.str);
+            // printf("%s a\n", t.str);
+            printf("%-20s  |  ", t.str);
             break;
           }
-          printf("%d\n", t.line_no);
-          fprintf(token_file, "%d \n", t.line_no);
+          printf("%-20s\n", terminal_string[t.name]);
+          // fprintf(token_file, "%d \n", t.line_no);
         }
       }
     }
   } // end of while
 }
 
-void remove_comments(char *testcaseFile, char *cleanFile) {}

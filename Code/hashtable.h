@@ -6,9 +6,11 @@
 
 #define PRIME 119
 #define HASH_SIZE 67
+#define MAX_LEXEME_LEN 100
+#define VALUE_NOT_IN_HASH_TABLE -1
 
 typedef struct {
-    char lexeme[100];
+    char lexeme[MAX_LEXEME_LEN];
     int value;
     bool present;
 } hash_element;

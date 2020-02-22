@@ -8,9 +8,8 @@
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
 #define BITSTRING_PART_NUM 3
-#define SIZE_OF_ULL sizeof(ull)*8
-
 typedef unsigned long long ull;
+#define NUM_BITS sizeof(ull)*8
 
 typedef enum
 {

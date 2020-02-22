@@ -18,4 +18,8 @@ void print_first_sets();
 
 void populate_first_sets();
 
+int rightmost_set_bit(unsigned long long *num);
+
+void createParseTable(ull **first, ull **follow);
+
 #endif

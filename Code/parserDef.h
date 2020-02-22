@@ -95,6 +95,7 @@ typedef struct
 } cell;
 
 unsigned long long int first_set[NUM_OF_NONTERMINALS][BITSTRING_PART_NUM];   //f_set for each nt calculated by considering bits of 3 unsigned long long int
+unsigned long long int follow_set[NUM_OF_NONTERMINALS][BITSTRING_PART_NUM];   //f_set for each nt calculated by considering bits of 3 unsigned long long int
 // typedef cell *grammar_t;
 cell grammar[NUM_OF_RULES];
 #endif

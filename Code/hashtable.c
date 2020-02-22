@@ -78,6 +78,7 @@ void init_hash_table() {
 	insert( "break" , BREAK);
 	insert( "default" , DEFAULT);
 	insert( "while" , WHILE);
+	insert( "dollar" , DOLLAR);
     // left TAGGED, UNION and RECORD
 
     // printf("Values inserted");

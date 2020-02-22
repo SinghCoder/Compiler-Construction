@@ -4,6 +4,8 @@
 #include "parserDef.h"
 #include "treeADT.h"
 
+#define MAX_PARSING_NODES 200
+
 typedef struct
 {
     tree_node **arr;

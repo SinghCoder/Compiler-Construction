@@ -6,29 +6,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-token_name searchLookupTable(char *lexeme) {
+token_name searchLookupTable(char *lexeme) 
+{
   int num = searchHashTable(lookup_table, lexeme);
-  if (-1 == num)
+  if (VALUE_NOT_IN_HASH_TABLE == num)
+  {
     return ID;
-  return num;
+  }
+  else
+  {
+    return num;
+  }
 }
 
-TOKEN getToken() {
+TOKEN getToken() 
+{
 
-  if (lexeme_begin == BUFFER_SIZE) {
+  if (lexeme_begin == BUFFER_SIZE) 
+  {
     lexeme_begin = 0;
   }
   TOKEN t;
 
   t.line_no = line_no;
   int lex_size = forward_ptr - lexeme_begin;
-  if (lex_size < 0) {
+  if (lex_size < 0) 
+  {
     lex_size += BUFFER_SIZE;
   }
   lexeme[lex_size] = '\0';
 
-  if (2 == state) {
-    if (lex_size > 20) {
+  if (2 == state) 
+  {
+    if (lex_size > 20) 
+    {
       t.name = LEX_ERROR;
       return t;
     }
@@ -39,27 +50,32 @@ TOKEN getToken() {
     return t;
   }
 
-  if (4 == state || 6 == state) {
+  if (4 == state || 6 == state) 
+  {
     t.name = NUM;
     t.num = atoi(lexeme);
   }
 
-  if (8 == state || 12 == state) {
+  if (8 == state || 12 == state)
+  {
     t.name = RNUM;
     t.rnum = atof(lexeme);
   }
   return t;
 }
 
-void retract(int num_of_char) {
+void retract(int num_of_char) 
+{
   forward_ptr -= num_of_char;
-  if (forward_ptr < 0) {
+  if (forward_ptr < 0) 
+  {
     forward_ptr += BUFFER_SIZE;
   }
   just_retracted = true;
 }
 
-void lexer_init() {
+void lexer_init() 
+{
   state = 0;
   lexeme_begin = forward_ptr = 0;
   just_retracted = false;
@@ -67,18 +83,26 @@ void lexer_init() {
 
   FILE *file = fopen("tokens.txt", "r");
   fseek(file, 0, SEEK_END);
+
   int length = ftell(file);
+
   fseek(file, 0, SEEK_SET);
+
   char *temp = malloc(sizeof(char) * (length));
+  
   fread(temp, sizeof(char), length, file);
   fclose(file);
 
   char *tk_read;
   int i;
-  for (i = 0, tk_read = strtok(temp, ", \n"); tk_read != NULL;
-       tk_read = strtok(NULL, ", \n"), i++) {
+  
+  tk_read = strtok(temp, ", \n");
+
+  for (i = 0; tk_read != NULL;  i++) 
+  {
     strcpy(terminal_string[i], tk_read);
     printf("terminal string %d: %s\n", i, terminal_string[i]);
+    tk_read = strtok(NULL, ", \n");
   }
   free(temp);
 
@@ -103,40 +127,41 @@ void lexer_init() {
   //     // printf("terminal string %s\n", terminal_string[i]);
   //   }
 
-  lookup_table = init_hash_table();
-  hash_insert(lookup_table, "integer", INTEGER);
-  hash_insert(lookup_table, "real", REAL);
-  hash_insert(lookup_table, "boolean", BOOLEAN);
-  hash_insert(lookup_table, "of", OF);
-  hash_insert(lookup_table, "array", ARRAY);
-  hash_insert(lookup_table, "start", START);
-  hash_insert(lookup_table, "end", END);
-  hash_insert(lookup_table, "declare", DECLARE);
-  hash_insert(lookup_table, "module", MODULE);
-  hash_insert(lookup_table, "driver", DRIVER);
-  hash_insert(lookup_table, "program", PROGRAM);
-  hash_insert(lookup_table, "get_value", GET_VALUE);
-  hash_insert(lookup_table, "print", PRINT);
-  hash_insert(lookup_table, "use", USE);
-  hash_insert(lookup_table, "with", WITH);
-  hash_insert(lookup_table, "parameters", PARAMETERS);
-  hash_insert(lookup_table, "true", TRUE);
-  hash_insert(lookup_table, "false", FALSE);
-  hash_insert(lookup_table, "takes", TAKES);
-  hash_insert(lookup_table, "input", INPUT);
-  hash_insert(lookup_table, "returns", RETURNS);
-  hash_insert(lookup_table, "AND", AND);
-  hash_insert(lookup_table, "OR", OR);
-  hash_insert(lookup_table, "for", FOR);
-  hash_insert(lookup_table, "in", IN);
-  hash_insert(lookup_table, "switch", SWITCH);
-  hash_insert(lookup_table, "case", CASE);
-  hash_insert(lookup_table, "break", BREAK);
-  hash_insert(lookup_table, "default", DEFAULT);
-  hash_insert(lookup_table, "while", WHILE);
+    lookup_table = init_hash_table();
+    hash_insert(lookup_table, "integer", INTEGER);
+    hash_insert(lookup_table, "real", REAL);
+    hash_insert(lookup_table, "boolean", BOOLEAN);
+    hash_insert(lookup_table, "of", OF);
+    hash_insert(lookup_table, "array", ARRAY);
+    hash_insert(lookup_table, "start", START);
+    hash_insert(lookup_table, "end", END);
+    hash_insert(lookup_table, "declare", DECLARE);
+    hash_insert(lookup_table, "module", MODULE);
+    hash_insert(lookup_table, "driver", DRIVER);
+    hash_insert(lookup_table, "program", PROGRAM);
+    hash_insert(lookup_table, "get_value", GET_VALUE);
+    hash_insert(lookup_table, "print", PRINT);
+    hash_insert(lookup_table, "use", USE);
+    hash_insert(lookup_table, "with", WITH);
+    hash_insert(lookup_table, "parameters", PARAMETERS);
+    hash_insert(lookup_table, "true", TRUE);
+    hash_insert(lookup_table, "false", FALSE);
+    hash_insert(lookup_table, "takes", TAKES);
+    hash_insert(lookup_table, "input", INPUT);
+    hash_insert(lookup_table, "returns", RETURNS);
+    hash_insert(lookup_table, "AND", AND);
+    hash_insert(lookup_table, "OR", OR);
+    hash_insert(lookup_table, "for", FOR);
+    hash_insert(lookup_table, "in", IN);
+    hash_insert(lookup_table, "switch", SWITCH);
+    hash_insert(lookup_table, "case", CASE);
+    hash_insert(lookup_table, "break", BREAK);
+    hash_insert(lookup_table, "default", DEFAULT);
+    hash_insert(lookup_table, "while", WHILE);
 }
 
-void getStream(FILE *fp) {
+void getStream(FILE *fp) 
+{
   int num;
   if (forward_ptr == BUFFER_SIZE)
     forward_ptr = 0;
@@ -145,9 +170,10 @@ void getStream(FILE *fp) {
     buffer[num + forward_ptr] = EOF;
 }
 
-char getChar(FILE *fp) {
-  if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) &&
-      just_retracted == false) {
+char getChar(FILE *fp) 
+{
+  if ( (forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) && just_retracted == false) 
+  {
     getStream(fp);
   }
   char c = buffer[forward_ptr];

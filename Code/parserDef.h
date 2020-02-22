@@ -5,6 +5,11 @@
 #define MAX_LENGTH 100
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
+#define BITSTRING_PART_NUM 3
+#define sz(x) sizeof(x) 
+typedef unsigned long long int ull;
+#define NUM_BITS (8 * sz(ull))
+
 typedef enum
 {
     MAINPROGRAM,
@@ -89,6 +94,8 @@ typedef struct
     rhsnode_ptr tail;
 } cell;
 
+unsigned long long int first_set[NUM_OF_NONTERMINALS][BITSTRING_PART_NUM];   //f_set for each nt calculated by considering bits of 3 unsigned long long int
+unsigned long long int follow_set[NUM_OF_NONTERMINALS][BITSTRING_PART_NUM];   //f_set for each nt calculated by considering bits of 3 unsigned long long int
 // typedef cell *grammar_t;
 cell grammar[NUM_OF_RULES];
 #endif

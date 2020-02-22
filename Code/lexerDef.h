@@ -2,7 +2,7 @@
 #define LEXERDEF_H
 
 #define BUFFER_SIZE 20
-#define NUM_OF_TERMINALS 60
+#define NUM_OF_TERMINALS 61
 
 typedef enum {
     DEF, MODULE, ENDDEF,
@@ -28,7 +28,8 @@ typedef enum {
     END_OF_FILE,   
     DELIM,
     EPSILON,
-    PROGRAM
+    PROGRAM,
+    DOLLAR
 } token_name;
 
 typedef struct token {

@@ -243,23 +243,25 @@ tree_node *parseInputSourceCode(FILE *source)
 {
   stack *main_stack = stack_init();
   stack *aux_stack = stack_init();
-  printf("a\n");
+  printf("entered into parsing code\n");
   tree_node *root = create_tree_node();
 
   root->sym.nt = MAINPROGRAM;
   root->sym.is_terminal = false;
   
   push(main_stack, root); //push start symbol on stack
-  // printf("\n");
+  printf("oyeee....\n");
+  TOKEN tkn = getNextToken(source);
+  printf("token from la : %s\n", terminal_string[tkn.name]);
   while (true) 
   {
-    TOKEN tkn = getNextToken(source);
     tree_node *node = pop(main_stack);
 
     if (tkn.name == LEX_ERROR) 
     {
       printf("LEX_ERROR\n");
       printf("%d) Lexical Error\n", tkn.line_no);
+      tkn = getNextToken(source);
       continue;
     }
     if (node == NULL) 
@@ -276,33 +278,59 @@ tree_node *parseInputSourceCode(FILE *source)
     if (node->sym.is_terminal == true) 
     {
       printf("stack top is terminal\n");
+      printf("---------------stack top : %s\n", terminal_string[node->sym.t]);
+      printf("---------------la : %s\n", terminal_string[tkn.name]);
       if (node->sym.t != tkn.name)  // terminal on top of stack does not match with lookhead symbol
       {
         printf("%d) Syntax Error : lookahead char don't match with stack top\n", tkn.line_no);
         break;  // don't break, instead continue parsing after synch token
       }
+      tkn = getNextToken(source);
       continue;
     }
     else
     {
        printf("stack top is non_terminal\n");
+       printf("---------------stack top : %s\n", non_terminal_string[node->sym.nt]);
     }
     
 
     int rule_no = parse_table[node->sym.nt][tkn.name];
-    
+    printf("Checking pt for PT[%s][%s]\n", non_terminal_string[node->sym.nt], terminal_string[tkn.name]);
     cell rule = grammar[rule_no];
     rhsnode_ptr rhs_ptr = rule.head;
     
+    if(rule_no == -1)
+    {
+      printf("No matching rule\n");
+    }
+    else
+    {
+      printf("Rule used : \n");
+      print_rule(rule_no);
+    }
     while (rhs_ptr != NULL) 
     {
       tree_node *temp = create_tree_node();
       temp->parent = node;
       temp->sym = rhs_ptr->s;
-      printf("adding child to node: %s\n", non_terminal_string[node->sym.nt]);
-      add_child(node, temp);
 
-      push(aux_stack, temp);
+      if(temp->sym.is_terminal == true)
+      {
+        printf("adding child: %s\n", terminal_string[temp->sym.t]);
+        if(temp->sym.t != EPSILON)
+        {
+            add_child(node, temp);
+            push(aux_stack, temp);
+        }
+      }
+      else
+      {
+        printf("adding child: %s\n", non_terminal_string[temp->sym.nt]);
+        add_child(node, temp);
+        push(aux_stack, temp);
+      }
+      rhs_ptr = rhs_ptr -> next;
     }
     
     tree_node *temp = pop(aux_stack);

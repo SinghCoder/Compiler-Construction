@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     // ull *fset = get_rule_first_set(grammar[0].head);
     // print_rule_fset(fset);
 
-    // print_first_sets();
+    print_first_sets();
     print_follow_sets();
 }   // end of main
 

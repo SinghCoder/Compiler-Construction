@@ -90,7 +90,8 @@ void lexer_init()
         "END_OF_FILE",   
         "DELIM",
         "EPSILON",
-        "PROGRAM"
+        "PROGRAM",
+        "DOLLAR"
     };
 
     for(int i = 0; i < NUM_OF_TERMINALS; i++)

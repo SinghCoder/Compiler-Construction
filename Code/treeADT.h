@@ -14,6 +14,6 @@ typedef struct TREENODE{
 
 tree_node *create_tree_node();
 
-
+void add_child(tree_node *parent, tree_node *child);
 
 #endif

@@ -1,5 +1,6 @@
 #include "stackADT.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 stack *stack_init() {
   stack *stack_ptr = (stack *)malloc(sizeof(stack));
@@ -10,7 +11,7 @@ stack *stack_init() {
 }
 
 void push(stack *stack_ptr, tree_node *node) {
-  if (top == stack_ptr->size) {
+  if (top == (stack_ptr->size)) {
     stack_ptr->size *= 2;
     realloc(stack_ptr->arr, sizeof(tree_node *) * stack_ptr->size);
   }

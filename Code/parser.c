@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <math.h>
 #include "parser.h"
 
 void parser_init()
@@ -317,13 +316,39 @@ void print_first_sets()
 //     }
 //     return true;
 // }
-
+void print_first(nonterminal nt)
+{
+    // printf("\n{");
+    printf("FIRST(%s) = { " , non_terminal_string[nt] );
+    for(int j = 0; j< BITSTRING_PART_NUM ; j++)
+    {
+        for(int k = 0; k < NUM_BITS; k++)
+        {
+            if((first_set[nt][j] & (1ULL << k)) != 0)
+            {
+                // printf(" %d ", j);
+                printf("%s, ", terminal_string[j*NUM_BITS + k]);
+            }
+        }
+    }
+    printf(" }\n");
+}
 void populate_first_sets()
 {
     // grammar[i].head
     bool is_changed = true;
     int lhs;
     rhsnode_ptr rhs_ptr;
+    // for(int i=0; i<NUM_OF_RULES; i++)
+    // {
+    //     lhs = grammar[i].sym;
+    //     rhs_ptr = grammar[i].head;
+    //     if(rhs_ptr->flag == T)
+    //     {
+    //         token_name t = (rhs_ptr -> s).t;
+    //         first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
+    //     }
+    // }
     while(is_changed == true)
     {
         // printf("Iterating over grammar.\n");
@@ -332,13 +357,13 @@ void populate_first_sets()
         {
             lhs = grammar[i].sym;
             rhs_ptr = grammar[i].head;
-
+            printf("calculating first of %s\n", non_terminal_string[lhs]);
             if(rhs_ptr->flag == T)
             {
                 token_name t = (rhs_ptr -> s).t;
                 if( ( first_set[lhs][t / NUM_BITS] & ( 1ULL << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
                 {
-                    // printf("Adding term %s to first(%s) - \n", terminal_string[t], non_terminal_string[lhs]);
+                    printf("Adding term %s to first(%s) - \n", terminal_string[t], non_terminal_string[lhs]);
                     // printf("B4 adding : %d\n", first_set[lhs][t / NUM_BITS] & ( 1ULL << t % NUM_BITS ));
                     first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
                     // printf("After adding: %d\n", first_set[lhs][t / NUM_BITS] & ( 1ULL << t % NUM_BITS ));
@@ -383,35 +408,45 @@ void populate_first_sets()
                     {
                         is_changed = true;
                         bool eps_in_rhs = false;
-                        bool already_pres = false;
 
                         if( ( rhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)
                         {
                             // printf("hi");
                             eps_in_rhs = true;
-                            if(( lhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)
-                                already_pres = true;
                             // ull a = 0x00;
                             // printf("%llu\n", (( ( 1ULL << (EPSILON % NUM_BITS)) )));
-                            // rhs_symbol_fset[ EPSILON / NUM_BITS ] &= ((ull  )( ~( 1ULL << (EPSILON % NUM_BITS)) )) ;
+                            // rhs_symbol_fset[ EPSILON / NUM_BITS ] &= (( ~( 1ULL << (EPSILON % NUM_BITS)) )) ;
+                            // printf("Epsilon not removed? : %llu\n", rhs_symbol_fset[ EPSILON / NUM_BITS ] & ((( 1ULL << (EPSILON % NUM_BITS)) )));
                         }
 
+                        // printf("Adding first(%s) to first(%s)\n", non_terminal_string[(temp->s).t] ,non_terminal_string[lhs]);
+                        // print_first((temp->s).t);
+                        // print_first(lhs);
                         for(int j = 0; j < BITSTRING_PART_NUM; j++)
                         {
                             lhs_symbol_fset[j] |= rhs_symbol_fset[j];
                         }
+                        
+                        
+                        
 
                         if( eps_in_rhs)
                         {
-                            printf("eps pres");
-                            if(eps_in_rhs && (!already_pres))
-                                lhs_symbol_fset[ EPSILON / NUM_BITS ] &= (~((ull)pow(2,EPSILON)));
-
+                            rhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );
+                            printf("Epsilon added back? : %llu\n", rhs_symbol_fset[ EPSILON / NUM_BITS ] & ((( 1ULL << (EPSILON % NUM_BITS)) )));
                             if(temp->next == NULL)
                             {
                                 lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );
                             }
                         }
+                        else    // if a current nt does not contain epsilon , break
+                        {
+                            break;
+                        }
+                    }
+                    else    // if is_diff == false, break;
+                    {
+                        break;
                     }
 
                     temp = temp -> next;

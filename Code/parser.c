@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 #include "parser.h"
 
 void parser_init()
@@ -281,8 +282,9 @@ void print_first_sets()
         {
             for(int k = 0; k < NUM_BITS; k++)
             {
-                if((first_set[i][j] & (1 << k)) != 0)
+                if((first_set[i][j] & (1ULL << k)) != 0)
                 {
+                    // printf(" %d ", j);
                     printf("%s, ", terminal_string[j*NUM_BITS + k]);
                 }
             }
@@ -297,24 +299,24 @@ void print_first_sets()
 //     return first_set[nt];
 // }
 
-bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM])
-{
-    // for(int i=0; i<BITSTRING_PART_NUM; i++)
-    //     printf("a[%d] = %d, b[%d] = %d\n", i, a[i], i, b[i]);
-    for(int i=0; i<BITSTRING_PART_NUM; i++)
-    {
-        for(int j=0; j<NUM_BITS; j++)
-        {
-            if( ((a[i] & (1 << j ) ) == 0) && ( (b[i] & (1 << j )) != 0 ) ) //jth bit of a[i] is not set but of b[i] is set => a cannot be superset of b
-            {
-                // printf("diff is in %s.\n", terminal_string[i*NUM_BITS + j]);
-                // printf("Differing in : %d, %d\n", a[i], b[i]);
-                return false;
-            }
-        }
-    }
-    return true;
-}
+// bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM])
+// {
+//     // for(int i=0; i<BITSTRING_PART_NUM; i++)
+//     //     printf("a[%d] = %d, b[%d] = %d\n", i, a[i], i, b[i]);
+//     for(int i=0; i<BITSTRING_PART_NUM; i++)
+//     {
+//         for(int j=0; j<NUM_BITS; j++)
+//         {
+//             if( ((a[i] & (1ULL << j ) ) == 0) && ( (b[i] & (1ULL << j )) != 0 ) ) //jth bit of a[i] is not set but of b[i] is set => a cannot be superset of b
+//             {
+//                 // printf("diff is in %s.\n", terminal_string[i*NUM_BITS + j]);
+//                 // printf("Differing in : %d, %d\n", a[i], b[i]);
+//                 return false;
+//             }
+//         }
+//     }
+//     return true;
+// }
 
 void populate_first_sets()
 {
@@ -334,12 +336,12 @@ void populate_first_sets()
             if(rhs_ptr->flag == T)
             {
                 token_name t = (rhs_ptr -> s).t;
-                if( ( first_set[lhs][t / NUM_BITS] & ( 1 << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
+                if( ( first_set[lhs][t / NUM_BITS] & ( 1ULL << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
                 {
                     // printf("Adding term %s to first(%s) - \n", terminal_string[t], non_terminal_string[lhs]);
-                    // printf("B4 adding : %d\n", first_set[lhs][t / NUM_BITS] & ( 1 << t % NUM_BITS ));
-                    first_set[lhs][t / NUM_BITS] |= ( 1 << (t % NUM_BITS) );
-                    // printf("After adding: %d\n", first_set[lhs][t / NUM_BITS] & ( 1 << t % NUM_BITS ));
+                    // printf("B4 adding : %d\n", first_set[lhs][t / NUM_BITS] & ( 1ULL << t % NUM_BITS ));
+                    first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
+                    // printf("After adding: %d\n", first_set[lhs][t / NUM_BITS] & ( 1ULL << t % NUM_BITS ));
                     // printf("sizeof(llu) : %lu\n", NUM_BITS);
                     // printf("EPSILON : = %d\n", EPSILON);
                     is_changed = true;
@@ -350,48 +352,68 @@ void populate_first_sets()
             {
                 rhsnode_ptr temp = rhs_ptr;
                 ull* rhs_symbol_fset;
+                ull* lhs_symbol_fset = first_set[lhs];
                 while(temp != NULL)
                 {
                     if(temp->flag == T)
                     {
                         token_name t = (temp -> s).t;
-                        if( ( first_set[lhs][t / NUM_BITS] & ( 1 << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
+                        if( ( first_set[lhs][t / NUM_BITS] & ( 1ULL << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
                         {
-                            first_set[lhs][t / NUM_BITS] |= ( 1 << (t % NUM_BITS) );
+                            first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
                             is_changed = true;
                         }
                         break;
                     }
+
+                    
                     rhs_symbol_fset = first_set[ (temp -> s).nt ];
-                    //first_set[lhs]|=first_set
-                    if(is_superset(first_set[lhs], rhs_symbol_fset) == false)
+                    
+                    bool is_diff = false;
+                    for(int j = 0; j < BITSTRING_PART_NUM; j++)
+                    {
+                        if( (lhs_symbol_fset[j] & rhs_symbol_fset[j]) != rhs_symbol_fset[j] )
+                        {
+                            is_diff = true;
+                            break;
+                        }
+                    }
+
+                    if( is_diff == true )
                     {
                         is_changed = true;
-                        // printf("Adding first(%s) to first(%s)\n", non_terminal_string[ (temp->s).nt ], non_terminal_string[lhs]);
+                        bool eps_in_rhs = false;
+                        bool already_pres = false;
+
+                        if( ( rhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)
+                        {
+                            // printf("hi");
+                            eps_in_rhs = true;
+                            if(( lhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)
+                                already_pres = true;
+                            // ull a = 0x00;
+                            // printf("%llu\n", (( ( 1ULL << (EPSILON % NUM_BITS)) )));
+                            // rhs_symbol_fset[ EPSILON / NUM_BITS ] &= ((ull  )( ~( 1ULL << (EPSILON % NUM_BITS)) )) ;
+                        }
+
                         for(int j = 0; j < BITSTRING_PART_NUM; j++)
                         {
-                            first_set[lhs][j] |= rhs_symbol_fset[j];
+                            lhs_symbol_fset[j] |= rhs_symbol_fset[j];
                         }
-                        // printf("now is_superset = %d\n", is_superset(first_set[lhs], rhs_symbol_fset));
-                    }
-                    else
-                    {
-                        // printf("not adding first(%s) to first(%s)\n", non_terminal_string[ (temp->s).nt ], non_terminal_string[lhs]);
-                    }
-                    if( rhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1 << (EPSILON % NUM_BITS) ) == 0)//firstOf( this nt ) does not contain epsilon
-                    {
-                        // printf("first(%s) does not contain epsilon yet\n", non_terminal_string[ (temp->s).nt ]);
-                        break;
-                    }
-                    else
-                    {
-                        // check if the current nt on rhs is last nt of the rule, if no, remove epsilon from first_set(lhs)
-                        if(temp->next != NULL)  //isn't last node
+
+                        if( eps_in_rhs)
                         {
-                            first_set[lhs][ EPSILON / NUM_BITS ] &= (~ ( 1 << (EPSILON % NUM_BITS) ) );
-                            // printf("Removing term %s from first(%s)\n", terminal_string[ EPSILON ], non_terminal_string[lhs]);
+                            printf("eps pres");
+                            if(eps_in_rhs && (!already_pres))
+                                lhs_symbol_fset[ EPSILON / NUM_BITS ] &= (~((ull)pow(2,EPSILON)));
+
+                            if(temp->next == NULL)
+                            {
+                                lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );
+                            }
                         }
                     }
+
                     temp = temp -> next;
                 }   // end of rule linked list traversal while loop
             }   // end of else (non-terminal branch)

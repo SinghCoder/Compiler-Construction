@@ -1,27 +1,30 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
-#include "lexerDef.h"
+//#include "lexerDef.h"
+#include<stdbool.h>
 
 #define PRIME 119
-#define HASH_SIZE 37
+#define HASH_SIZE 67
+#define MAX_LEXEME_LEN 100
+#define VALUE_NOT_IN_HASH_TABLE -1
 
-typedef struct keyword_element {
-    char lexeme[BUFFER_SIZE];
-    token_name symbol;
+typedef struct {
+    char lexeme[MAX_LEXEME_LEN];
+    int value;
     bool present;
-} keyword_element;
-
-keyword_element table[HASH_SIZE];
+} hash_element;
 
 int fastModExp(int a, int b, int m);
 
-void init_hash_table();
+typedef hash_element *hash_table;       // change to static allocation
+
+hash_table init_hash_table();
 
 int hash(char *str);
 
-void insert(char *lexeme, token_name symbol);
+void hash_insert(hash_table table, char *lexeme, int value);
 
-token_name searchLookupTable(char *lexeme);
+int searchHashTable(hash_table table, char *lexeme);
 
 #endif

@@ -1,245 +1,412 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "parser.h"
+#include "lexer.h"
+#include "stackADT.h"
+#include "treeADT.h"
+#include "hashtable.h"
+#include <ctype.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void parser_init()
+void parser_init() 
 {
-    char non_terminal_string_copy[NUM_OF_NONTERMINALS][25] = {
-        "MAINPROGRAM",
-        "MODULEDECLARATIONS",
-        "MODULEDECLARATION",
-        "OTHERMODULES",
-        "DRIVERMODULE",
-        "NTMODULE",
-        "MODULEDEF",
-        "RET",
-        "INPUT_PLIST",
-        "INPUT_PLIST_DASH",
-        "OUTPUT_PLIST",
-        "OUTPUT_PLIST_DASH",
-        "DATATYPE",
-        "TYPE",
-        "STATEMENTS",
-        "STATEMENT",
-        "IOSTMT",
-        "LITERAL",
-        "VAR",
-        "WHICHID",
-        "SIMPLESTMT",
-        "ASSIGNMENTSTMT",
-        "WHICHSTMT",
-        "LVALUEIDSTMT",
-        "LVALUEARRSTMT",
-        "INDEX",
-        "MODULEREUSESTMT",
-        "OPTIONAL",
-        "IDLIST",
-        "IDLIST_DASH",
-        "EXPRESSION",
-        "RESTEXPRESSION",
-        "RELATIONALEXPR",
-        "RESTRELATIONALEXPR",
-        "LOGICALOP",
-        "RELATIONALOP",
-        "UNARYARITHMETICEXPR",
-        "RESTUNARYARITHMETICEXPR",
-        "NONUNARYARITHMETICEXPR",
-        "ARITHMETICEXPRDASH",
-        "TERM",
-        "TERM_DASH",
-        "FACTOR",
-        "ADDSUBOP",
-        "MULDIVOP",
-        "DECLARESTMT",
-        "CONDITIONALSTMT",
-        "CASESTMT",
-        "OTHERCASE",
-        "VALUE",
-        "DEFAULTSTMT",
-        "ITERATIVESTMT",
-        "RANGE"
-    };
 
-    for( int i=0 ; i<NUM_OF_NONTERMINALS; i++)
+  FILE *file = fopen("non_terminals.txt", "r");
+  fseek(file, 0, SEEK_END);
+  
+  int length = ftell(file);
+  
+  fseek(file, 0, SEEK_SET);
+  
+  char *temp = malloc(sizeof(char) * (length));
+
+  fread(temp, sizeof(char), length, file);
+  fclose(file);
+  //initialize all first sets to be null
+  for(int i=0; i<NUM_OF_NONTERMINALS; i++)
+  {
+      // first_set[i] = 0;
+      for(int j = 0; j < BITSTRING_PART_NUM ; j++)
+      {
+          first_set[i][j] = 0;
+      }
+  }
+
+
+
+  char *nt_read;
+  int i;
+  nt_read = strtok(temp, ", \n");
+  
+  for (i = 0 ; nt_read != NULL; i++)
+  {
+    // printf("nt read : %s\n", nt_read);
+    strcpy(non_terminal_string[i], nt_read);
+    nt_read = strtok(NULL, ", \n");
+  }
+
+  fclose(file);
+
+  terminal_table = init_hash_table();
+  non_terminal_table = init_hash_table();
+
+  for (i = 0; i < NUM_OF_TERMINALS; i++) 
+  {
+    // printf("inserting in hash table %s=============================\n", terminal_string[i]);
+    // fflush
+    hash_insert(terminal_table, terminal_string[i], i);
+  }
+
+  for (i = 0; i < NUM_OF_NONTERMINALS; i++) 
+  {
+    hash_insert(non_terminal_table, non_terminal_string[i], i);
+  }
+  
+  //initializing parse table
+  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) 
+  {
+    for (int j = 0; j < NUM_OF_TERMINALS; j++) 
     {
-        strcpy(non_terminal_string[i], non_terminal_string_copy[i]);
+      parse_table[i][j] = -1;   //initialize all rules to -1
     }
-
-
-    //initialize all first sets to be null
-    for(int i=0; i<NUM_OF_NONTERMINALS; i++)
-    {
-        // first_set[i] = 0;
-        for(int j = 0; j < BITSTRING_PART_NUM ; j++)
-        {
-            first_set[i][j] = 0;
-        }
-    }
+  }
 }
 
-void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym, type_of_sym tag)
+void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym) 
 {
-//     if( tag == T)
-//     {
-//         printf("T: %s\n", terminal_string[sym.t]);
-//     }
-//     else
-//     {
-//         printf("NT: %s\n", non_terminal_string[sym.nt]);
-//     }
 
-    fflush(stdout);
+  rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
+  node->s = sym;
+  node->next = NULL;
 
-    rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
-    node->s = sym;
-    node->flag = tag;
-    node->next = NULL;
-
-    if(*ptr_tail != NULL)
-    {
-       (*ptr_tail)->next = node;
-    }
-    *ptr_tail = node;
-    // return head;
+  if (*ptr_tail != NULL) 
+  {
+    (*ptr_tail)->next = node;
+  }
+  *ptr_tail = node;
 }
 
 void grammar_fill(FILE *fptr)
 {
-    
-    // grammar = (grammar_t)malloc(sizeof(cell) * NUM_OF_RULES);
-    
-    int rule_index = 0;
 
-    char buffer[MAX_LENGTH];
+  int rule_num = 0;
+  char buffer[RHS_MAX_LENGTH];
 
-    while(fgets(buffer,sizeof(buffer), fptr) != NULL)
+  while (fgets(buffer, sizeof(buffer), fptr) != NULL) 
+  {
+    // printf("%s\n",buffer);
+    char *sym_read;
+    int i;
+    sym_read = strtok(buffer, " \n");
+    for (i = 0; sym_read != NULL; i++) 
     {
-        // printf("%s\n",buffer);
-        char *sym_read;
-        int i;
-        for( i = 0,sym_read = strtok(buffer, " \n"); sym_read != NULL ; sym_read = strtok(NULL, " \n"), i++) 
+      // printf("%s\n", sym_read);
+      if (i == 0) // LHS of a production
+      {
+        grammar[rule_num].lhs = get_symbol(sym_read).nt;
+        // printf("hola................... %d\n", grammar[rule_num].lhs);
+        grammar[rule_num].head = NULL;
+        grammar[rule_num].tail = NULL;
+        // printf("%d\n", grammar[rule_num].sym);
+        // printf("LHS: = %d\n", get_symbol( sym_read ).nt);
+      } 
+      else 
+      {
+        symbol sym = get_symbol(sym_read);
+        insert_at_end(&(grammar[rule_num].tail), sym);
+        if (grammar[rule_num].head == NULL) 
         {
-            // printf("%s\n", sym_read);
-            if(i == 0)  //LHS of a production
-            {
-                grammar[rule_index].sym = get_symbol_val( sym_read ).nt;
-                grammar[rule_index].head = NULL;
-                grammar[rule_index].tail = NULL;
-                // printf("%d\n", grammar[rule_index].sym);
-                // printf("LHS: = %d\n", get_symbol_val( sym_read ).nt);
-            }
-            else
-            {
-                symbol sym = get_symbol_val(sym_read);
-                type_of_sym tag ;
-                // printf("%c\n", sym_read[0]);
-                if((sym_read[0] >= 'A') && (sym_read[0] <= 'Z'))
-                {
-                    tag = NT;
-                    // printf("RHS: %d\n", get_symbol_val(sym_read).nt);
-                }
-                else
-                {
-                    // printf("hi\n");
-                    tag = T;
-                    // if(sym.t == 32763)
-                        // printf("----------------%s-------------------", sym_read);
-                    // printf("RHS: %d\n", get_symbol_val(sym_read).t);
-                }
-                insert_at_end(&(grammar[rule_index].tail), sym, tag);
-                if(grammar[rule_index].head == NULL)
-                {
-                    grammar[rule_index].head = grammar[rule_index].tail;
-                }
-            }
+          grammar[rule_num].head = grammar[rule_num].tail;
         }
-
-        rule_index++;
-        // 
-        // break;
+      }
+      sym_read = strtok(NULL, " \n");
     }
-
-    // return g;
+    // printf("populating rule : %d\n", rule_num);
+    // fflush(stdout);
+    rule_num++;
+  }
 }
-symbol get_symbol_val(char str[])
+
+symbol get_symbol(char str[]) 
 {
-    // printf("str: %s\n", str);
-    bool isTerminal=0;
-    symbol s;
-    if((str[0] >= 'A') && (str[0] <= 'Z'))
+  // printf("str: %s\n", str);
+  symbol s;
+  if ((str[0] >= 'A') && (str[0] <= 'Z'))
+  {
+    s.is_terminal = false;
+    s.nt = searchHashTable(non_terminal_table, str);
+  } 
+  else 
+  {
+    
+    // fflush(stdout);
+    s.is_terminal = true;
+    char tmp[strlen(str)];
+    strcpy(tmp, str);
+    for (int i = 0; i < strlen(tmp); i++) 
     {
-        isTerminal = false;
+      tmp[i] = toupper(tmp[i]);
     }
-    else
+    // printf("scanning terminal %s\n", tmp);
+    s.t = searchHashTable(terminal_table, tmp);
+    // printf("searching in hashtable %d\n", s.t);
+    fflush(stdout);
+  }
+  return s;
+}
+
+void print_grammar() 
+{
+  for (int i = 0; i < NUM_OF_RULES; i++) 
+  {
+    printf("%s -> ", non_terminal_string[grammar[i].lhs]);
+    fflush(stdout);
+    rhsnode_ptr temp = grammar[i].head;
+    
+    while (temp != NULL) 
     {
-        isTerminal = true;
+      if ( (temp->s).is_terminal == false) 
+      {
+        printf("%s ", non_terminal_string[(temp->s).nt]);
+        fflush(stdout);
+      }
+      else 
+      {
+        printf("%s ", terminal_string[(temp->s).t]);
+        fflush(stdout);
+      }
+      temp = temp->next;
     }
-    if(false == isTerminal)
+    printf("\n");
+    fflush(stdout);
+  }
+}
+
+int rightmost_set_bit(unsigned long long *num) 
+{
+  unsigned long long temp = (*num & (*num - 1));
+  int pos = NUM_BITS - 1 - log2(temp ^ *num);
+  *num = temp;
+  return pos;
+}
+
+void createParseTable() 
+{  
+  for (int i = 0; i < NUM_OF_RULES; i++) 
+  {
+    nonterminal nt = grammar[i].lhs;
+    // printf("i is %d , nt enum is %d\n",i , nt);
+    // printf("nt is %s\n", non_terminal_string[nt]);
+    ull* first_set_rhs = get_rule_first_set(grammar[i].head);
+    for (int j = 0; j < BITSTRING_PART_NUM; j++) 
     {
-        for(int i=0; i < NUM_OF_NONTERMINALS ;i++)
-        {
-            if(strcmp(str,non_terminal_string[i]) == 0)
-            {
-                s.nt = i;
-                break;
-            }
-        }
-    }
-    else
-    {
-        // if(strcmp(str, "epsilon") == 0)
-        // {
-        //     printf("------------------------------------------------------------\n");
-        // }
-        char tmp[strlen(str)];
-        strcpy(tmp, str);
-        for(int i=0; i<strlen(tmp); i++)
-        {
-            tmp[i] = toupper(tmp[i]);
-        }
-        // printf("%s\n", str);
-        for(int i=0; i < NUM_OF_TERMINALS; i++)
-        {
-            if(strcmp(tmp,terminal_string[i]) == 0)
-            {
-                s.t = i;
-                // printf("%d\n", s.t);
-                break;
-            }
-        }
+      unsigned long long num = first_set_rhs[j];    // first of lhs
+      while (num) 
+      {
+        int pos = rightmost_set_bit(&num); //position of terminal in first set
+        pos += (NUM_BITS * j);
+        // printf("pos is : %d\n", pos);
         
-    }
-    // printf("fn:%d\n", s);
-    return s;
-    // here 53 represents the total size of non_terminal_string 
-}
+        // if(pos < NUM_OF_TERMINALS)
+          // printf("terminal is %s\n", terminal_string[pos]);
 
-void print_grammar()
-{
-    for(int i=0; i < NUM_OF_RULES; i++)
-    {
-        // if()
-        printf("%s -> ", non_terminal_string[grammar[i].sym]);
+           //
 
-        rhsnode_ptr temp = grammar[i].head;
-        while(temp != NULL)
+        if (EPSILON == pos) 
         {
-            if(temp -> flag == NT)
+          for (int j = 0; j < BITSTRING_PART_NUM; j++) 
+          {
+            unsigned long long num = follow_set[nt][j];   // if epsilon in first set, add follow also
+            while (num) 
             {
-                printf("%s ", non_terminal_string[(temp -> s).nt]);
+              int pos = rightmost_set_bit(&num);
+              pos += (NUM_BITS * j);
+              if (EPSILON != pos) 
+              {
+                parse_table[nt][pos] = i;
+              }
             }
-            else
-            {
-                // printf("%d\n", (temp->s).t);
-                printf("%s ", terminal_string[(temp -> s).t]);
-            }
-            temp = temp->next;
+          }//end of for
+        } // end of if - epsilon presence
+        else
+        {
+            parse_table[nt][pos] = i; //don't consider epsilon as terminal
         }
-        printf("\n");
-    }
+      } // end of while - adding elements of first set
+    } // end of for - traversing in all subparts of bitstring
+  } // end of for - travwersal in all rules
 }
+
+tree_node *parseInputSourceCode(FILE *source) 
+{
+  stack *main_stack = stack_init();
+  stack *aux_stack = stack_init();
+  printf("a\n");
+  tree_node *root = create_tree_node();
+
+  root->sym.nt = MAINPROGRAM;
+  root->sym.is_terminal = false;
+  
+  push(main_stack, root); //push start symbol on stack
+  // printf("\n");
+  while (true) 
+  {
+    TOKEN tkn = getNextToken(source);
+    tree_node *node = pop(main_stack);
+
+    if (tkn.name == LEX_ERROR) 
+    {
+      printf("LEX_ERROR\n");
+      printf("%d) Lexical Error\n", tkn.line_no);
+      continue;
+    }
+    if (node == NULL) 
+    { //implement error recovery here
+      printf("stack is empty = node NULL\n");
+      if (tkn.name != DOLLAR) // rule not read completely but stack became empty
+      {
+        // printf("a\n");
+        printf("%d) Syntax Error\n", tkn.line_no);
+      }
+      break;
+    }
+
+    if (node->sym.is_terminal == true) 
+    {
+      printf("stack top is terminal\n");
+      if (node->sym.t != tkn.name)  // terminal on top of stack does not match with lookhead symbol
+      {
+        printf("%d) Syntax Error : lookahead char don't match with stack top\n", tkn.line_no);
+        break;  // don't break, instead continue parsing after synch token
+      }
+      continue;
+    }
+    else
+    {
+       printf("stack top is non_terminal\n");
+    }
+    
+
+    int rule_no = parse_table[node->sym.nt][tkn.name];
+    
+    cell rule = grammar[rule_no];
+    rhsnode_ptr rhs_ptr = rule.head;
+    
+    while (rhs_ptr != NULL) 
+    {
+      tree_node *temp = create_tree_node();
+      temp->parent = node;
+      temp->sym = rhs_ptr->s;
+      printf("adding child to node: %s\n", non_terminal_string[node->sym.nt]);
+      add_child(node, temp);
+
+      push(aux_stack, temp);
+    }
+    
+    tree_node *temp = pop(aux_stack);
+    
+    while (temp != NULL) 
+    {
+      push(main_stack, temp);
+      temp = pop(aux_stack);
+    }
+  }
+}
+// void print_node(tree_node *ptr,tree_node* end) {
+//   if (ptr == end)
+//     return;
+//   while (ptr != end) {
+//     if (ptr->sym.is_terminal == TRUE) {
+//       printf("%s\n", terminal_string[ptr->sym.t]);
+//     } else {
+//       printf("%s\n", non_terminal_string[ptr->sym.nt]);
+//     }
+//     ptr = ptr->sibling;
+//   }
+//   return;
+// }
+// void print_parse_tree(tree_node* root){
+//   if(root == NULL){
+//     printf("empty root\n");
+//     return;
+//   }
+//   tree_node *curr = root;
+//   stack* st = init_stack();
+//   if (root->rightmost_child != NULL &&
+//     root->rightmost_child != root->leftmost_child)
+//   push(st, root->rightmost_child);
+//   // if (root->sym.is_terminal == TRUE) {
+//   //   printf("%s\n", terminal_string[root->sym.t]);
+//   // } else {
+//   //   printf("%s\n", non_terminal_string[root->sym.nt]);
+//   // }
+//   push(st,root);
+//   tree_node *ptr = root->leftmost_child;
+//   while (ptr!= NULL && ptr != root->rightmost_child)
+//   {
+//     push(st, ptr);
+//     ptr = ptr->sibling;
+//   }
+//   while(top(st)!=NULL){
+//     curr = pop(st);
+//     if (curr->rightmost_child != NULL &&
+//         curr->rightmost_child != curr->leftmost_child)
+//       push(st, curr->rightmost_child);
+//     // if (curr->sym.is_terminal == TRUE) {
+//     //   printf("%s\n", terminal_string[curr->sym.t]);
+//     // } else {
+//     //   printf("%s\n", non_terminal_string[curr->sym.nt]);
+//     // }
+//     push(st,curr);
+//     ptr = curr->leftmost_child;
+//     while (ptr != NULL && ptr != root->rightmost_child) {
+//       push(st, ptr);
+//       ptr = ptr->sibling;
+//     }
+//   }
+// }
+// void print_parse_tree(tree_node *root) {
+//   if (root == NULL) {
+//     printf("empty node\n");
+//     return;
+//   }
+//   tree_node *curr = NULL;
+//   stack *st = init_stack();
+//   if (root->rightmost_child != NULL &&
+//       root->rightmost_child != root->leftmost_child)
+//     push(st, root->rightmost_child);
+//   // print_node(root,root->rightmost_child);
+//   if (root->leftmost_child != NULL)
+//     push(st, root->leftmost_child);
+//   while (top(st) != NULL) {
+//     curr = pop(st);
+//     if (curr->rightmost_child != NULL &&
+//         curr->rightmost_child != curr->leftmost_child)
+//       push(st, curr->rightmost_child);
+//       {
+//         tree_node *temp = curr;
+//         while(temp->sibling != curr->rightmost_child){
+//           if (temp->rightmost_child != NULL &&
+//               temp->rightmost_child != temp->leftmost_child)
+//             push(st, temp->rightmost_child);
+//           if (temp->sym.is_terminal == TRUE) {
+//             printf("%s\n", terminal_string[temp->sym.t]);
+//           } else {
+//             printf("%s\n", non_terminal_string[temp->sym.nt]);
+//           }
+//           if (curr->leftmost_child != NULL)
+//             push(st, curr->leftmost_child);
+//           temp = temp->sibling;
+//         }
+//       }
+//     // print_node(curr,curr->rightmost_child);
+//     if (curr->leftmost_child != NULL)
+//       push(st, curr->leftmost_child);
+//   }
+// }
+
 
 // ull 
 
@@ -252,7 +419,7 @@ void print_first_sets()
         {
             for(int k = 0; k < NUM_BITS; k++)
             {
-                if((first_set[i][j] & (1ULL << k)) != 0)
+                if((first_set[i][j] & ((1ULL << (NUM_BITS-1) ) >> k)) != 0)
                 {
                     // printf(" %d ", j);
                     printf("%s  ", terminal_string[j*NUM_BITS + k]);
@@ -273,7 +440,7 @@ void print_follow_sets()
         {
             for(int k = 0; k < NUM_BITS; k++)
             {
-                if((follow_set[i][j] & (1ULL << k)) != 0)
+                if((follow_set[i][j] & ((1ULL << (NUM_BITS-1) ) >> k)) != 0)
                 {
                     // printf(" %d ", j);
                     printf("%s  ", terminal_string[j*NUM_BITS + k]);
@@ -293,7 +460,7 @@ void print_first(nonterminal nt)
     {
         for(int k = 0; k < NUM_BITS; k++)
         {
-            if((first_set[nt][j] & (1ULL << k)) != 0)
+            if((first_set[nt][j] & ((1ULL << (NUM_BITS-1) ) >> k)) != 0)
             {
                 // printf(" %d ", j);
                 printf("%s, ", terminal_string[j*NUM_BITS + k]);
@@ -309,7 +476,7 @@ void print_rule_fset(ull *fset)
     {
         for(int k = 0; k < NUM_BITS; k++)
         {
-            if((fset[j] & (1ULL << k)) != 0)
+            if((fset[j] & ((1ULL << (NUM_BITS-1) ) >> k)) != 0)
             {
                 // printf(" %d ", j);
                 printf("%s, ", terminal_string[j*NUM_BITS + k]);
@@ -326,19 +493,19 @@ void populate_follow_sets()
     int rhs_sym;
     rhsnode_ptr rhs_ptr;
 
-    follow_set[MAINPROGRAM][DOLLAR / NUM_BITS] |= (1ULL << (DOLLAR % NUM_BITS) );
+    follow_set[MAINPROGRAM][DOLLAR / NUM_BITS] |= ((1ULL << (NUM_BITS-1) ) >> (DOLLAR % NUM_BITS) );
 
     while(is_changed == true)   //traverse until convergence
     {
         is_changed = false;
         for(int i=0; i<NUM_OF_RULES; i++)
         {
-            lhs = grammar[i].sym;
+            lhs = grammar[i].lhs;
             rhs_ptr = grammar[i].head;
             rhsnode_ptr temp = rhs_ptr;
             while(temp != NULL)     //traverse till end of the rule
             {
-                if(temp->flag == NT)
+                if( (temp->s).is_terminal == false)
                 {
                     rhs_sym = ( (temp->s).nt );
                     // printf("Calculating follow for %s\n", non_terminal_string[rhs_sym]);
@@ -353,12 +520,12 @@ void populate_follow_sets()
                     
                     bool eps_in_rhs = false;
 
-                    if((rhs_rule_set[EPSILON / NUM_BITS] & ( (1ULL << (EPSILON % NUM_BITS) ) )) != 0)//eps present in this rule
+                    if((rhs_rule_set[EPSILON / NUM_BITS] & ( ((1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) )) != 0)//eps present in this rule
                     {
                         eps_in_rhs = true;
                     }
 
-                    rhs_rule_set[EPSILON / NUM_BITS] &= (~ (1ULL << (EPSILON % NUM_BITS) ) );
+                    rhs_rule_set[EPSILON / NUM_BITS] &= (~ ((1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) );
 
                     for(int j = 0; j < BITSTRING_PART_NUM ; j++)
                     {
@@ -383,7 +550,7 @@ void populate_follow_sets()
                         }
                     }
                     // }
-                    // follow_set[rhs_sym][EPSILON / NUM_BITS] &= (~ (1ULL << (EPSILON % NUM_BITS) ) );
+                    // follow_set[rhs_sym][EPSILON / NUM_BITS] &= (~ ((1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) );
                 }
                 temp = temp -> next;
             }   // end of rule linked list traversal while loop
@@ -401,14 +568,14 @@ void populate_first_sets()
         is_changed = false;
         for(int i=0; i<NUM_OF_RULES; i++)
         {
-            lhs = grammar[i].sym;
+            lhs = grammar[i].lhs;
             rhs_ptr = grammar[i].head;
-            if(rhs_ptr->flag == T)  //if terminal, add it and move ahead
+            if( (rhs_ptr->s).is_terminal == true)  //if terminal, add it and move ahead
             {
                 token_name t = (rhs_ptr -> s).t;
-                if( ( first_set[lhs][t / NUM_BITS] & ( 1ULL << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
+                if( ( first_set[lhs][t / NUM_BITS] & ( (1ULL << (NUM_BITS-1) ) >> (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
                 {
-                    first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
+                    first_set[lhs][t / NUM_BITS] |= ( (1ULL << (NUM_BITS-1) ) >> (t % NUM_BITS) );
                     is_changed = true;
                 }
             }
@@ -419,12 +586,12 @@ void populate_first_sets()
                 ull* lhs_symbol_fset = first_set[lhs];
                 while(temp != NULL)     //traverse till end of the rule
                 {
-                    if(temp->flag == T) // if  terminal add and move to next rule
+                    if((temp->s).is_terminal == true) // if  terminal add and move to next rule
                     {
                         token_name t = (temp -> s).t;
-                        if( ( first_set[lhs][t / NUM_BITS] & ( 1ULL << (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
+                        if( ( first_set[lhs][t / NUM_BITS] & ( (1ULL << (NUM_BITS-1) ) >> (t % NUM_BITS) ) ) == 0) //check if terminal already there in the first set or not
                         {
-                            first_set[lhs][t / NUM_BITS] |= ( 1ULL << (t % NUM_BITS) );
+                            first_set[lhs][t / NUM_BITS] |= ( (1ULL << (NUM_BITS-1) ) >> (t % NUM_BITS) );
                             is_changed = true;
                         }
                         break;
@@ -437,13 +604,13 @@ void populate_first_sets()
                     bool eps_in_rhs = false;
                     bool eps_in_lhs = false;
 
-                    if( ( rhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)  //remove epsilon from current nt before checking things
+                    if( ( rhs_symbol_fset[ EPSILON / NUM_BITS ] & ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) ) != 0)  //remove epsilon from current nt before checking things
                     {
                         eps_in_rhs = true;
-                        rhs_symbol_fset[ EPSILON / NUM_BITS ] &= (( ~( 1ULL << (EPSILON % NUM_BITS)) )) ;
+                        rhs_symbol_fset[ EPSILON / NUM_BITS ] &= (( ~( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS)) )) ;
                     }
 
-                    if( ( lhs_symbol_fset[ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) != 0)
+                    if( ( lhs_symbol_fset[ EPSILON / NUM_BITS ] & ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) ) != 0)
                     {
                         eps_in_lhs = true;
                     }
@@ -471,12 +638,12 @@ void populate_first_sets()
                         }
                         else
                         {
-                            rhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );  // set eps back to rhs nt
+                            rhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) );  // set eps back to rhs nt
                             if(eps_in_lhs == false)
                             {
                                 if(temp->next == NULL)  // only add eps to lhs nt if rhs is last nt in the rule
                                 {
-                                    lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );
+                                    lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) );
                                     is_changed = true;
                                 }
                             }
@@ -486,12 +653,12 @@ void populate_first_sets()
                     {
                         if(eps_in_rhs == true)
                         {
-                            rhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );  // set eps back to rhs nt
+                            rhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) );  // set eps back to rhs nt
                             if(eps_in_lhs == false)
                             {
                                 if(temp->next == NULL)  // only add eps to lhs nt if rhs is last nt in the rule
                                 {
-                                    lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( 1ULL << (EPSILON % NUM_BITS) );
+                                    lhs_symbol_fset[ EPSILON / NUM_BITS ] |= ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) );
                                     is_changed = true;
                                 }
                             }
@@ -521,10 +688,10 @@ ull *get_rule_first_set(rhsnode_ptr node)
     int sym;
     while(temp != NULL)
     {
-        if( temp->flag == T)
+        if( (temp->s).is_terminal == true )
         {
             sym = (temp->s).t;
-            fset[sym / NUM_BITS] |= (1ULL << (sym % NUM_BITS));
+            fset[sym / NUM_BITS] |= ((1ULL << (NUM_BITS-1) ) >> (sym % NUM_BITS));
             return fset;
         }
         
@@ -532,7 +699,7 @@ ull *get_rule_first_set(rhsnode_ptr node)
         {
             sym = (temp->s).nt;
 
-            if( ( first_set[sym][ EPSILON / NUM_BITS ] & ( 1ULL << (EPSILON % NUM_BITS) ) ) == 0)   //eps not in the nt
+            if( ( first_set[sym][ EPSILON / NUM_BITS ] & ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) ) == 0)   //eps not in the nt
             {
                 for(int j = 0; j < BITSTRING_PART_NUM; j++)
                 {
@@ -549,7 +716,7 @@ ull *get_rule_first_set(rhsnode_ptr node)
 
                 if( temp->next != NULL)
                 {
-                    fset[ EPSILON / NUM_BITS ] &= (~ ( 1ULL << (EPSILON % NUM_BITS) )); 
+                    fset[ EPSILON / NUM_BITS ] &= (~ ( (1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) )); 
                 }
             }   // end of else - eps present in fset
         }   // end of else - is nt
@@ -557,4 +724,41 @@ ull *get_rule_first_set(rhsnode_ptr node)
         temp = temp -> next;
     }   // end of while - ll traversal
     return fset;
+}
+
+void print_rule(int rule_no)
+{
+    int lhs = grammar[rule_no].lhs;
+    rhsnode_ptr head = grammar[rule_no].head;
+    printf("%s -> ", non_terminal_string[lhs]);
+    while (head != NULL)
+    {
+      if(( head->s).is_terminal == true)
+      {
+        printf("%s ", terminal_string[(head->s).t]);
+      }
+      else
+      {
+        printf("%s ", non_terminal_string[(head->s).nt]);
+      }
+      head = head -> next;
+    }
+    printf("\n");
+    
+}
+
+void print_parse_table()
+{
+   for(int i=0; i< NUM_OF_NONTERMINALS; i++)
+   {
+     for(int j=0; j<NUM_OF_TERMINALS; j++)
+     {
+       if(parse_table[i][j] != -1)
+       {
+         printf("parse_table[%s][%s] : ", non_terminal_string[i], terminal_string[j]);
+         print_rule(parse_table[i][j]);
+       }
+     }
+    //  printf("\n\n");
+   }
 }

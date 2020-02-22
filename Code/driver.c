@@ -6,7 +6,7 @@
 #include "parser.h"
 
 
-int main()
+int main(int argc, char *argv[])
 {
     FILE *source = fopen("test.txt", "r");
     FILE *token_file = fopen("tokens.txt", "w");
@@ -57,6 +57,8 @@ int main()
     grammar_fill(fptr);
 
     // print_grammar();
+
+    // printf("dr:  %d mp : %d\n", DRIVER, MAINPROGRAM);
 
     // get_nullable_set();
     populate_first_sets();

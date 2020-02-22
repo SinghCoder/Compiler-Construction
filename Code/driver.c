@@ -20,7 +20,8 @@ int main() {
     perror("fopen");
   }
   grammar_fill(fptr);
-
+  populate_first_sets();
+  print_first_sets();
   // print_grammar();
   free(source);
   printf(".......end.......\n");

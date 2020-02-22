@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "stackADT.h"
+#include "treeADT.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -117,6 +118,13 @@ void print_grammar() {
   }
 }
 
+int rightmost_set_bit(unsigned long long *num) {
+  unsigned long long temp = (*num & (*num - 1));
+  int pos = (sizeof(long long) * 8) - log2(temp ^ *num);
+  *num = temp;
+  return pos;
+}
+
 void createParseTable(long **first, long **follow) {
   for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
     for (int j = 0; j < NUM_OF_TERMINALS; j++) {
@@ -128,13 +136,23 @@ void createParseTable(long **first, long **follow) {
     for (int j = 0; j < 2; j++) {
       unsigned long long num = first[nt][j];
       while (num) {
-        unsigned long long temp = (num & (num - 1));
-        int pos = (sizeof(long long) * 8) - log2(temp ^ num);
+        int pos = rightmost_set_bit(&num);
         if (j == 1) {
           pos += (sizeof(long long) * 8);
         }
-        num = temp;
         parse_table[nt][pos] = i;
+        if (EPSILON == pos) {
+          for (int j = 0; j < 2; j++) {
+            unsigned long long num = follow[nt][j];
+            while (num) {
+              int pos = rightmost_set_bit(&num);
+              if (j == 1) {
+                pos += (sizeof(long long) * 8);
+              }
+              parse_table[nt][pos] = i;
+            }
+          }
+        }
       }
     }
   }
@@ -186,39 +204,218 @@ tree_node *parseInputSourceCode(FILE *source) {
     }
   }
 }
-void print_node(tree_node *ptr) {
-  if (ptr == NULL)
-    return;
-  while (ptr != NULL) {
-    if (ptr->sym.is_terminal == TRUE) {
-      printf("%s\n", terminal_string[ptr->sym.t]);
-    } else {
-      printf("%s\n", non_terminal_string[ptr->sym.nt]);
+// void print_node(tree_node *ptr,tree_node* end) {
+//   if (ptr == end)
+//     return;
+//   while (ptr != end) {
+//     if (ptr->sym.is_terminal == TRUE) {
+//       printf("%s\n", terminal_string[ptr->sym.t]);
+//     } else {
+//       printf("%s\n", non_terminal_string[ptr->sym.nt]);
+//     }
+//     ptr = ptr->sibling;
+//   }
+//   return;
+// }
+// void print_parse_tree(tree_node* root){
+//   if(root == NULL){
+//     printf("empty root\n");
+//     return;
+//   }
+//   tree_node *curr = root;
+//   stack* st = init_stack();
+//   if (root->rightmost_child != NULL &&
+//     root->rightmost_child != root->leftmost_child)
+//   push(st, root->rightmost_child);
+//   // if (root->sym.is_terminal == TRUE) {
+//   //   printf("%s\n", terminal_string[root->sym.t]);
+//   // } else {
+//   //   printf("%s\n", non_terminal_string[root->sym.nt]);
+//   // }
+//   push(st,root);
+//   tree_node *ptr = root->leftmost_child;
+//   while (ptr!= NULL && ptr != root->rightmost_child)
+//   {
+//     push(st, ptr);
+//     ptr = ptr->sibling;
+//   }
+//   while(top(st)!=NULL){
+//     curr = pop(st);
+//     if (curr->rightmost_child != NULL &&
+//         curr->rightmost_child != curr->leftmost_child)
+//       push(st, curr->rightmost_child);
+//     // if (curr->sym.is_terminal == TRUE) {
+//     //   printf("%s\n", terminal_string[curr->sym.t]);
+//     // } else {
+//     //   printf("%s\n", non_terminal_string[curr->sym.nt]);
+//     // }
+//     push(st,curr);
+//     ptr = curr->leftmost_child;
+//     while (ptr != NULL && ptr != root->rightmost_child) {
+//       push(st, ptr);
+//       ptr = ptr->sibling;
+//     }
+//   }
+// }
+// void print_parse_tree(tree_node *root) {
+//   if (root == NULL) {
+//     printf("empty node\n");
+//     return;
+//   }
+//   tree_node *curr = NULL;
+//   stack *st = init_stack();
+//   if (root->rightmost_child != NULL &&
+//       root->rightmost_child != root->leftmost_child)
+//     push(st, root->rightmost_child);
+//   // print_node(root,root->rightmost_child);
+//   if (root->leftmost_child != NULL)
+//     push(st, root->leftmost_child);
+//   while (top(st) != NULL) {
+//     curr = pop(st);
+//     if (curr->rightmost_child != NULL &&
+//         curr->rightmost_child != curr->leftmost_child)
+//       push(st, curr->rightmost_child);
+//       {
+//         tree_node *temp = curr;
+//         while(temp->sibling != curr->rightmost_child){
+//           if (temp->rightmost_child != NULL &&
+//               temp->rightmost_child != temp->leftmost_child)
+//             push(st, temp->rightmost_child);
+//           if (temp->sym.is_terminal == TRUE) {
+//             printf("%s\n", terminal_string[temp->sym.t]);
+//           } else {
+//             printf("%s\n", non_terminal_string[temp->sym.nt]);
+//           }
+//           if (curr->leftmost_child != NULL)
+//             push(st, curr->leftmost_child);
+//           temp = temp->sibling;
+//         }
+//       }
+//     // print_node(curr,curr->rightmost_child);
+//     if (curr->leftmost_child != NULL)
+//       push(st, curr->leftmost_child);
+//   }
+// }
+
+void populate_first_sets() {
+  bool is_changed = true;
+  int lhs;
+  rhsnode_ptr rhs_ptr;
+  while (is_changed == true) {
+    is_changed = false;
+    // for (int i = 0; i < NUM_OF_RULES; i++) {
+    //   lhs = grammar[i].lhs;
+    //   rhs_ptr = grammar[i].head;
+    //   if (rhs_ptr->s.is_terminal == true) {
+    //     token_name tkn = (rhs_ptr->s).t;
+    //     if ((first_set[lhs][tkn / SIZE_OF_ULL] & (1ULL << (SIZE_OF_ULL -(tkn
+    //     % SIZE_OF_ULL+1)))) ==
+    //         0) // check if terminal already there in the first set or not
+    //     {
+    //       first_set[lhs][tkn / SIZE_OF_ULL] |= (1ULL << (SIZE_OF_ULL -(tkn %
+    //       SIZE_OF_ULL+1))); is_changed = true;
+    //     }
+    //   } else {
+
+    // ull *rhs_symbol_fset;
+    // ull *lhs_symbol_fset = first_set[lhs];
+    for (int i = 0; i < NUM_OF_RULES; i++) {
+      lhs = grammar[i].lhs;
+      rhs_ptr = grammar[i].head;
+      while (rhs_ptr != NULL) {
+        if (rhs_ptr->s.is_terminal == true) {
+          token_name tkn = (rhs_ptr->s).t;
+          if ((first_set[lhs][tkn / SIZE_OF_ULL] &
+               (1ULL << (SIZE_OF_ULL - (tkn % SIZE_OF_ULL + 1)))) ==
+              0) // check if terminal already there in the first set or not
+          {
+            first_set[lhs][tkn / SIZE_OF_ULL] |=
+                (1ULL << (SIZE_OF_ULL - (tkn % SIZE_OF_ULL + 1)));
+            is_changed = true;
+          }
+          break;
+        }
+
+        ull *rhs_first_set = first_set[(rhs_ptr->s).nt];
+
+        for (int j = 0; j < BITSTRING_PART_NUM; j++) {
+          if (first_set[lhs][j] != rhs_first_set[j]) {
+            first_set[lhs][j] |= rhs_first_set[j];
+            is_changed = true;
+          }
+        }
+
+        if ((rhs_first_set[EPSILON / SIZE_OF_ULL] &
+             (1ULL << (SIZE_OF_ULL - (EPSILON % SIZE_OF_ULL + 1)))) == 0) {
+
+          break;
+        }
+
+        rhs_ptr = rhs_ptr->next;
+
+        // // bool is_diff = false;
+        // if()
+
+        // for (int j = 0; j < BITSTRING_PART_NUM; j++) {
+        //   if (first_set[lhs][j] == first_set[j]) {
+        //     is_diff = true;
+        //     break;
+        //   }
+        // }
+
+        // if (is_diff == true) {
+        //   is_changed = true;
+        //   bool eps_in_rhs = false;
+
+        //   // if ((rhs_symbol_fset[EPSILON / SIZE_OF_ULL] &
+        //   //      (1ULL << (EPSILON % SIZE_OF_ULL))) != 0) {
+
+        //   //   eps_in_rhs = true;
+
+        //   // }
+
+        //   for (int j = 0; j < BITSTRING_PART_NUM; j++) {
+        //     lhs_symbol_fset[j] |= rhs_symbol_fset[j];
+        //   }
+
+        //   if (eps_in_rhs) {
+        //     rhs_symbol_fset[EPSILON / SIZE_OF_ULL] |=
+        //         (1ULL << (EPSILON % SIZE_OF_ULL));
+        //     printf("Epsilon added back? : %llu\n",
+        //            rhs_symbol_fset[EPSILON / SIZE_OF_ULL] &
+        //                (((1ULL << (EPSILON % SIZE_OF_ULL)))));
+        //     if (temp->next == NULL) {
+        //       lhs_symbol_fset[EPSILON / SIZE_OF_ULL] |=
+        //           (1ULL << (EPSILON % SIZE_OF_ULL));
+        //     }
+        //   } else // if a current nt does not contain epsilon , break
+        //   {
+        //     break;
+        //   }
+        // } else // if is_diff == false, break;
+        // {
+        //   break;
+        // }
+
+        // temp = temp->next;
+      } // end of rule linked list traversal while loop
+      //}   // end of else (non-terminal branch)
+    } // end of for - grammar traversal
+  }   // end of while - infinite loop until convergence
+} // end of function
+
+void print_first_sets() {
+  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
+    printf("FIRST(%s) = { ", non_terminal_string[i]);
+    for (int j = 0; j < BITSTRING_PART_NUM; j++) {
+      for (int k = 0; k < SIZE_OF_ULL; k++) {
+        if ((first_set[i][j] & (1ULL << (SIZE_OF_ULL - k - 1)) != 0)) {
+          // printf(" %d ", j);
+          printf("%s, ", terminal_string[j * SIZE_OF_ULL + k]);
+        }
+      }
     }
-    ptr = ptr->sibling;
-  }
-  return;
-}
-void print_parse_tree(tree_node *root) {
-  if (root == NULL) {
-    printf("empty node\n");
-    return;
-  }
-  tree_node *curr = NULL;
-  stack *st = init_stack();
-  if (root->rightmost_child != NULL &&
-      root->rightmost_child != root->leftmost_child)
-    push(st, root->rightmost_child);
-  print_node(root);
-  if (root->leftmost_child != NULL)
-    push(st, root->leftmost_child);
-  while (top(st) != NULL) {
-    curr = pop(st);
-    if (curr->rightmost_child != NULL &&
-        curr->rightmost_child != curr->leftmost_child)
-      push(st, curr->rightmost_child);
-    print_node(curr);
-    if (curr->leftmost_child != NULL)
-      push(st, curr->leftmost_child);
+    printf(" }\n");
+    // printf("%llu\n", first_set[i][0]);
   }
 }

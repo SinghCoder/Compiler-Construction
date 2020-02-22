@@ -7,6 +7,11 @@
 #define RHS_MAX_LENGTH 100
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
+#define BITSTRING_PART_NUM 3
+#define SIZE_OF_ULL sizeof(ull)*8
+
+typedef unsigned long long ull;
+
 typedef enum
 {
     #include "non_terminals.txt"
@@ -44,5 +49,6 @@ hash_table terminal_table;
 hash_table non_terminal_table;
 
 int parse_table[NUM_OF_NONTERMINALS][NUM_OF_TERMINALS];
+unsigned long long int first_set[NUM_OF_NONTERMINALS][BITSTRING_PART_NUM];
 
 #endif

@@ -341,9 +341,11 @@ void populate_follow_sets()
                 if(temp->flag == NT)
                 {
                     rhs_sym = ( (temp->s).nt );
+                    // printf("Calculating follow for %s\n", non_terminal_string[rhs_sym]);
                     ull *rhs_rule_set = get_rule_first_set(temp->next);
+                    // print_rule_fset(rhs_rule_set);
                     ull *tmp_follow = (ull*)malloc(sizeof(ull) * BITSTRING_PART_NUM);
-
+                    
                     for(int j = 0; j < BITSTRING_PART_NUM ; j++)
                     {
                         tmp_follow[j] = follow_set[rhs_sym][j];
@@ -351,7 +353,7 @@ void populate_follow_sets()
                     
                     bool eps_in_rhs = false;
 
-                    if(rhs_rule_set[EPSILON / NUM_BITS] & ( (1ULL << (EPSILON % NUM_BITS) ) ) != 0)//eps present in this rule
+                    if((rhs_rule_set[EPSILON / NUM_BITS] & ( (1ULL << (EPSILON % NUM_BITS) ) )) != 0)//eps present in this rule
                     {
                         eps_in_rhs = true;
                     }
@@ -363,8 +365,9 @@ void populate_follow_sets()
                         follow_set[rhs_sym][j] |= rhs_rule_set[j];
                     }
 
-                    if(eps_in_rhs == true)
+                    if( (eps_in_rhs == true) || (temp -> next == NULL))
                     {
+                        // printf("eps present\n");
                         for(int j = 0; j < BITSTRING_PART_NUM ; j++)
                         {
                             follow_set[rhs_sym][j] |= follow_set[lhs][j];
@@ -374,7 +377,10 @@ void populate_follow_sets()
                     for(int j = 0; j < BITSTRING_PART_NUM ; j++)
                     {
                         if(follow_set[rhs_sym][j] != tmp_follow[j])
+                        {
+                            // printf("is changed....\n");
                             is_changed = true;
+                        }
                     }
                     // }
                     // follow_set[rhs_sym][EPSILON / NUM_BITS] &= (~ (1ULL << (EPSILON % NUM_BITS) ) );
@@ -501,6 +507,8 @@ void populate_first_sets()
 
 ull *get_rule_first_set(rhsnode_ptr node)
 {
+    // if(node && node->flag == NT)
+    //     printf("get_rule start at nt : %s\n", non_terminal_string[(node->s).nt]);
     ull *fset = malloc(sizeof(ull) * BITSTRING_PART_NUM);
 
     for(int i = 0; i < BITSTRING_PART_NUM; i++)

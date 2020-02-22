@@ -17,7 +17,7 @@ typedef struct {
 
 int fastModExp(int a, int b, int m);
 
-typedef hash_element *hash_table;
+typedef hash_element *hash_table;       // change to static allocation
 
 hash_table init_hash_table();
 

@@ -4,7 +4,7 @@
 #include "hashtable.h"
 
 #define BUFFER_SIZE 20
-#define NUM_OF_TERMINALS 60
+#define NUM_OF_TERMINALS 61
 
 typedef enum {
 #include "tokens.txt"

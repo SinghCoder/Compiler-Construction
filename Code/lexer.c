@@ -101,63 +101,42 @@ void lexer_init()
   for (i = 0; tk_read != NULL;  i++) 
   {
     strcpy(terminal_string[i], tk_read);
-    printf("terminal string %d: %s\n", i, terminal_string[i]);
+    // printf("terminal string %d: %s\n", i, terminal_string[i]);
     tk_read = strtok(NULL, ", \n");
   }
   free(temp);
 
-  //   char *terminal_string_copy[NUM_OF_TERMINALS] = {
-  //       "DEF",       "MODULE",      "ENDDEF",    "DRIVERDEF",
-  //       "DRIVERENDDEF", "TAKES",     "INPUT",       "SQBO",      "SQBC",
-  //       "RETURNS", "START",     "END",         "DECLARE",   "ID",
-  //       "COLON", "ARRAY",     "OF",          "INTEGER",   "REAL",
-  //       "BOOLEAN", "TRUE",      "FALSE",       "ASSIGNOP",  "NUM",
-  //       "RNUM", "SEMICOL",   "DRIVER",      "GET_VALUE", "PRINT", "USE",
-  //       "WITH",      "PARAMETERS",  "COMMA",     "FOR",       "IN",
-  //       "RANGEOP",   "WHILE",       "SWITCH",    "BO",        "BC",
-  //       "CASE",      "BREAK",       "DEFAULT",   "PLUS",      "MINUS",
-  //       "MUL",       "DIV",         "LT",        "LE",        "GT",
-  //       "GE",        "EQ",          "NE",        "AND",       "OR",
-  //       "LEX_ERROR", "END_OF_FILE", "DELIM",     "EPSILON",   "PROGRAM"};
-
-  //   for (int i = 0; i < NUM_OF_TERMINALS; i++) {
-
-  //     terminal_string[i] = (char *)malloc(20 * sizeof(char));
-  //     terminal_string[i] = terminal_string_copy[i];
-  //     // printf("terminal string %s\n", terminal_string[i]);
-  //   }
-
-    lookup_table = init_hash_table();
-    hash_insert(lookup_table, "integer", INTEGER);
-    hash_insert(lookup_table, "real", REAL);
-    hash_insert(lookup_table, "boolean", BOOLEAN);
-    hash_insert(lookup_table, "of", OF);
-    hash_insert(lookup_table, "array", ARRAY);
-    hash_insert(lookup_table, "start", START);
-    hash_insert(lookup_table, "end", END);
-    hash_insert(lookup_table, "declare", DECLARE);
-    hash_insert(lookup_table, "module", MODULE);
-    hash_insert(lookup_table, "driver", DRIVER);
-    hash_insert(lookup_table, "program", PROGRAM);
-    hash_insert(lookup_table, "get_value", GET_VALUE);
-    hash_insert(lookup_table, "print", PRINT);
-    hash_insert(lookup_table, "use", USE);
-    hash_insert(lookup_table, "with", WITH);
-    hash_insert(lookup_table, "parameters", PARAMETERS);
-    hash_insert(lookup_table, "true", TRUE);
-    hash_insert(lookup_table, "false", FALSE);
-    hash_insert(lookup_table, "takes", TAKES);
-    hash_insert(lookup_table, "input", INPUT);
-    hash_insert(lookup_table, "returns", RETURNS);
-    hash_insert(lookup_table, "AND", AND);
-    hash_insert(lookup_table, "OR", OR);
-    hash_insert(lookup_table, "for", FOR);
-    hash_insert(lookup_table, "in", IN);
-    hash_insert(lookup_table, "switch", SWITCH);
-    hash_insert(lookup_table, "case", CASE);
-    hash_insert(lookup_table, "break", BREAK);
-    hash_insert(lookup_table, "default", DEFAULT);
-    hash_insert(lookup_table, "while", WHILE);
+  lookup_table = init_hash_table();
+  hash_insert(lookup_table, "integer", INTEGER);
+  hash_insert(lookup_table, "real", REAL);
+  hash_insert(lookup_table, "boolean", BOOLEAN);
+  hash_insert(lookup_table, "of", OF);
+  hash_insert(lookup_table, "array", ARRAY);
+  hash_insert(lookup_table, "start", START);
+  hash_insert(lookup_table, "end", END);
+  hash_insert(lookup_table, "declare", DECLARE);
+  hash_insert(lookup_table, "module", MODULE);
+  hash_insert(lookup_table, "driver", DRIVER);
+  hash_insert(lookup_table, "program", PROGRAM);
+  hash_insert(lookup_table, "get_value", GET_VALUE);
+  hash_insert(lookup_table, "print", PRINT);
+  hash_insert(lookup_table, "use", USE);
+  hash_insert(lookup_table, "with", WITH);
+  hash_insert(lookup_table, "parameters", PARAMETERS);
+  hash_insert(lookup_table, "true", TRUE);
+  hash_insert(lookup_table, "false", FALSE);
+  hash_insert(lookup_table, "takes", TAKES);
+  hash_insert(lookup_table, "input", INPUT);
+  hash_insert(lookup_table, "returns", RETURNS);
+  hash_insert(lookup_table, "AND", AND);
+  hash_insert(lookup_table, "OR", OR);
+  hash_insert(lookup_table, "for", FOR);
+  hash_insert(lookup_table, "in", IN);
+  hash_insert(lookup_table, "switch", SWITCH);
+  hash_insert(lookup_table, "case", CASE);
+  hash_insert(lookup_table, "break", BREAK);
+  hash_insert(lookup_table, "default", DEFAULT);
+  hash_insert(lookup_table, "while", WHILE);
 }
 
 void getStream(FILE *fp) 
@@ -216,7 +195,7 @@ TOKEN getNextToken(FILE *fp) {
       } else if (')' == c) {
         state = 45;
       } else if (EOF == c) {
-        t.name = END_OF_FILE;
+        t.name = DOLLAR;
         return t;
       } else if (' ' == c || '\n' == c || '\t' == c) {
         t.num = c;
@@ -709,14 +688,17 @@ void print_token_stream(FILE *source) {
   TOKEN t;
   while (1) {
     t = getNextToken(source);
-    if (t.name == END_OF_FILE) {
+    if (t.name == DOLLAR) {
       break;
     } else {
       if (t.name == LEX_ERROR) {
         lexError(lexeme, source);
-      } else {
-        if (t.name != DELIM) {
-          printf("terminal string is :%s\n", terminal_string[0]);
+      } 
+      else
+      {
+        if (t.name != DELIM) 
+        {
+          // printf("terminal string is :%s\n", terminal_string[t.name]);
           fprintf(token_file, "%s | ", terminal_string[t.name]);
           switch (t.name) {
           case NUM:

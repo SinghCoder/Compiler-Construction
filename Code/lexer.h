@@ -10,8 +10,6 @@ TOKEN getNextToken(FILE *fp);
 
 char getChar(FILE *fp);
 
-void remove_comments(char *testcaseFile, char *cleanFile);
-
 void lexError(char *errStr, FILE *fp);
 
 TOKEN getToken();
@@ -25,5 +23,7 @@ token_name searchLookupTable(char *lexeme);
 void print_token_stream(FILE *source);
 
 void lookup_table_fill();
+
+void reset_lexer_dfa();
 
 #endif

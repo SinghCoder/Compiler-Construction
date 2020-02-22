@@ -24,4 +24,6 @@ token_name searchLookupTable(char *lexeme);
 
 void print_token_stream(FILE *source);
 
+void lookup_table_fill();
+
 #endif

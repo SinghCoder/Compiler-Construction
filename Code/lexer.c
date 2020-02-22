@@ -74,13 +74,8 @@ void retract(int num_of_char)
   just_retracted = true;
 }
 
-void lexer_init() 
+void lookup_table_fill()
 {
-  state = 0;
-  lexeme_begin = forward_ptr = 0;
-  just_retracted = false;
-  line_no = 1;
-
   FILE *file = fopen("tokens.txt", "r");
   fseek(file, 0, SEEK_END);
 
@@ -137,6 +132,15 @@ void lexer_init()
   hash_insert(lookup_table, "break", BREAK);
   hash_insert(lookup_table, "default", DEFAULT);
   hash_insert(lookup_table, "while", WHILE);
+}
+
+void lexer_init() 
+{
+  state = 0;
+  lexeme_begin = forward_ptr = 0;
+  just_retracted = false;
+  line_no = 1;
+  lookup_table_fill();
 }
 
 void getStream(FILE *fp) 
@@ -367,7 +371,7 @@ TOKEN getNextToken(FILE *fp) {
       lexeme_begin = forward_ptr;
       state = 0;
       // printf("delim %c", buffer[forward_ptr] );
-      return t;
+      // return t;
       break;
 
     case 15:;
@@ -687,11 +691,17 @@ void print_token_stream(FILE *source) {
   FILE *token_file = fopen("token_stream.txt", "w");
   TOKEN t;
   while (1) {
+    // printf("hi\n");
     t = getNextToken(source);
-    if (t.name == DOLLAR) {
+    printf("token: %s\n", terminal_string[t.name]);
+    if (t.name == DOLLAR) 
+    {
       break;
-    } else {
-      if (t.name == LEX_ERROR) {
+    } 
+    else 
+    {
+      if (t.name == LEX_ERROR) 
+      {
         lexError(lexeme, source);
       } 
       else

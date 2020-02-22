@@ -4,7 +4,7 @@ MODULEDECLARATIONS epsilon
 MODULEDECLARATION declare module id semicol
 OTHERMODULES NTMODULE OTHERMODULES 
 OTHERMODULES epsilon
-DRIVERMODULE driverdef program driverenddef MODULEDEF
+DRIVERMODULE driverdef driver program driverenddef MODULEDEF
 NTMODULE def module id enddef takes input sqbo INPUT_PLIST sqbc semicol RET MODULEDEF
 MODULEDEF start STATEMENTS end
 RET returns sqbo OUTPUT_PLIST sqbc semicol 

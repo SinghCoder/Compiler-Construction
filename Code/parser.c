@@ -248,6 +248,7 @@ tree_node *parseInputSourceCode(FILE *source)
 
   root->sym.nt = MAINPROGRAM;
   root->sym.is_terminal = false;
+//   root->token
   
   push(main_stack, root); //push start symbol on stack
   // printf("oyeee....\n");
@@ -256,6 +257,15 @@ tree_node *parseInputSourceCode(FILE *source)
   while (true) 
   {
     tree_node *node = pop(main_stack);
+
+	if(node)
+	{
+		if(node->sym.is_terminal)
+			printf("====================printing tree with root as :  %s\n", terminal_string[node->sym.t]);
+		else
+			printf("====================printing tree with root as :  %s\n", non_terminal_string[node->sym.nt]);
+		// print_parse_tree(node);
+	}
 	if((node != NULL) && (node->sym).is_terminal == true)
 	{
 		node->token.line_no = tkn.line_no;
@@ -272,6 +282,7 @@ tree_node *parseInputSourceCode(FILE *source)
 		{
 			node->token.str = tkn.str;
 		}
+		// push(main_stack, node);
 	}
 
     if (tkn.name == LEX_ERROR) 
@@ -296,7 +307,7 @@ tree_node *parseInputSourceCode(FILE *source)
       break;
     }
 
-    if (node->sym.is_terminal == true) 
+    if (node && node->sym.is_terminal == true) 
     {
       // printf("stack top is terminal\n");
       // printf("%s\n", terminal_string[node->sym.t]);
@@ -310,13 +321,21 @@ tree_node *parseInputSourceCode(FILE *source)
         printf("%d) Syntax Error : lookahead char don't match with stack top\n", tkn.line_no);
         break;  // don't break, instead continue parsing after synch token
       }
+
+	//   tree_node *temp = create_tree_node();
+    //   temp->parent = node->parent;
+    //   temp->sym.t = node->sym.t;
+	//   temp->token = node->token;
+      
+// 	  add_child(node->parent, temp);
+
       tkn = getNextToken(source);
       continue;
     }
     else
     {
       //  printf("stack top is non_terminal\n");
-       printf("%s\n", non_terminal_string[node->sym.nt]);
+    //    printf("%s\n", non_terminal_string[node->sym.nt]);
     }
     
 
@@ -335,7 +354,7 @@ tree_node *parseInputSourceCode(FILE *source)
       // print_rule(rule_no);
     }
 
-    printf("\t|----->");
+    // printf("\t|----->");
 
     while (rhs_ptr != NULL) 
     {
@@ -343,24 +362,23 @@ tree_node *parseInputSourceCode(FILE *source)
       temp->parent = node;
       temp->sym = rhs_ptr->s;
       
+	  add_child(node, temp);
+      push(aux_stack, temp);
+
       if(temp->sym.is_terminal == true)
       {
-        printf("%s  -->", terminal_string[temp->sym.t]);
+        // printf("%s  -->", terminal_string[temp->sym.t]);
         // if(temp->sym.t != EPSILON)
         // {
-            add_child(node, temp);
-            push(aux_stack, temp);
         // }
       }
       else
       {
-        printf("%s -->", non_terminal_string[temp->sym.nt]);
-        add_child(node, temp);
-        push(aux_stack, temp);
+        // printf("%s -->", non_terminal_string[temp->sym.nt]);
       }
       rhs_ptr = rhs_ptr -> next;
-      if(rhs_ptr == NULL)
-        printf(".....\n");
+    //   if(rhs_ptr == NULL)
+        // printf(".....\n");
     }
     
     tree_node *temp = pop(aux_stack);
@@ -370,17 +388,29 @@ tree_node *parseInputSourceCode(FILE *source)
       push(main_stack, temp);
       temp = pop(aux_stack);
     }
-  }
+  }	//end of while(true) loop : parsing done
   return root;
 }
 void print_node(tree_node *node) 
 {
+	if(node == NULL)
+		return;
 	printf("inside print node\n");
 	bool is_terminal = (node->sym).is_terminal;
+	if(is_terminal)
+		printf("printing a terminal\n");
+	else
+		printf("printing a non-terminal\n");
 	char *s;
 	if(is_terminal == true)
 	{
-		s = (node->token).str;
+		// if(node->sym.t == EPSILON)
+		// {
+		// 	printf("===================EPSILON===================\n");
+		// 	return;
+		// }
+		s = terminal_string[(node->token).name];
+		// printf("token's string is selected")
         printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
 		printf("%d", (node->token).line_no );
 		s = "    ";
@@ -417,10 +447,16 @@ void print_node(tree_node *node)
 		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
 		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
 
-		
-		s = non_terminal_string[(node->parent->sym).nt];
-		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
-				
+		if(node->parent)
+		{
+			s = non_terminal_string[(node->parent->sym).nt];
+			printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
+		}		
+		else
+		{
+			s = "(NULL)";
+			printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
+		}
 		s = "no";
 		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
 		
@@ -433,36 +469,40 @@ void print_node(tree_node *node)
 // 
 void print_parse_tree(tree_node *root) 
 {
-	if(root->sym.is_terminal)
-	{
-		printf("Current root node : %s\n", terminal_string[root->sym.t]);
-	}
-	else
-	{
-		printf("Current root node : %s\n", non_terminal_string[root->sym.nt]);
-	}
 	if(root == NULL)
 	{
 		return;
 	}
-	else if(root->sym.is_terminal)
+	if(root->sym.is_terminal)
 	{
+		printf("Current root node : %s\n", terminal_string[root->sym.t]);
 		print_node(root);
-		return;	
-	}
-	else
-	{	
-		printf("calling pt for leftmost child\n");
-		print_parse_tree( root->leftmost_child );
-		printf("printing current node\n");
-		print_node(root);
-		tree_node *temp = root->leftmost_child->sibling;
-		printf("calling pt for other chidren\n");
+		tree_node *temp = root->sibling;
 		while(temp != NULL)
 		{
 			print_parse_tree(temp);
 			temp = temp->sibling;
+		}	
+	}
+	else
+	{
+		printf("Current root node : %s\n", non_terminal_string[root->sym.nt]);	
+		if(root->leftmost_child)
+			printf("calling pt for leftmost child( %s )\n", non_terminal_string[root->leftmost_child->sym.nt]);
+		print_parse_tree( root->leftmost_child );
+		printf("printing current node(%s)'s details\n", non_terminal_string[root->sym.nt]);
+		print_node(root);
+		if(root->leftmost_child)
+		{
+			tree_node *temp = root->leftmost_child->sibling;
+			printf("calling pt for other chidren\n");
+			while(temp != NULL)
+			{
+				print_parse_tree(temp);
+				temp = temp->sibling;
+			}
 		}
+		// print_parse_tree( temp);
 	}
 }
 //   if (root == NULL) {

@@ -206,9 +206,9 @@ int main(int argc, char *argv[])
 						
 					populate_follow_sets();
 					
-					reset_lexer_dfa();
+					reset_lexer_dfa(source);
 
-					fseek(source, 0, SEEK_SET);
+					// fseek(source, 0, SEEK_SET);   done in reset_lexer_dfa
 
 					createParseTable();
 					// ull *fset = get_rule_first_set(grammar[0].head);

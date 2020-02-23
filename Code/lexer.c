@@ -134,12 +134,14 @@ void lookup_table_fill()
   hash_insert(lookup_table, "while", WHILE);
 }
 
-void reset_lexer_dfa()
+void reset_lexer_dfa(source)
 {
   state = 0;
   lexeme_begin = forward_ptr = 0;
   just_retracted = false;
   line_no = 1;
+  fseek(source, 0, SEEK_SET);
+
 }
 
 void lexer_init() 

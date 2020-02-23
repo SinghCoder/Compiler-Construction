@@ -15,32 +15,36 @@ void remove_comments(char *source_file, char *no_comment_file)
 	outp_fptr = fopen(no_comment_file, "w");
 
 	int state = 0;
-	int x = fgetc(inp_fptr);
-	while (x != EOF) {
+	char ch = fgetc(inp_fptr);
+	while (ch != EOF) {
 		switch (state) {
 			case 0:
-				if ('*' == x)
+				if ('*' == ch)
 					state = 1;
 				else
-					fputc(x, outp_fptr);
+					fputc(ch, outp_fptr);
 				break;
 			case 1:
-				if ('*' == x)
+				if ('*' == ch)
 					state = 2;
 				else
 				{
 					state = 0;
 					fputc('*', outp_fptr);
-					fputc(x, outp_fptr);
+					fputc(ch, outp_fptr);
 				}
 				break;
 			case 2:
-				if ('*' == x)
+				if ('*' == ch)
 					state = 3;
-				else {} //nothing
+				else 
+				{
+					if('\n' == ch)
+						fputc(ch, outp_fptr);
+				} //nothing
 				break;
 			case 3:
-				if ('*' == x)
+				if ('*' == ch)
 					state = 0;
 				else
 					state = 2;
@@ -48,17 +52,17 @@ void remove_comments(char *source_file, char *no_comment_file)
 			default:
 				break;
 		}
-		x = fgetc(inp_fptr);
+		ch = fgetc(inp_fptr);
 	}	// end of while - file read
 
 	fclose(inp_fptr);
 	fclose(outp_fptr);
 
 	printf("Comments removed!! Do you want to check the output : (Y/N)\n");
-	char ch;
-	scanf("\n%c", &ch);
+	char choice;
+	scanf("\n%c", &choice);
 
-	if(ch == 'Y')
+	if(choice == 'Y')
 	{
 		FILE *fptr = fopen(no_comment_file, "r");
 		char buf[100];
@@ -70,8 +74,8 @@ void remove_comments(char *source_file, char *no_comment_file)
 		}
 
 		printf("\nPress any character to continue\n");
-		char ch;
-		scanf("%c", &ch);
+		char ch2;
+		scanf("%c", &ch2);
 	}
 }
 
@@ -177,7 +181,15 @@ int main(int argc, char *argv[])
 				populate_follow_sets();
 				
 				createParseTable();
+
 				tree_node* ptr = parseInputSourceCode(source);
+
+				if(ptr == NULL)
+				{
+					printf("Empty parse tree\n");
+				}
+
+				print_parse_tree(ptr);
 				
 			}
 			break;

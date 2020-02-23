@@ -36,6 +36,8 @@ void print_rule_fset(ull *fset);
 
 void print_parse_table();
 
+void print_parse_tree(tree_node *root);
+
 void print_rule(int rule_no);
 
 tree_node *parseInputSourceCode(FILE *source);

@@ -19,9 +19,9 @@ tree_node *create_tree_node() {
 void add_child(tree_node *parent, tree_node *child) 
 {
   // if(child->sym.is_terminal == true)
-    // printf("Child added : %s\n", terminal_string[child->sym.t]);
+  //   printf("\nChild added : %s\n", terminal_string[child->sym.t]);
   // else
-    // printf("Child added : %s\n", non_terminal_string[child->sym.nt]);
+  //   printf("\nChild added : %s\n", non_terminal_string[child->sym.nt]);
   if (parent->rightmost_child == NULL) 
   {
     parent->leftmost_child = child;

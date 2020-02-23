@@ -22,6 +22,13 @@ void parser_init()
   
   char *temp = malloc(sizeof(char) * (length));
 
+
+  if(temp == NULL)
+  {
+      perror("parser init failed\n");
+      exit(1);
+  }
+
   fread(temp, sizeof(char), length, file);
   fclose(file);
   //initialize all first sets to be null
@@ -48,6 +55,7 @@ void parser_init()
   }
 
   fclose(file);
+  free(temp);
 
   terminal_table = init_hash_table();
   non_terminal_table = init_hash_table();
@@ -78,6 +86,12 @@ void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym)
 {
 
   rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
+
+  if(node == NULL)
+  {
+      perror("insertion at end failed\n");
+      exit(1);
+  }
   node->s = sym;
   node->next = NULL;
 
@@ -419,7 +433,7 @@ void print_first_sets()
     {
         printf("FIRST[");        
         char *s = non_terminal_string[i];
-        printf("%*s%*s",15+strlen(s)/2,s,15-strlen(s)/2,"");
+        printf("%*s%*s",(int)(15+strlen(s)/2),s,(int)(15 - strlen(s)/2),"");
         printf("] = { ");
         for(int j = 0; j< BITSTRING_PART_NUM ; j++)
         {
@@ -443,7 +457,7 @@ void print_follow_sets()
     {
         printf("FOLLOW[" );
         char *s = non_terminal_string[i];
-        printf("%*s%*s",15+strlen(s)/2,s,15-strlen(s)/2,"");
+        printf("%*s%*s",(int)(15+strlen(s)/2),s,(int)(15 - strlen(s)/2),"");
         printf("] = { ");
         for(int j = 0; j< BITSTRING_PART_NUM ; j++)
         {
@@ -522,6 +536,13 @@ void populate_follow_sets()
                     // print_rule_fset(rhs_rule_set);
                     ull *tmp_follow = (ull*)malloc(sizeof(ull) * BITSTRING_PART_NUM);
                     
+
+                    if(tmp_follow == NULL)
+                    {
+                        perror("Follow set memory allocation failed\n");
+                        exit(1);
+                    }
+
                     for(int j = 0; j < BITSTRING_PART_NUM ; j++)
                     {
                         tmp_follow[j] = follow_set[rhs_sym][j];
@@ -558,6 +579,7 @@ void populate_follow_sets()
                             is_changed = true;
                         }
                     }
+                    free(tmp_follow);
                     // }
                     // follow_set[rhs_sym][EPSILON / NUM_BITS] &= (~ ((1ULL << (NUM_BITS-1) ) >> (EPSILON % NUM_BITS) ) );
                 }
@@ -686,7 +708,12 @@ ull *get_rule_first_set(rhsnode_ptr node)
     // if(node && node->flag == NT)
     //     printf("get_rule start at nt : %s\n", non_terminal_string[(node->s).nt]);
     ull *fset = malloc(sizeof(ull) * BITSTRING_PART_NUM);
-
+    
+     if(fset == NULL)
+    {
+        perror("get rule fset failed\n");
+        exit(1);
+    }
     for(int i = 0; i < BITSTRING_PART_NUM; i++)
     {
         fset[i] = 0;

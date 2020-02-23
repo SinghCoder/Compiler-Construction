@@ -6,14 +6,9 @@
 #include <string.h>
 #include <time.h>
 
-void remove_comments(char *source_file, char *no_comment_file)
+void remove_comments(FILE * inp_fptr, char *no_comment_file)
 {
-	FILE *inp_fptr;
-	FILE *outp_fptr;
-
-	inp_fptr = fopen(source_file, "r");
-	outp_fptr = fopen(no_comment_file, "w");
-
+	FILE* outp_fptr = fopen(no_comment_file, "w");
 	int state = 0;
 	char ch = fgetc(inp_fptr);
 	while (ch != EOF) {
@@ -55,9 +50,9 @@ void remove_comments(char *source_file, char *no_comment_file)
 		ch = fgetc(inp_fptr);
 	}	// end of while - file read
 
-	fclose(inp_fptr);
+	// fclose(inp_fptr);
 	fclose(outp_fptr);
-
+	
 	printf("Comments removed!! Do you want to check the output : (Y/N)\n");
 	char choice;
 	scanf("\n%c", &choice);
@@ -76,7 +71,10 @@ void remove_comments(char *source_file, char *no_comment_file)
 		printf("\nPress any character to continue\n");
 		char ch2;
 		scanf("%c", &ch2);
+		fclose(fptr);
+		
 	}
+	// fclose(outp_fptr);
 }
 
 void print_menu()
@@ -95,87 +93,70 @@ void print_menu()
 }
 int main(int argc, char *argv[]) 
 {
-  setvbuf(stdout, NULL, _IONBF, 0);
- 
-  int choice;
-  char source_file[100];
-  strcpy(source_file, argv[1]);
 
-  while(true)
-  {
-	print_menu();
-	scanf("%d", &choice);
-	printf("\n");
-
-	switch(choice)
+	if( argc < 2 )
 	{
-		case 1:
-			{
-				char no_comment_file[100];
-				printf("Enter name for comment removed source code file\n");
-				scanf("%s", no_comment_file);
-				remove_comments(source_file, no_comment_file);
-				// print_menu();
-			}
-			break;
-		case 2:
-			{
-				lexer_init();
-				FILE *source = fopen(source_file, "r");
-				getStream(source);
-				print_token_stream(source);
-			}
-			break;
-		case 3:
-			{
-				lexer_init();
-				parser_init();
+		printf("\n\nUsage: make file=<test_case_file_name>\n\n");
+		exit(1);
+	}
 
-				FILE *source = fopen(source_file, "r");
-				getStream(source);
+	// setvbuf(stdout, NULL, _IONBF, 0);
+ 
+	int choice;
+	char source_file[100];
+	strcpy(source_file, argv[1]);
 
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
+	FILE *source = fopen(source_file, "r");
+	if(source == NULL)
+	{
+		printf("Error opening file\n");
+	}
+
+	while(true)
+	{
+		print_menu();
+		scanf("%d", &choice);
+		printf("\n");
+
+		switch(choice)
+		{
+			case 1:
 				{
-				  perror("fopen");
+					fseek( source, 0, SEEK_SET );
+					char no_comment_file[100];
+					printf("Enter name for comment removed source code file\n");
+					scanf("%s", no_comment_file);
+					remove_comments(source, no_comment_file);
+					// print_menu();
 				}
-				grammar_fill(fptr);
-
-				populate_first_sets();
+				break;
+			case 2:
+				{
+					lexer_init();
+					reset_lexer_dfa(source);
+					printf("lexer init done\n");
+					// getStream(source);
+					printf("got the stream\n");
+					print_token_stream(source);
+					printf("printed token stream\n");
+					// reset_lexer_dfa(source);
 					
-				populate_follow_sets();
-				
-				createParseTable();
-
-				tree_node* ptr = parseInputSourceCode(source);
-
-				if(ptr == NULL)
-				{
-					printf("Empty parse tree\n");
 				}
+				break;
+			case 3:
+				{	
 
-				print_parse_tree(ptr);
-				
-			}
-			break;
-		case 4:
-			{
-				clock_t    start_time, end_time;
-
-                double total_CPU_time, total_CPU_time_in_seconds;
-
-                start_time = clock();
-
-                    FILE *source = fopen("test.txt", "r");
+					reset_lexer_dfa(source);
 					lexer_init();
 					parser_init();
+					
+					// FILE *source = fopen(source_file, "r");
 					getStream(source);
-					// print_token_stream(source);
 
 					FILE *fptr = fopen("grammar.txt", "r");
 					if (fptr == NULL) 
 					{
-					  perror("fopen");
+					perror("fopen");
 					}
 					grammar_fill(fptr);
 
@@ -183,68 +164,117 @@ int main(int argc, char *argv[])
 						
 					populate_follow_sets();
 					
-					reset_lexer_dfa(source);
-
-					// fseek(source, 0, SEEK_SET);
-
 					createParseTable();
-					// ull *fset = get_rule_first_set(grammar[0].head);
-					// print_parse_table();
 
 					tree_node* ptr = parseInputSourceCode(source);
 
-					free(source);
+					if(ptr == NULL)
+					{
+						printf("Empty parse tree\n");
+					}
 
-                end_time = clock();
+					print_parse_tree(ptr);
 
-                total_CPU_time  =  (double) (end_time - start_time);
-
-                total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
-
-				printf("Total CPU TIME taken : %lf secs\nTotal CPU time in seconds %lf \n", total_CPU_time, total_CPU_time_in_seconds);
-			}
-			break;
-		case 5:
-			{
-				lexer_init();
-				parser_init();
-
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
-				{
-				  perror("fopen");
-				}
-				grammar_fill(fptr);
-
-				populate_first_sets();
-
-				print_first_sets();
-			}
-			break;
-		case 6:
-			{
-				lexer_init();
-				parser_init();
-
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
-				{
-				  perror("fopen");
-				}
-				grammar_fill(fptr);
-
-				populate_first_sets();
+					// fclose(source);
+					fclose(fptr);
 					
-				populate_follow_sets();
-				print_follow_sets();
-			}
-			break;
-		default:
-			{
-				// break;
-				exit(1);
-			}
-			break;
+				}
+				break;
+			case 4:
+				{
+					reset_lexer_dfa(source);
+					clock_t    start_time, end_time;
+
+					double total_CPU_time, total_CPU_time_in_seconds;
+
+					start_time = clock();
+
+						// FILE *source = fopen("test.txt", "r");
+						lexer_init();
+						parser_init();
+						getStream(source);
+						// print_token_stream(source);
+
+						FILE *fptr = fopen("grammar.txt", "r");
+						if (fptr == NULL) 
+						{
+						perror("fopen");
+						}
+						grammar_fill(fptr);
+
+						populate_first_sets();
+							
+						populate_follow_sets();
+						
+						// reset_lexer_dfa(source);
+
+						// fseek(source, 0, SEEK_SET);
+
+						createParseTable();
+						// ull *fset = get_rule_first_set(grammar[0].head);
+						// print_parse_table();
+
+						tree_node* ptr = parseInputSourceCode(source);
+
+						// free(source);
+						fclose(fptr);
+
+					end_time = clock();
+
+					total_CPU_time  =  (double) (end_time - start_time);
+
+					total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
+
+					printf("Total CPU TIME taken : %lf secs\nTotal CPU time in seconds %lf \n", total_CPU_time, total_CPU_time_in_seconds);
+					
+				}
+				break;
+			case 5:
+				{
+					lexer_init();
+					parser_init();
+
+					FILE *fptr = fopen("grammar.txt", "r");
+					if (fptr == NULL) 
+					{
+					perror("fopen");
+					}
+					grammar_fill(fptr);
+
+					populate_first_sets();
+
+					print_first_sets();
+
+					fclose(fptr);
+				}
+				break;
+			case 6:
+				{
+					lexer_init();
+					parser_init();
+
+					FILE *fptr = fopen("grammar.txt", "r");
+					if (fptr == NULL) 
+					{
+					perror("fopen");
+					}
+					grammar_fill(fptr);
+
+					populate_first_sets();
+						
+					populate_follow_sets();
+					print_follow_sets();
+
+					fclose(fptr);
+				}
+				break;
+			default:
+				{
+					// break;
+					exit(0);
+				}
+				break;
+		}
+		fclose(source);
 	}
-  }
 } // end of main

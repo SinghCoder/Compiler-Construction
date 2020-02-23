@@ -24,6 +24,6 @@ void print_token_stream(FILE *source);
 
 void lookup_table_fill();
 
-void reset_lexer_dfa();
+void reset_lexer_dfa(FILE *source);
 
 #endif

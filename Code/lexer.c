@@ -145,6 +145,7 @@ void reset_lexer_dfa()
 void lexer_init() 
 {
   reset_lexer_dfa();
+  
   lookup_table_fill();
 }
 

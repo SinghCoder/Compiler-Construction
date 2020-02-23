@@ -265,8 +265,12 @@ tree_node *parseInputSourceCode(FILE *source)
 		}
 		else if (node->sym.t != tkn.name)  // terminal on top of stack does not match with lookhead symbol
 		{
-			printf("%d) Syntax Error : lookahead char don't match with stack top\n", tkn.line_no);
-			break;  // don't break, instead continue parsing after synch token
+			printf("%d) Syntax Error : lookahead token(%s) don't match with stack top(%s)\n", tkn.line_no, terminal_string[tkn.name], terminal_string[node->sym.t]);
+			tkn = getNextToken(source);
+			if(tkn.name == DOLLAR)
+				return root;
+			push(main_stack, node);
+			continue;
 		}
 		else
 		{
@@ -287,8 +291,6 @@ tree_node *parseInputSourceCode(FILE *source)
 			tkn = getNextToken(source);
 			continue;
 		}
-		
-		// push(main_stack, node);
 	}
 
     if (tkn.name == LEX_ERROR) 
@@ -296,13 +298,14 @@ tree_node *parseInputSourceCode(FILE *source)
 		printf("LEX_ERROR\n");
 		printf("%d) Lexical Error\n", tkn.line_no);
 		tkn = getNextToken(source);
+		printf("next token: %s\n", terminal_string[tkn.name]);
 		continue;
     }
     if (node == NULL) 
     { //implement error recovery here
 		if (tkn.name != DOLLAR) // rule not read completely but stack became empty
 		{
-			printf("%d) Syntax Error\n", tkn.line_no);
+			printf("%d) Extra symbols in the source code\n", tkn.line_no);
 		}
 		else
 		{
@@ -316,8 +319,16 @@ tree_node *parseInputSourceCode(FILE *source)
 
 	if(rule_no == -1)
     {
-		printf("No matching rule\n");
-		break;
+		// printf("No matching rule\n");
+
+		while( (follow_set[node->sym.nt][tkn.name / NUM_BITS] & (((1ULL << (NUM_BITS-1) ) >> (tkn.name % NUM_BITS) )) ) == 0)
+		{
+			tkn = getNextToken(source);
+			if(tkn.name == DOLLAR)
+				return root;
+		}
+
+		continue;
     }
     cell rule = grammar[rule_no];
 	if(rule_no != -1)

@@ -257,17 +257,11 @@ tree_node *parseInputSourceCode(FILE *source)
   while (true) 
   {
     tree_node *node = pop(main_stack);
-
-	if(node)
-	{
-		if(node->sym.is_terminal)
-			printf("====================printing tree with root as :  %s\n", terminal_string[node->sym.t]);
-		else
-			printf("====================printing tree with root as :  %s\n", non_terminal_string[node->sym.nt]);
-		// print_parse_tree(node);
-	}
 	if((node != NULL) && (node->sym).is_terminal == true)
 	{
+		// printf("Assigning %d code\n", tkn.name);
+		// printf("which is %s terminal\n", terminal_string[tkn.name]);
+		// printf("To %d\n", node->sym.t);
 		node->token.line_no = tkn.line_no;
 		node->token.name = tkn.name;
 		if(tkn.name == NUM)
@@ -283,6 +277,14 @@ tree_node *parseInputSourceCode(FILE *source)
 			node->token.str = tkn.str;
 		}
 		// push(main_stack, node);
+	}
+	if(node)
+	{
+		// if(node->sym.is_terminal)
+		// 	printf("\n\n====================printing tree with root as :  %s\n\n", terminal_string[node->sym.t]);
+		// else
+		// 	printf("\n\n====================printing tree with root as :  %s\n\n", non_terminal_string[node->sym.nt]);
+		// print_parse_tree(node);
 	}
 
     if (tkn.name == LEX_ERROR) 
@@ -322,13 +324,6 @@ tree_node *parseInputSourceCode(FILE *source)
         break;  // don't break, instead continue parsing after synch token
       }
 
-	//   tree_node *temp = create_tree_node();
-    //   temp->parent = node->parent;
-    //   temp->sym.t = node->sym.t;
-	//   temp->token = node->token;
-      
-// 	  add_child(node->parent, temp);
-
       tkn = getNextToken(source);
       continue;
     }
@@ -340,7 +335,6 @@ tree_node *parseInputSourceCode(FILE *source)
     
 
     int rule_no = parse_table[node->sym.nt][tkn.name];
-    // printf("Checking pt for PT[%s][%s]\n", non_terminal_string[node->sym.nt], terminal_string[tkn.name]);
     cell rule = grammar[rule_no];
     rhsnode_ptr rhs_ptr = rule.head;
     
@@ -395,28 +389,34 @@ void print_node(tree_node *node)
 {
 	if(node == NULL)
 		return;
-	printf("inside print node\n");
+	// printf("4rint node\n");
 	bool is_terminal = (node->sym).is_terminal;
-	if(is_terminal)
-		printf("printing a terminal\n");
-	else
-		printf("printing a non-terminal\n");
+	// if(is_terminal)
+	// 	printf("printing a terminal\n");
+	// else
+	// 	printf("printing a non-terminal\n");
 	char *s;
 	if(is_terminal == true)
 	{
-		// if(node->sym.t == EPSILON)
-		// {
-		// 	printf("===================EPSILON===================\n");
-		// 	return;
-		// }
+		// printf("hihi\n");
 		s = terminal_string[(node->token).name];
-		// printf("token's string is selected")
+		// printf("hihi2\n");
+		// printf("tk num : %d\n", node->token.name);
+		// if(s == NULL)
+		// {
+		// 	// printf("kyaaaaaa.........\n");
+		// }
+		// printf("%s\n\n\n\n", s);
         printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
 		printf("%d", (node->token).line_no );
+		
 		s = "    ";
 		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
+		
 		s = terminal_string[(node->token).name];
+		// printf("hui\n");
 		printf("%*s%*s",5 + strlen(s)/2 , s ,5 - strlen(s)/2 , "");
+		
 		if((node->token).name == NUM)
 		{
 			printf("  %d  ", (node->token).num );
@@ -473,79 +473,34 @@ void print_parse_tree(tree_node *root)
 	{
 		return;
 	}
-	if(root->sym.is_terminal)
+
+	// if(root->sym.is_terminal)
+	// {
+	// 	printf("Current root node (t) : %s\n", terminal_string[root->sym.t]);
+	// }
+	// else
+	// {
+	// 	printf("Current root node  (nt) : %s\n", non_terminal_string[root->sym.nt]);	
+	// }
+
+	if(root->leftmost_child)
 	{
-		printf("Current root node : %s\n", terminal_string[root->sym.t]);
-		print_node(root);
-		tree_node *temp = root->sibling;
+		// printf("calling pt for leftmost child( %s )\n", non_terminal_string[root->leftmost_child->sym.nt]);
+		print_parse_tree( root->leftmost_child );
+	}
+	// printf("printing current node's details\n");
+	print_node(root);
+	if(root->leftmost_child)
+	{
+		tree_node *temp = root->leftmost_child->sibling;
+		// printf("calling pt for other chidren\n");
 		while(temp != NULL)
 		{
 			print_parse_tree(temp);
 			temp = temp->sibling;
-		}	
-	}
-	else
-	{
-		printf("Current root node : %s\n", non_terminal_string[root->sym.nt]);	
-		if(root->leftmost_child)
-			printf("calling pt for leftmost child( %s )\n", non_terminal_string[root->leftmost_child->sym.nt]);
-		print_parse_tree( root->leftmost_child );
-		printf("printing current node(%s)'s details\n", non_terminal_string[root->sym.nt]);
-		print_node(root);
-		if(root->leftmost_child)
-		{
-			tree_node *temp = root->leftmost_child->sibling;
-			printf("calling pt for other chidren\n");
-			while(temp != NULL)
-			{
-				print_parse_tree(temp);
-				temp = temp->sibling;
-			}
 		}
-		// print_parse_tree( temp);
 	}
 }
-//   if (root == NULL) {
-//     printf("empty node\n");
-//     return;
-//   }
-//   tree_node *curr = NULL;
-//   stack *st = init_stack();
-//   if (root->rightmost_child != NULL &&
-//       root->rightmost_child != root->leftmost_child)
-//     push(st, root->rightmost_child);
-//   // print_node(root,root->rightmost_child);
-//   if (root->leftmost_child != NULL)
-//     push(st, root->leftmost_child);
-//   while (top(st) != NULL) {
-//     curr = pop(st);
-//     if (curr->rightmost_child != NULL &&
-//         curr->rightmost_child != curr->leftmost_child)
-//       push(st, curr->rightmost_child);
-//       {
-//         tree_node *temp = curr;
-//         while(temp->sibling != curr->rightmost_child){
-//           if (temp->rightmost_child != NULL &&
-//               temp->rightmost_child != temp->leftmost_child)
-//             push(st, temp->rightmost_child);
-//           if (temp->sym.is_terminal == TRUE) {
-//             printf("%s\n", terminal_string[temp->sym.t]);
-//           } else {
-//             printf("%s\n", non_terminal_string[temp->sym.nt]);
-//           }
-//           if (curr->leftmost_child != NULL)
-//             push(st, curr->leftmost_child);
-//           temp = temp->sibling;
-//         }
-//       }
-//     // print_node(curr,curr->rightmost_child);
-//     if (curr->leftmost_child != NULL)
-//       push(st, curr->leftmost_child);
-//   }
-// }
-
-
-// ull 
 
 void print_first_sets()
 {

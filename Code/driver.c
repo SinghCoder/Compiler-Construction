@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 					printf("Empty parse tree\n");
 				}
 
-				// print_parse_tree(ptr);
+				print_parse_tree(ptr);
 				
 			}
 			break;

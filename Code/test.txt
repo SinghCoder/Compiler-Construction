@@ -2,23 +2,23 @@
 takes input [index: integer, val_: integer];
 ** this function does not return any value**
 start
-declare$ i_1: integer;
+declare i_1: integer;
 i_1:= val_+ index - 4;
 print(i_1);
 end
-<<<driver Program>>>
+<<<driver program>>>
 start
 declare a,b, dummy:integer;
 a:=48;
-b#:=10;
+b:=10;
 dummy:=100;
 declare flag: boolean;
 flag:=(a>=30)AND(b<30);
 switch(flag)
 start
-case FALSE :print(100);
+case false :print(100);
 break;
-case TRUE :use mod1 with parameters a, b;
+case true :use module mod1 with parameters a, b;
 break;
 end
 end

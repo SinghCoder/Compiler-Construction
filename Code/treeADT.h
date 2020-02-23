@@ -10,6 +10,7 @@ typedef struct TREENODE{
 	struct TREENODE *leftmost_child;
 	struct TREENODE *rightmost_child;
 	symbol sym;
+	TOKEN token;
 } tree_node;
 
 tree_node *create_tree_node();

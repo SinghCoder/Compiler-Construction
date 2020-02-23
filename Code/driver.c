@@ -89,49 +89,14 @@ void print_menu()
 	printf("4. Print time taken for tokenizing and parsing\n");
 	printf("5. Print first sets\n");
 	printf("6. Print follow sets\n");
-	printf("7. Exit\n");
+	printf(" Press any other to exit \n");
 	printf("-----------------------------------------------------------------\n");
 	printf("Enter your choice:  ");
 }
 int main(int argc, char *argv[]) 
 {
   setvbuf(stdout, NULL, _IONBF, 0);
-  // FILE *source = fopen("test.txt", "r");
-  // lexer_init();
-  // printf("lexer initialized %d\n", lookup_table[0].present);
-  // parser_init();
-  // printf("parser initialized\n");
-
-  // getStream(source);
-  // printf("stream obtained\n");
-  // print_token_stream(source);
-
-  // FILE *fptr = fopen("grammar.txt", "r");
-  // if (fptr == NULL) 
-  // {
-  //   perror("fopen");
-  // }
-  // grammar_fill(fptr);
-
-  // populate_first_sets();
-    
-  // populate_follow_sets();
-  
-  // createParseTable();
-  // ull *fset = get_rule_first_set(grammar[0].head);
-  // print_rule_fset(fset);
-
-  // print_first_sets();
-  // print_follow_sets();
-  
-  // print_grammar();
-  // print_parse_table();
-
-  //  tree_node* ptr = parseInputSourceCode(source);
-
-  // free(source);
-  // printf(".......end.......\n");
-
+ 
   int choice;
   char source_file[100];
   strcpy(source_file, argv[1]);
@@ -218,9 +183,9 @@ int main(int argc, char *argv[])
 						
 					populate_follow_sets();
 					
-					reset_lexer_dfa();
+					reset_lexer_dfa(source);
 
-					fseek(source, 0, SEEK_SET);
+					// fseek(source, 0, SEEK_SET);
 
 					createParseTable();
 					// ull *fset = get_rule_first_set(grammar[0].head);
@@ -274,7 +239,6 @@ int main(int argc, char *argv[])
 				print_follow_sets();
 			}
 			break;
-		case 7:
 		default:
 			{
 				// break;

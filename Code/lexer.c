@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <errno.h>
 token_name searchLookupTable(char *lexeme) 
 {
   int num = searchHashTable(lookup_table, lexeme);
@@ -84,6 +84,12 @@ void lookup_table_fill()
   fseek(file, 0, SEEK_SET);
 
   char *temp = malloc(sizeof(char) * (length));
+
+  if(temp == NULL)
+  {
+      perror("lookup table filling failed\n");
+      exit(1);
+  }
   
   fread(temp, sizeof(char), length, file);
   fclose(file);
@@ -99,6 +105,7 @@ void lookup_table_fill()
     // printf("terminal string %d: %s\n", i, terminal_string[i]);
     tk_read = strtok(NULL, ", \n");
   }
+
   free(temp);
 
   lookup_table = init_hash_table();
@@ -134,18 +141,10 @@ void lookup_table_fill()
   hash_insert(lookup_table, "while", WHILE);
 }
 
-void reset_lexer_dfa()
-{
-  state = 0;
-  lexeme_begin = forward_ptr = 0;
-  just_retracted = false;
-  line_no = 1;
-}
-
 void lexer_init() 
 {
-  reset_lexer_dfa();
-  
+  printf("Hiiii\n");
+  // reset_lexer_dfa
   lookup_table_fill();
 }
 
@@ -153,10 +152,35 @@ void getStream(FILE *fp)
 {
   int num;
   if (forward_ptr == BUFFER_SIZE)
+  {
+    printf("Full buffer.. resetting storage\n");
     forward_ptr = 0;
+  }
   num = fread(&buffer[forward_ptr], 1, BUFFER_SIZE / 2, fp);
+  printf(" num : %d\n", num);
+  printf("getStrream: buffer filled\n");
   if (num != BUFFER_SIZE / 2)
     buffer[num + forward_ptr] = EOF;
+}
+
+void reset_lexer_dfa(FILE *source)
+{
+    // free(lookup_table);
+    state = 0;
+    lexeme_begin = 0;
+    forward_ptr = 0;
+    just_retracted = false;
+    line_no = 1;
+    printf("Inside reset lexer dfa\n");
+    if(source == NULL)
+      printf("source null : reset lexer dfa\n");
+    int num = fseek( source, 0, SEEK_SET );
+    printf("errno: %d\n", errno);
+    // pr
+    printf("seek to start of file : %d returned\n", num);
+    // fflush(stdout);
+    getStream(source);
+    printf("resetted lexer DFA\n");
 }
 
 char getChar(FILE *fp) 
@@ -698,6 +722,10 @@ void print_token_stream(FILE *source) {
   TOKEN t;
 
   printf("%-15s  |  %-20s  |  %-20s\n", "Line_number", "lexeme", "Token_name");
+
+  if(source == NULL) {
+    printf("source null : print token stream\n");
+  }
 
   while (1) {
     // printf("hi\n");

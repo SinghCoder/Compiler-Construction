@@ -40,6 +40,8 @@ hash_table init_hash_table()
   if(table == NULL)
   {
     perror("HASH table allocation error: memory not available\n");
+    // return;
+    exit(1);
   }
   for (int i = 0; i < HASH_SIZE; i++) 
   {

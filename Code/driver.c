@@ -91,6 +91,10 @@ void print_menu()
 }
 int main(int argc, char *argv[]) 
 {
+  if(argc < 2){
+	  printf("Insufficent Arguments\n");
+	  exit(1);
+  }
   setvbuf(stdout, NULL, _IONBF, 0);
   // FILE *source = fopen("test.txt", "r");
   // lexer_init();
@@ -128,12 +132,46 @@ int main(int argc, char *argv[])
   // free(source);
   // printf(".......end.......\n");
 
-  int choice;
-  char source_file[100];
-  strcpy(source_file, argv[1]);
+	int choice;
+	char source_file[100];
+	strcpy(source_file, argv[1]);
 
-  while(true)
-  {
+	clock_t start_time, end_time;
+	double total_CPU_time, total_CPU_time_in_seconds;
+	
+	start_time = clock();
+	lexer_init();
+	
+	FILE *source = fopen(source_file, "r");
+	getStream(source);
+	
+	parser_init();
+	
+	FILE *fptr = fopen("grammar.txt", "r");
+	if (fptr == NULL) 
+	{
+		perror("fopen");
+	}
+	
+	grammar_fill(fptr);
+	
+	populate_first_sets();
+	
+	populate_follow_sets();
+	
+	reset_lexer_dfa();
+	
+	fseek(source, 0, SEEK_SET);
+	
+	createParseTable();
+	
+	end_time = clock();
+	
+	total_CPU_time  =  (double) (end_time - start_time);
+	total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
+
+while(true)
+{
 	print_menu();
 	scanf("%d", &choice);
 	printf("\n");
@@ -151,114 +189,53 @@ int main(int argc, char *argv[])
 			break;
 		case 2:
 			{
-				lexer_init();
-				FILE *source = fopen(source_file, "r");
-				getStream(source);
 				print_token_stream(source);
 			}
 			break;
 		case 3:
 			{
-				lexer_init();
-				parser_init();
-
-				FILE *source = fopen(source_file, "r");
-				getStream(source);
-
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
-				{
-				  perror("fopen");
-				}
-				grammar_fill(fptr);
-
-				populate_first_sets();
-					
-				populate_follow_sets();
-				
-				createParseTable();
-				tree_node* ptr = parseInputSourceCode(source);
-				
+				tree_node* ptr = parseInputSourceCode(source);				
 			}
 			break;
 		case 4:
 			{
-				clock_t    start_time, end_time;
-
-                double total_CPU_time, total_CPU_time_in_seconds;
-
-                start_time = clock();
-
-                    FILE *source = fopen("test.txt", "r");
-					lexer_init();
-					parser_init();
-					getStream(source);
-					// print_token_stream(source);
-
-					FILE *fptr = fopen("grammar.txt", "r");
-					if (fptr == NULL) 
-					{
-					  perror("fopen");
-					}
-					grammar_fill(fptr);
-
-					populate_first_sets();
-						
-					populate_follow_sets();
-					
-					reset_lexer_dfa();
-
-					fseek(source, 0, SEEK_SET);
-
-					createParseTable();
 					// ull *fset = get_rule_first_set(grammar[0].head);
 					// print_parse_table();
-
-					tree_node* ptr = parseInputSourceCode(source);
-
-					free(source);
-
-                end_time = clock();
-
-                total_CPU_time  =  (double) (end_time - start_time);
-
-                total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
-
+				tree_node* ptr = parseInputSourceCode(source);
 				printf("Total CPU TIME taken : %lf secs\nTotal CPU time in seconds %lf \n", total_CPU_time, total_CPU_time_in_seconds);
 			}
 			break;
 		case 5:
 			{
-				lexer_init();
-				parser_init();
+				// lexer_init();
+				// parser_init();
 
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
-				{
-				  perror("fopen");
-				}
-				grammar_fill(fptr);
+				// FILE *fptr = fopen("grammar.txt", "r");
+				// if (fptr == NULL) 
+				// {
+				//   perror("fopen");
+				// }
+				// grammar_fill(fptr);
 
-				populate_first_sets();
-
+				// populate_first_sets();
 				print_first_sets();
 			}
 			break;
 		case 6:
 			{
-				lexer_init();
-				parser_init();
+				// lexer_init();
+				// parser_init();
 
-				FILE *fptr = fopen("grammar.txt", "r");
-				if (fptr == NULL) 
-				{
-				  perror("fopen");
-				}
-				grammar_fill(fptr);
+				// FILE *fptr = fopen("grammar.txt", "r");
+				// if (fptr == NULL) 
+				// {
+				//   perror("fopen");
+				// }
+				// grammar_fill(fptr);
 
-				populate_first_sets();
+				// populate_first_sets();
 					
-				populate_follow_sets();
+				// populate_follow_sets();
 				print_follow_sets();
 			}
 			break;

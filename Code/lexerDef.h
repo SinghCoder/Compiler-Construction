@@ -3,7 +3,7 @@
 
 #include "hashtable.h"
 
-#define BUFFER_SIZE 20
+#define BUFFER_SIZE 1000
 #define NUM_OF_TERMINALS 61
 
 typedef enum {
@@ -28,10 +28,11 @@ int just_retracted;
 hash_element lookup_table[HASH_SIZE];
 
 char buffer[BUFFER_SIZE];
-char lexeme[BUFFER_SIZE];
+char lexeme[MAX_LEXEME_LEN];
 
 int lexeme_begin;
 int forward_ptr;
+int num_of_rounds;
 int line_no;
 char terminal_string[NUM_OF_TERMINALS][50];
 

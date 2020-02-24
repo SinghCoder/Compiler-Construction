@@ -25,7 +25,7 @@ typedef struct token {
 int state;
 int just_retracted;
 
-hash_table lookup_table;
+hash_element lookup_table[HASH_SIZE];
 
 char buffer[BUFFER_SIZE];
 char lexeme[BUFFER_SIZE];

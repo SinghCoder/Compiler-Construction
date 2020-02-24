@@ -7,7 +7,7 @@
 #define PRIME 119
 #define HASH_SIZE 67
 #define MAX_LEXEME_LEN 100
-#define VALUE_NOT_IN_HASH_TABLE -1
+#define KEY_NOT_FOUND -1
 
 typedef struct {
     char lexeme[MAX_LEXEME_LEN];
@@ -19,7 +19,7 @@ int fastModExp(int a, int b, int m);
 
 typedef hash_element *hash_table;       // change to static allocation
 
-hash_table init_hash_table();
+void init_hash_table(hash_table);
 
 int hash(char *str);
 

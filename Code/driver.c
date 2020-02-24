@@ -39,141 +39,147 @@ int main(int argc, char *argv[]) {
   }
 
   while (true) {
-    print_menu();
-    scanf("%d", &choice);
-    printf("\n");
+      print_menu();
+      scanf("%d", &choice);
+      printf("\n");
 
-    switch (choice) {
-    case 1: {
-      fseek(source, 0, SEEK_SET);
-      char no_comment_file[100];
-      printf("Enter name of the output file which will have the source code "
-             "without comments\n");
-      scanf("%s", no_comment_file);
-      remove_comments(source, no_comment_file);
-    } break;
+      switch (choice) {
+      case 1: 
+      {
+        // fseek(source, 0, SEEK_SET);
+		lexer_init(source);
+        char no_comment_file[100];
+        printf("Enter name of the output file which will have the source code without comments\n");
+        scanf("%s", no_comment_file);
+		remove_comments(source, no_comment_file);
+      } break;
 
-    case 2: {
-      lexer_init(source);
-      tokenize_source_file(source);
-    } break;
+      case 2: 
+      {
+        lexer_init(source);
+        tokenize_source_file(source);
+      } break;
 
-    case 3: {
+      case 3: {
 
-      lexer_init(source);
-      parser_init();
+        lexer_init(source);
+        parser_init();
 
-      FILE *fptr = fopen("grammar.txt", "r");
-      if (fptr == NULL) {
-        perror("fopen");
-      }
-      grammar_fill(fptr);
+        FILE *fptr = fopen("grammar.txt", "r");
+        if (fptr == NULL) {
+          perror("fopen");
+        }
+        grammar_fill(fptr);
 
-      print_grammar();
+        print_grammar();
 
-      populate_first_sets();
+        populate_first_sets();
 
-      populate_follow_sets();
+        populate_follow_sets();
 
-      createParseTable();
+        createParseTable();
 
-      tree_node *ptr = parseInputSourceCode(source);
+        tree_node *ptr = parseInputSourceCode(source);
 
-      if (ptr == NULL) {
-        printf("Empty parse tree\n");
-      }
+        if (ptr == NULL) {
+          printf("Empty parse tree\n");
+        }
 
-      print_parse_tree(ptr);
+        print_parse_tree(ptr);
 
-      free_grammar();
-      fclose(fptr);
+        free_grammar();
+        fclose(fptr);
 
-    } break;
-    case 4: {
-      clock_t start_time, end_time;
+      } break;
+      case 4: {
+        clock_t start_time, end_time;
 
-      double total_CPU_time, total_CPU_time_in_seconds;
+        double total_CPU_time, total_CPU_time_in_seconds;
 
-      start_time = clock();
+        start_time = clock();
 
-      // FILE *source = fopen("test.txt", "r");
-      lexer_init(source);
-      parser_init();
+        // FILE *source = fopen("test.txt", "r");
+        lexer_init(source);
+        parser_init();
 
-      // print_token_stream(source);
+        // print_token_stream(source);
 
-      FILE *fptr = fopen("grammar.txt", "r");
-      if (fptr == NULL) {
-        perror("fopen");
-      }
-      grammar_fill(fptr);
+        FILE *fptr = fopen("grammar.txt", "r");
+        if (fptr == NULL) {
+          perror("fopen");
+        }
+        grammar_fill(fptr);
 
-      populate_first_sets();
+        populate_first_sets();
 
-      populate_follow_sets();
+        populate_follow_sets();
 
-      // reset_lexer_dfa(source);
+        // reset_lexer_dfa(source);
 
-      // fseek(source, 0, SEEK_SET);
+        // fseek(source, 0, SEEK_SET);
 
-      createParseTable();
-      // ull *fset = get_rule_first_set(grammar[0].head);
-      // print_parse_table();
+        createParseTable();
+        // ull *fset = get_rule_first_set(grammar[0].head);
+        // print_parse_table();
 
-      tree_node *ptr = parseInputSourceCode(source);
+        tree_node *ptr = parseInputSourceCode(source);
 
-      // free(source);
-      fclose(fptr);
+        // free(source);
+        fclose(fptr);
 
-      end_time = clock();
+        end_time = clock();
 
-      total_CPU_time = (double)(end_time - start_time);
+        total_CPU_time = (double)(end_time - start_time);
 
-      total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+        total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
 
-      printf(
-          "Total CPU TIME taken : %lf secs\nTotal CPU time in seconds %lf \n",
-          total_CPU_time, total_CPU_time_in_seconds);
+        printf(
+            "Total CPU TIME taken (in microseconds): %lf usecs\nTotal CPU time (in seconds)\t      : %lf secs\n",
+            total_CPU_time, total_CPU_time_in_seconds);
 
-    } break;
-    case 5: {
-      lexer_init(source);
-      parser_init();
+      } break;
+      case 5: {
+        lexer_init(source);
+        parser_init();
 
-      FILE *fptr = fopen("grammar.txt", "r");
-      if (fptr == NULL) {
-        perror("fopen");
-      }
-      grammar_fill(fptr);
+        FILE *fptr = fopen("grammar.txt", "r");
+        if (fptr == NULL) {
+          perror("fopen");
+        }
+        grammar_fill(fptr);
 
-      populate_first_sets();
+        populate_first_sets();
 
-      print_first_sets();
+        print_first_sets();
 
-      fclose(fptr);
-    } break;
-    case 6: {
-      lexer_init(source);
-      parser_init();
+        fclose(fptr);
+      } break;
+      case 6: 
+      {
+          lexer_init(source);
+          parser_init();
 
-      FILE *fptr = fopen("grammar.txt", "r");
-      if (fptr == NULL) {
-        perror("fopen");
-      }
-      grammar_fill(fptr);
+          FILE *fptr = fopen("grammar.txt", "r");
+          if (fptr == NULL) 
+		  {
+            perror("fopen");
+          }
+          grammar_fill(fptr);
 
-      populate_first_sets();
+          populate_first_sets();
 
-      populate_follow_sets();
-      print_follow_sets();
+          populate_follow_sets();
+          print_follow_sets();
 
-      fclose(fptr);
-    } break;
-    default: {
-      // break;
-      exit(0);
-    } break;
-    }
+          fclose(fptr);
+          break;
+      } 
+      default: 
+      {
+        // break;
+        exit(0);
+      } break;
+    }// end of switch
   }
   fclose(source);
 } // end of main

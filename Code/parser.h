@@ -15,7 +15,6 @@ void print_grammar();
 
 void parser_init();
 
-
 int rightmost_set_bit(unsigned long long *num);
 
 void createParseTable();
@@ -42,9 +41,11 @@ void print_rule(int rule_no);
 
 tree_node *parseInputSourceCode(FILE *source);
 
-ull* firstOf(nonterminal nt);
+ull *firstOf(nonterminal nt);
 
 ull *get_rule_first_set(rhsnode_ptr node);
 
-bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM]);
+bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);
+
+void free_grammar();
 #endif

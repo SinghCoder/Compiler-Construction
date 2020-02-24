@@ -4,13 +4,15 @@
 #include "lexerDef.h"
 #include <stdio.h>
 
-void getStream(FILE *fp);
+void populateBuffer(FILE *fp);
+
+void populate_lookup_table();
+
+void populate_terminal_string();
 
 TOKEN getNextToken(FILE *fp);
 
 char getChar(FILE *fp);
-
-void lexError(char *errStr, FILE *fp);
 
 TOKEN getToken();
 
@@ -20,10 +22,8 @@ void lexer_init();
 
 token_name searchLookupTable(char *lexeme);
 
-void print_token_stream(FILE *source);
+void tokenize_source_file(FILE *source);
 
-void lookup_table_fill();
-
-void reset_lexer_dfa(FILE *source);
+void remove_comments(FILE *source, char *no_comment_file);
 
 #endif

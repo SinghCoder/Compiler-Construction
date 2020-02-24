@@ -1,3 +1,11 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -15,10 +23,9 @@ void print_grammar();
 
 void parser_init();
 
-
 int rightmost_set_bit(unsigned long long *num);
 
-void createParseTable();
+void create_parse_table();
 
 void populate_first_sets();
 
@@ -40,11 +47,11 @@ void print_parse_tree(tree_node *root);
 
 void print_rule(int rule_no);
 
-tree_node *parseInputSourceCode(FILE *source);
-
-ull* firstOf(nonterminal nt);
+tree_node *parse_input_source_code(FILE *source);
 
 ull *get_rule_first_set(rhsnode_ptr node);
 
-bool is_superset(ull a[BITSTRING_PART_NUM], ull b[BITSTRING_PART_NUM]);
+bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);
+
+void free_grammar();
 #endif

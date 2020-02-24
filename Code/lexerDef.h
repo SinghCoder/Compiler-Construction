@@ -1,9 +1,17 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #ifndef LEXERDEF_H
 #define LEXERDEF_H
 
 #include "hashtable.h"
 
-#define BUFFER_SIZE 20
+#define BUFFER_SIZE 1000
 #define NUM_OF_TERMINALS 61
 
 typedef enum {
@@ -25,13 +33,14 @@ typedef struct token {
 int state;
 int just_retracted;
 
-hash_table lookup_table;
+hash_element lookup_table[HASH_SIZE];
 
 char buffer[BUFFER_SIZE];
-char lexeme[BUFFER_SIZE];
+char lexeme[MAX_LEXEME_LEN];
 
 int lexeme_begin;
 int forward_ptr;
+int num_of_rounds;
 int line_no;
 char terminal_string[NUM_OF_TERMINALS][50];
 

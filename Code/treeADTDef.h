@@ -6,17 +6,19 @@
   Vishal Mittal        -   2017A7PS0080P
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
-#ifndef STACK_H
-#define STACK_H
+#ifndef TREE_ADT_DEF_H
+#define TREE_ADT_DEF_H
 
-#include "stackADTDef.h"
+#include<stdbool.h>
+#include "parserDef.h"
 
-stack *stack_init();
-
-void push(stack *stack_ptr, tree_node* node);
-
-tree_node* top(stack *stack_ptr);
-
-tree_node* pop(stack* stack_ptr);
+typedef struct TREENODE{
+	struct TREENODE *parent;
+	struct TREENODE *sibling;
+	struct TREENODE *leftmost_child;
+	struct TREENODE *rightmost_child;
+	symbol sym;
+	TOKEN token;
+} tree_node;
 
 #endif

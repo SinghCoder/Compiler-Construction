@@ -2,4 +2,5 @@
 **GKJGKJKHHKLHKJ**
 start
 declare a,b, dummy:integer;
+a:=22;
 end

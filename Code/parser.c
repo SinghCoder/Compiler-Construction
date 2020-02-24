@@ -12,33 +12,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-void populate_non_terminal_string() {
+void populate_non_terminal_string() 
+{
+    FILE *file = fopen("non_terminals.txt", "r");
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-  FILE *file = fopen("non_terminals.txt", "r");
-  fseek(file, 0, SEEK_END);
-  int length = ftell(file);
-  fseek(file, 0, SEEK_SET);
+    char *nt_file = malloc(sizeof(char) * (length + 1));
+    if (nt_file == NULL) 
+    {
+      perror("parser init failed\n");
+      exit(1);
+    }
 
-  char *nt_file = malloc(sizeof(char) * (length + 1));
-  if (nt_file == NULL) {
-    perror("parser init failed\n");
-    exit(1);
-  }
+    fread(nt_file, sizeof(char), length, file);
+    nt_file[length] = '\0';
+    fclose(file);
 
-  fread(nt_file, sizeof(char), length, file);
-  nt_file[length] = '\0';
-  fclose(file);
+    char *nt_read = NULL;
+    int i;
+    nt_read = strtok(nt_file, ", \n");
 
-  char *nt_read = NULL;
-  int i;
-  nt_read = strtok(nt_file, ", \n");
-
-  for (i = 0; nt_read != NULL; i++) {
-    strcpy(non_terminal_string[i], nt_read);
-    nt_read = strtok(NULL, ", \n");
-  }
-
-  free(nt_file);
+    for (i = 0; nt_read != NULL; i++) 
+    {
+      strcpy(non_terminal_string[i], nt_read);
+      nt_read = strtok(NULL, ", \n");
+    }
+    free(nt_file);
 }
 
 void parser_init() {
@@ -48,7 +49,8 @@ void parser_init() {
   populate_non_terminal_string();
 
   // initialize all first sets to be null
-  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
+  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) 
+  {
     set_init(first_set[i]);
   }
 
@@ -61,8 +63,10 @@ void parser_init() {
   }
 
   // initializing parse table
-  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
-    for (int j = 0; j < NUM_OF_TERMINALS; j++) {
+  for (int i = 0; i < NUM_OF_NONTERMINALS; i++) 
+  {
+    for (int j = 0; j < NUM_OF_TERMINALS; j++) 
+    {
       parse_table[i][j] = NO_MATCHING_RULE;
     }
   }
@@ -209,33 +213,43 @@ tree_node *parseInputSourceCode(FILE *source) {
       }
       if (node->sym.t != tkn.name) // terminal on top of stack does not match
                                    // with lookhead symbol
-
       {
         printf(
             "%d) Syntax Error : Lookahead token(%s) doesn't match with stack "
             "top(%s)\n",
-            tkn.line_no, terminal_string[tkn.name],
-            terminal_string[node->sym.t]);
+        tkn.line_no, terminal_string[tkn.name],
+        terminal_string[node->sym.t]);
         tkn = getNextToken(source);
-        if (tkn.name == DOLLAR) {
+        if (tkn.name == DOLLAR) 
+        {
           printf("Panic mode error recovery not possible! Only a partial parse "
                  "tree formed!!\n");
           return root;
         }
         push(main_stack, node);
         continue;
-      } else {
+      } 
+      else 
+      { //la token and stack top match
         node->token.line_no = tkn.line_no;
         node->token.name = tkn.name;
-        switch (tkn.name) {
-        case NUM:
-          node->token.num = tkn.num;
-          break;
-        case RNUM:
-          node->token.rnum = tkn.rnum;
-          break;
-        default:
-          node->token.str = tkn.str;
+        // printf("************************ parsing a node with value : ");
+        switch (tkn.name) 
+        {
+          case NUM:
+            node->token.num = tkn.num;
+            // printf("%d***************************", node->token.num);
+            break;
+          case RNUM:
+            node->token.rnum = tkn.rnum;
+            // printf("%lf***************************", node->token.rnum);
+            break;
+          default:
+            node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
+            strcpy(node->token.str, tkn.str);
+            // printf("%s***************************", node->token.str);
+            // char *tmp = 
+            // printf("\n================%s=============\n", tkn.str);
         }
       }
 
@@ -261,7 +275,8 @@ tree_node *parseInputSourceCode(FILE *source) {
 
     int rule_no = parse_table[node->sym.nt][tkn.name];
 
-    if (rule_no == NO_MATCHING_RULE) {
+    if (rule_no == NO_MATCHING_RULE) 
+    {
       while (set_find_elem(follow_set[node->sym.nt], tkn.name) == false) {
         tkn = getNextToken(source);
         if (tkn.name == DOLLAR) {
@@ -271,6 +286,13 @@ tree_node *parseInputSourceCode(FILE *source) {
         }
       }
       continue;
+    }
+    else
+    {
+        printf("\n----------------------------------------------------------------\n");
+        printf("\n\nRule used : \n\n");
+        print_rule(rule_no);
+        printf("\n----------------------------------------------------------------\n");
     }
     cell rule = grammar[rule_no];
     rhsnode_ptr rhs_ptr = rule.head;
@@ -306,40 +328,55 @@ void free_grammar() {
   }
 }
 
-void print_node(tree_node *node) {
-  if (node == NULL)
-    return;
-  bool is_terminal = (node->sym).is_terminal;
-  if (is_terminal == true) {
-    printf("%d | %s |", (node->token).line_no,
-           terminal_string[(node->token).name]);
+void print_node(tree_node *node) 
+{
+    if (node == NULL)
+      return;
+    bool is_terminal = (node->sym).is_terminal;
+    if(is_terminal == true) 
+    {
+      if(node->token.str != NULL)
+          printf(" %s | ", (node->token).str);
+      else
+          printf(" ---- | ");
+     
+      printf(" %d | ", (node->token).line_no);
+     
+      if(node->token.str != NULL)
+        printf("  %s  | ",terminal_string[(node->token).name]);
+      else
+        printf(" ---- | ");
 
-    switch ((node->token).name) {
-    case NUM:
-      printf("  %d | ", (node->token).num);
-      break;
-    case RNUM:
-      printf("  %f | ", (node->token).rnum);
-      break;
-    default:
-      printf(" %s | ", (node->token).str);
-      break;
+      switch ((node->token).name) 
+      {
+        case NUM:
+          printf("  %d | ", (node->token).num);
+          break;
+        case RNUM:
+          printf("  %f | ", (node->token).rnum);
+          break;
+        default:
+          printf(" ---- | ");
+          break;
+      }
+
+      printf("%s | yes | %s\n", non_terminal_string[(node->parent->sym).nt],
+            terminal_string[(node->sym).t]);
+    } 
+    else 
+    {
+      printf(" ---- | ---- | ---- | ---- | ");
+
+      if (node->parent)
+        printf("%s | ", non_terminal_string[(node->parent->sym).nt]);
+      else
+        printf("%s | ", "(ROOT)");
+      printf(" no | %s\n", non_terminal_string[(node->sym).nt]);
     }
-
-    printf("%s | yes | %s\n", non_terminal_string[(node->parent->sym).nt],
-           terminal_string[(node->sym).t]);
-  } else {
-    printf(" ---- | ---- | ---- | ");
-
-    if (node->parent)
-      printf("%s | ", non_terminal_string[(node->parent->sym).nt]);
-    else
-      printf("%s | ", "(ROOT)");
-    printf(" no | %s\n", non_terminal_string[(node->sym).nt]);
-  }
 }
 
-void print_parse_tree(tree_node *root) {
+void print_parse_tree(tree_node *root) 
+{
   if (root == NULL)
     return;
 

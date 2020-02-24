@@ -30,8 +30,10 @@ TOKEN getToken() {
   }
   lexeme[lex_size] = '\0';
 
-  if (2 == state) {
-    if (lex_size > 20) {
+  if (2 == state) 
+  {
+    if (lex_size > 20) 
+    {
       tkn.name = LEX_ERROR;
       return tkn;
     }
@@ -45,6 +47,7 @@ TOKEN getToken() {
   if (4 == state || 6 == state) {
     tkn.name = NUM;
     tkn.num = atoi(lexeme);
+    // printf("\n\nTOKEN.NUM = %d\n\n", tkn.num);
   }
 
   if (8 == state || 12 == state) {
@@ -70,9 +73,10 @@ void populate_terminal_string() {
   fseek(file, 0, SEEK_SET);
 
   char *t_file = malloc(sizeof(char) * (length + 1));
-  if (t_file == NULL) {
-    perror("terminal_string filling failed\n");
-    exit(1);
+  if (t_file == NULL) 
+  {
+      perror("terminal_string filling failed\n");
+      exit(1);
   }
 
   fread(t_file, sizeof(char), length, file);
@@ -83,7 +87,8 @@ void populate_terminal_string() {
   int i;
   tk_read = strtok(t_file, ", \n");
 
-  for (i = 0; tk_read != NULL; i++) {
+  for (i = 0; tk_read != NULL; i++) 
+  {
     strcpy(terminal_string[i], tk_read);
     tk_read = strtok(NULL, ", \n");
   }
@@ -128,7 +133,8 @@ void populate_lookup_table() {
 void populateBuffer(FILE *fp) 
 {
   int num;
-  if (forward_ptr == BUFFER_SIZE) {
+  if (forward_ptr == BUFFER_SIZE) 
+  {
     forward_ptr = 0;
   }
   num = fread(&buffer[forward_ptr], 1, BUFFER_SIZE / 2, fp);
@@ -170,7 +176,8 @@ char getChar(FILE *fp) {
 TOKEN getNextToken(FILE *fp) {
   char c;
   TOKEN tkn;
-  while (true) {
+  while (true) 
+  {
     tkn.line_no = line_no;
     switch (state) {
     case 0:;

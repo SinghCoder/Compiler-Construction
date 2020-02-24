@@ -4,7 +4,8 @@
 
 tree_node *create_tree_node() {
   tree_node *node = (tree_node *)malloc(sizeof(tree_node));
-  if (node == NULL) {
+  if (node == NULL) 
+  {
     perror("tree_node allocation error..\n");
     exit(0);
   }
@@ -12,6 +13,7 @@ tree_node *create_tree_node() {
   node->sibling = NULL;
   node->leftmost_child = NULL;
   node->rightmost_child = NULL;
+  node->token.str = NULL;
   return node;
 }
 

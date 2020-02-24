@@ -334,7 +334,7 @@ void print_node(tree_node *node) {
     if (node->parent)
       printf("%s | ", non_terminal_string[(node->parent->sym).nt]);
     else
-      printf("%s | ", "(NULL)");
+      printf("%s | ", "(ROOT)");
     printf(" no | %s\n", non_terminal_string[(node->sym).nt]);
   }
 }
@@ -366,7 +366,7 @@ void print_first_sets() {
     printf("] = { ");
     for (int j = 0; j < SET_SIZE; j++) {
       for (int k = 0; k < ULL_NUM_BITS; k++) {
-        if (set_find_elem(first_set[i], k) == true) {
+        if (set_find_elem(first_set[i], j * ULL_NUM_BITS + k) == true) {
           printf("%s  ", terminal_string[j * ULL_NUM_BITS + k]);
         }
       }
@@ -384,7 +384,7 @@ void print_follow_sets() {
     printf("] = { ");
     for (int j = 0; j < SET_SIZE; j++) {
       for (int k = 0; k < ULL_NUM_BITS; k++) {
-        if (set_find_elem(follow_set[i], k) == true) {
+        if (set_find_elem(follow_set[i],  j * ULL_NUM_BITS + k) == true) {
           printf("%s  ", terminal_string[j * ULL_NUM_BITS + k]);
         }
       }

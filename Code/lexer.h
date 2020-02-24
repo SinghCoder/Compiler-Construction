@@ -18,7 +18,7 @@ TOKEN getToken();
 
 void retract(int num);
 
-void lexer_init();
+void lexer_init(FILE *source);
 
 token_name searchLookupTable(char *lexeme);
 

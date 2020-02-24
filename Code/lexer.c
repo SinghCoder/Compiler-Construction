@@ -125,7 +125,8 @@ void populate_lookup_table() {
   hash_insert(lookup_table, "while", WHILE);
 }
 
-void populateBuffer(FILE *fp) {
+void populateBuffer(FILE *fp) 
+{
   int num;
   if (forward_ptr == BUFFER_SIZE) {
     forward_ptr = 0;
@@ -135,7 +136,8 @@ void populateBuffer(FILE *fp) {
     buffer[num + forward_ptr] = EOF;
 }
 
-void lexer_init(FILE *source) {
+void lexer_init(FILE *source) 
+{
   init_hash_table(lookup_table);
   populate_terminal_string();
   populate_lookup_table();
@@ -701,43 +703,56 @@ void tokenize_source_file(FILE *source) {
 void remove_comments(FILE *source, char *no_comment_file) {
 
   FILE *outp_fptr = fopen(no_comment_file, "w");
-  populateBuffer(source);
+  // populateBuffer(source);
   int state = 0;
   char ch = getChar(source);
 
   while (ch != EOF) {
-    switch (state) {
-    case 0:
-      if ('*' == ch)
-        state = 1;
-      else
-        fputc(ch, outp_fptr);
-      break;
-    case 1:
-      if ('*' == ch)
-        state = 2;
-      else {
-        state = 0;
-        fputc('*', outp_fptr);
-        fputc(ch, outp_fptr);
-      }
-      break;
-    case 2:
-      if ('*' == ch)
-        state = 3;
-      else {
-        if ('\n' == ch)
+    printf("%c", ch);
+    switch (state) 
+    {
+      case 0:
+      {
+        if ('*' == ch)
+          state = 1;
+        else
           fputc(ch, outp_fptr);
+        break;
       }
-      break;
-    case 3:
-      if ('*' == ch)
-        state = 0;
-      else
-        state = 2;
-      break;
-    default:
-      break;
+      case 1:
+      {
+        if ('*' == ch)
+          state = 2;
+        else 
+        {
+          state = 0;
+          fputc('*', outp_fptr);
+          fputc(ch, outp_fptr);
+        }
+        break;
+      }
+      case 2:
+      {
+        if ('*' == ch)
+          state = 3;
+        else 
+        {
+          state = 2;
+          if ('\n' == ch)
+            fputc(ch, outp_fptr);
+        }
+        break;
+      }
+      case 3:
+      {
+        if ('*' == ch)
+          state = 0;
+        else
+          state = 2;
+        break;
+      }
+      default:
+        break;
     }
     ch = getChar(source);
   } // end of while - file read
@@ -750,15 +765,33 @@ void remove_comments(FILE *source, char *no_comment_file) {
 
   if (choice == 'Y') {
     FILE *fptr = fopen(no_comment_file, "r");
-    char buf[100];
+    // char buf[100];
 
-    while (fgets(buf, 99, fptr) != NULL) {
-      printf("%s", buf);
+    // while (fgets(buf, 99, fptr) != NULL) {
+    //   printf("%s", buf);
+    // }
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+    if (fptr == NULL)
+    {
+      printf("Unable to write to file %s\n", no_comment_file);
+      return;
     }
+
+    while ((read = getline(&line, &len, fptr)) != -1) 
+    {
+        printf("%s", line);
+    }
+
+    // fclose(fptr);
+    if (line)
+        free(line);
 
     printf("\nPress any character to continue\n");
     char ch2;
-    scanf("%c", &ch2);
+    scanf("\n%c", &ch2);
     fclose(fptr);
   }
 }

@@ -41,8 +41,6 @@ void print_rule(int rule_no);
 
 tree_node *parseInputSourceCode(FILE *source);
 
-ull *firstOf(nonterminal nt);
-
 ull *get_rule_first_set(rhsnode_ptr node);
 
 bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);

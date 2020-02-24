@@ -1,3 +1,11 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #include "lexer.h"
 #include "parser.h"
 #include "treeADT.h"
@@ -69,21 +77,22 @@ int main(int argc, char *argv[]) {
         if (fptr == NULL) {
           perror("fopen");
         }
-        grammar_fill(fptr);
-
+        grammar_fill(fptr); 
+        
         populate_first_sets();
 
         populate_follow_sets();
 
-        createParseTable();
+        create_parse_table();
 
-        tree_node *ptr = parseInputSourceCode(source);
+        tree_node *ptr = parse_input_source_code(source);
 
         if (ptr == NULL) 
-		{
+		    {
           printf("Empty parse tree\n");
         }
 
+        // print_parse_table();
         print_parse_tree(ptr);
 
         free_grammar();
@@ -117,11 +126,11 @@ int main(int argc, char *argv[]) {
 
         // fseek(source, 0, SEEK_SET);
 
-        createParseTable();
+        create_parse_table();
         // ull *fset = get_rule_first_set(grammar[0].head);
         // print_parse_table();
 
-        tree_node *ptr = parseInputSourceCode(source);
+        tree_node *ptr = parse_input_source_code(source);
 
         // free(source);
         fclose(fptr);

@@ -6,17 +6,17 @@
   Vishal Mittal        -   2017A7PS0080P
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
-#ifndef STACK_H
-#define STACK_H
+#ifndef SET_ADT_DEF_H
+#define SET_ADT_DEF_H
 
-#include "stackADTDef.h"
+#include<stdio.h>
+#include<stdbool.h>
 
-stack *stack_init();
+#define SET_SIZE 3
+#define sz(x) sizeof(x)
+#define ULL_NUM_BITS (8 * sz(ull))
 
-void push(stack *stack_ptr, tree_node* node);
-
-tree_node* top(stack *stack_ptr);
-
-tree_node* pop(stack* stack_ptr);
+typedef unsigned long long int ull;
+typedef ull *set;
 
 #endif

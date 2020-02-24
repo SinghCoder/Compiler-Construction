@@ -1,28 +1,39 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #include "setADT.h"
 
-void set_init(set s) {
-  for (int i = 0; i < SET_SIZE; i++) {
+void set_init(set s) 
+{
+  for (int i = 0; i < SET_SIZE; i++) 
+  {
     s[i] = 0;
   }
 }
 
-bool set_find_elem(set s, int num) {
-  return (s[num / ULL_NUM_BITS] &
-          (((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS)))) != 0;
+bool set_find_elem(set s, int num) 
+{
+  return ( (s[num / ULL_NUM_BITS] & (((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS)))) != 0 );
 }
 
-void set_remove_elem(set s, int num) {
-  s[num / ULL_NUM_BITS] &=
-      (~((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS)));
+void set_remove_elem(set s, int num) 
+{
+  s[num / ULL_NUM_BITS] &= (~((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS)));
 }
 
-void set_add_elem(set s, int num) {
-  s[num / ULL_NUM_BITS] |=
-      ((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS));
+void set_add_elem(set s, int num) 
+{
+  s[num / ULL_NUM_BITS] |= ((1ULL << (ULL_NUM_BITS - 1)) >> (num % ULL_NUM_BITS));
 }
 
 void set_union(set dest, set first, set second) {
-  for (int j = 0; j < SET_SIZE; j++) {
+  for (int j = 0; j < SET_SIZE; j++) 
+  {
     dest[j] = first[j] | second[j];
   }
 }
@@ -33,7 +44,8 @@ void set_intersection(set dest, set first, set second) {
   }
 }
 
-bool is_superset(set first, set second) {
+bool is_superset(set first, set second) 
+{
   for (int j = 0; j < SET_SIZE; j++) {
     if ((first[j] & second[j]) != second[j]) {
       return false;

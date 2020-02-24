@@ -1,0 +1,22 @@
+** This is a small code for verifying syntactic correctness of an empty driver and an empty module **
+<<<driver program>>>
+start
+	
+end
+<<module empty>>
+takes input[a:boolean];
+start
+
+end
+
+** print the following message on the console
+      " Input source code is syntactically correct.........."
+**
+
+** Also print the parse tree in the format given in function description of printParseTree().[refer interface details]**
+
+** The inorder traversal for an n‐ary tree can be seen as follows
+
+Leftmost child ‐‐> parent node‐‐> remaining siblings (excluding the leftmost)**
+
+** The above tree construction needs to be verified with manually created tree on paper for the above input using the given grammar. You can try using a A3 sized paper and draw the parse tree. work out the inorder traversal and verify your parser output **

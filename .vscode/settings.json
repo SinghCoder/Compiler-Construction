@@ -10,6 +10,17 @@
 		"array": "c",
 		"tuple": "c",
 		"type_traits": "c",
-		"utility": "c"
+		"utility": "c",
+		"*.tcc": "cpp",
+		"cstdlib": "cpp",
+		"string": "cpp",
+		"exception": "cpp",
+		"memory_resource": "cpp",
+		"cmath": "cpp",
+		"fstream": "cpp",
+		"new": "cpp",
+		"sstream": "cpp",
+		"string_view": "cpp",
+		"typeinfo": "cpp"
 	}
 }

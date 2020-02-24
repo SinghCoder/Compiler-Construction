@@ -6,17 +6,19 @@
   Vishal Mittal        -   2017A7PS0080P
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
-#ifndef STACK_H
-#define STACK_H
+#ifndef STACK_ADT_H
+#define STACK_ADT_H
 
-#include "stackADTDef.h"
+#include "parserDef.h"
+#include "treeADT.h"
 
-stack *stack_init();
+#define MAX_PARSING_NODES 200
 
-void push(stack *stack_ptr, tree_node* node);
-
-tree_node* top(stack *stack_ptr);
-
-tree_node* pop(stack* stack_ptr);
+typedef struct
+{
+    tree_node **arr;
+    int top;
+    int size;
+} stack;
 
 #endif

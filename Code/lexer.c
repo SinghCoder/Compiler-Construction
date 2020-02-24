@@ -408,6 +408,8 @@ TOKEN getNextToken(FILE *fp) {
       c = getChar(fp);
       if ('*' != c) {
         state = 19;
+        if('\n' == c)
+          line_no++;
       } else {
         state = 20;
       }
@@ -419,11 +421,15 @@ TOKEN getNextToken(FILE *fp) {
         state = 21;
       } else {
         state = 19;
+        if('\n' == c)
+          line_no++;
       }
       break;
 
     case 21:;
       state = 0;
+      // getChar(fp);
+      lexeme_begin = forward_ptr;
       break;
 
     case 22:;
@@ -660,17 +666,19 @@ TOKEN getNextToken(FILE *fp) {
       return tkn;
       break;
     case 48:
-    default:;
       tkn.name = LEX_ERROR;
       int lex_size = forward_ptr - lexeme_begin;
       if (lex_size < 0) {
-        lex_size += BUFFER_SIZE;
+        lex_size += num_of_rounds * BUFFER_SIZE;
+        num_of_rounds = 0;
       }
       lexeme[lex_size] = '\0';
       tkn.str = lexeme;
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
+    default:;
+      break;
     }
   }
   return tkn;

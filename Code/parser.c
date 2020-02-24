@@ -291,13 +291,6 @@ tree_node *parseInputSourceCode(FILE *source) {
 	  }
 	  continue;
 	}
-	else
-	{
-		printf("\n----------------------------------------------------------------\n");
-		printf("\n\nRule used : \n\n");
-		print_rule(rule_no);
-		printf("\n----------------------------------------------------------------\n");
-	}
 	cell rule = grammar[rule_no];
 	rhsnode_ptr rhs_ptr = rule.head;
 

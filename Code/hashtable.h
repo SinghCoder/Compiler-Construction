@@ -6,7 +6,7 @@
 
 #define PRIME 119
 #define HASH_SIZE 67
-#define MAX_LEXEME_LEN 100
+#define MAX_LEXEME_LEN 1000
 #define KEY_NOT_FOUND -1
 
 typedef struct {

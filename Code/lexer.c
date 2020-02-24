@@ -26,7 +26,8 @@ TOKEN getToken() {
   tkn.line_no = line_no;
   int lex_size = forward_ptr - lexeme_begin;
   if (lex_size < 0) {
-    lex_size += BUFFER_SIZE;
+    lex_size += num_of_rounds * BUFFER_SIZE;
+    num_of_rounds = 0;
   }
   lexeme[lex_size] = '\0';
 
@@ -34,8 +35,9 @@ TOKEN getToken() {
   {
     if (lex_size > 20) 
     {
-      tkn.name = LEX_ERROR;
-      return tkn;
+        tkn.name = LEX_ERROR;
+        tkn.str = lexeme;
+        return tkn;
     }
 
     token_name name = searchLookupTable(lexeme);
@@ -136,6 +138,7 @@ void populateBuffer(FILE *fp)
   if (forward_ptr == BUFFER_SIZE) 
   {
     forward_ptr = 0;
+    num_of_rounds++;
   }
   num = fread(&buffer[forward_ptr], 1, BUFFER_SIZE / 2, fp);
   if (num != BUFFER_SIZE / 2)
@@ -153,6 +156,7 @@ void lexer_init(FILE *source)
   forward_ptr = 0;
   just_retracted = false;
   line_no = 1;
+  num_of_rounds = 0;
   int num = fseek(source, 0, SEEK_SET);
   populateBuffer(source);
 }
@@ -230,8 +234,7 @@ TOKEN getNextToken(FILE *fp) {
       }
 
       else {
-        tkn.name = LEX_ERROR;
-        return tkn;
+        state = 48;
       }
       break;
 
@@ -278,8 +281,8 @@ TOKEN getNextToken(FILE *fp) {
       } else if (isdigit(c)) {
         state = 7;
       } else {
-        tkn.name = LEX_ERROR;
-        return tkn;
+        retract(1);
+        state = 48;
       }
       break;
 
@@ -317,9 +320,7 @@ TOKEN getNextToken(FILE *fp) {
       } else if (isdigit(c)) {
         state = 11;
       } else {
-        tkn.name = LEX_ERROR;
-        // printf("%d", state);
-        return tkn;
+        state = 48;
       }
       break;
 
@@ -327,10 +328,10 @@ TOKEN getNextToken(FILE *fp) {
       c = getChar(fp);
       if (isdigit(c)) {
         state = 11;
-      } else {
-        tkn.name = LEX_ERROR;
-        // printf("%d", state);
-        return tkn;
+      } else 
+      {
+        retract(1);
+        state = 48;
       }
       break;
 
@@ -522,8 +523,8 @@ TOKEN getNextToken(FILE *fp) {
       if ('=' == c) {
         state = 32;
       } else {
-        tkn.name = LEX_ERROR;
-        return tkn;
+        retract(1);
+        state = 48;
       }
       break;
 
@@ -540,9 +541,7 @@ TOKEN getNextToken(FILE *fp) {
       if ('=' == c) {
         state = 34;
       } else {
-        tkn.name = LEX_ERROR;
-        // printf("%d", state);
-        return tkn;
+        state = 48;
       }
       break;
 
@@ -584,9 +583,10 @@ TOKEN getNextToken(FILE *fp) {
       c = getChar(fp);
       if ('.' == c) {
         state = 39;
-      } else {
-        tkn.name = LEX_ERROR;
-        return tkn;
+      } else 
+      {
+        retract(1);
+        state = 48;
       }
       break;
 
@@ -659,8 +659,17 @@ TOKEN getNextToken(FILE *fp) {
       state = 0;
       return tkn;
       break;
+    case 48:
     default:;
       tkn.name = LEX_ERROR;
+      int lex_size = forward_ptr - lexeme_begin;
+      if (lex_size < 0) {
+        lex_size += BUFFER_SIZE;
+      }
+      lexeme[lex_size] = '\0';
+      tkn.str = lexeme;
+      lexeme_begin = forward_ptr;
+      state = 0;
       return tkn;
     }
   }
@@ -678,16 +687,23 @@ void tokenize_source_file(FILE *source) {
 
   while (true) {
     tkn = getNextToken(source);
-    if (tkn.name == DOLLAR) {
+    if (tkn.name == DOLLAR) 
+    {
       break;
-    } else {
-      if (tkn.name == LEX_ERROR) {
+    } 
+    else 
+    {
+      if (tkn.name == LEX_ERROR) 
+      {
         printf("==========================================================\n");
         printf("%-15d  |  %-20s  |  %-20s\n", tkn.line_no, tkn.str,
                "LEXICAL ERROR");
         printf("==========================================================\n");
-      } else {
-        if (tkn.name != DELIM) {
+      } 
+      else 
+      {
+        if (tkn.name != DELIM) 
+        {
           printf("%-15d  |  ", tkn.line_no);
           switch (tkn.name) {
           case NUM:
@@ -715,7 +731,6 @@ void remove_comments(FILE *source, char *no_comment_file) {
   char ch = getChar(source);
 
   while (ch != EOF) {
-    printf("%c", ch);
     switch (state) 
     {
       case 0:

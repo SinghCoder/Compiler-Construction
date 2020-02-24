@@ -349,52 +349,100 @@ void free_grammar() {
   }
 }
 
+void pretty_print(char* s)
+{
+	int column_size = COLUMN_SIZE,len,left_margin;
+	len = strlen(s);
+	left_margin=(column_size-len)/2;
+	for(int i=0;i<left_margin;i++){
+		printf(" ");
+	}
+	printf("%s",s);
+	int right_margin = left_margin;
+	if(len % 2 == 1)
+		right_margin++;
+	for(int i=0;i<right_margin;i++){
+		printf(" ");
+	}
+	printf("|");
+}
 void print_node(tree_node *node) 
 {
+	char* s = (char*) calloc(30,sizeof(char));
+	for(int i=0;i<30;i++){
+		s[i]='\0';
+	}
+	// int column_size = 30,len,left_margin;
 	if (node == NULL)
 	  return;
 	bool is_terminal = (node->sym).is_terminal;
 	if(is_terminal == true) 
 	{
 	  if((node->token.name != NUM && node->token.name != RNUM) && node->token.str != NULL)
-		  printf(" %s | ", (node->token).str);
-	  else
-		  printf(" ---- | ");
+	  {
+ 		sprintf(s,"%s",(node->token).str);
+		pretty_print(s);
+	  }	
+		//   printf("%s|", (node->token).str);
+	  else pretty_print("----");
+		//   printf("----|");
+	 sprintf(s,"%d",(node->token).line_no);
+	 pretty_print(s);
+	//   printf("%d|", (node->token).line_no);
 	 
-	  printf(" %d | ", (node->token).line_no);
-	 
-	  if(node->token.str != NULL)
-		printf("  %s  | ",terminal_string[(node->token).name]);
+	  if(node->token.str != NULL){
+	  	sprintf(s,"%s",terminal_string[(node->token).name]);
+		pretty_print(s);
+	  }
+		// printf("%s|",terminal_string[(node->token).name]);
 	  else
-		printf(" ---- | ");
+	  	pretty_print("----");
+		// printf("----|");
 
 	  switch ((node->token).name) 
 	  {
 		case NUM:
-		  printf("  %d | ", (node->token).num);
+			sprintf(s,"%d",(node->token).num);
+			pretty_print(s);
+		//   printf("%d|", (node->token).num);
 		  break;
 		case RNUM:
-		  printf("  %f | ", (node->token).rnum);
+			sprintf(s,"%f",(node->token).rnum);
+			pretty_print(s);
+		//   printf("%f|", (node->token).rnum);
 		  break;
 		default:
-		  printf(" ---- | ");
+			pretty_print("----");
+		//   printf("----|");
 		  break;
 	  }
-
-	  printf("%s | yes | %s\n", non_terminal_string[(node->parent->sym).nt],
-			terminal_string[(node->sym).t]);
+		sprintf(s,"%s",non_terminal_string[(node->parent->sym).nt]);
+		pretty_print(s);
+		pretty_print("yes");
+		printf("\t\t%s\n",terminal_string[(node->sym).t]);
+	//   printf("%s|yes|%s\n", non_terminal_string[(node->parent->sym).nt],
+			// terminal_string[(node->sym).t]);
 	} 
 	else 
 	{
-	  printf(" ---- | ---- | ---- | ---- | ");
+		pretty_print("----");
+		pretty_print("----");
+		pretty_print("----");
+		pretty_print("----");
+	//   printf("----|----|----|----|");
 
 	  if (node->parent)
-		printf("%s | ", non_terminal_string[(node->parent->sym).nt]);
+	  	pretty_print(non_terminal_string[(node->parent->sym).nt]);
+		// printf("%s|", non_terminal_string[(node->parent->sym).nt]);
 	  else
-		printf("%s | ", "(ROOT)");
-	  printf(" no | %s\n", non_terminal_string[(node->sym).nt]);
+	  	pretty_print("(ROOT)");
+		pretty_print("no");
+		printf("\t\t%s\n",non_terminal_string[(node->sym).nt]);
+		// printf("%s|", "(ROOT)");
+	//   printf("no|%s\n", non_terminal_string[(node->sym).nt]);
 	}
 }
+
 
 void print_parse_tree(tree_node *root) 
 {
@@ -559,7 +607,7 @@ void populate_first_sets() {
 		  if ((temp->sym).is_terminal == true) // if  terminal add and move to next rule
 		  {
 			token_name t = (temp->sym).t;
-			if (set_find_elem(first_set[lhs], t)) // check if terminal already there in the
+			if (set_find_elem(first_set[lhs], t) == false) // check if terminal already there in the
 								  // first set or not
 			{
 			  set_add_elem(first_set[lhs], t);

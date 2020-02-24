@@ -1,10 +1,18 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #include "hashtable.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // Fast Modulo Exponentation
-int fastModExp(int a, int b, int m) {
+int fast_mod_exp(int a, int b, int m) {
   int res = 1;
   while (b > 0) {
     if (b & 1) {
@@ -22,7 +30,7 @@ int hash(char *str) {
   int hash_value = 0;
 
   for (int i = 0; i < n; i++) {
-    hash_value += ((str[i] * fastModExp(PRIME, i, HASH_SIZE)) % HASH_SIZE);
+    hash_value += ((str[i] * fast_mod_exp(PRIME, i, HASH_SIZE)) % HASH_SIZE);
   }
 
   return hash_value % HASH_SIZE;
@@ -59,7 +67,7 @@ void hash_insert(hash_table table, char *lexeme, int value) {
   table[hashValue].value = value;
 }
 
-int searchHashTable(hash_table table, char *lexeme) {
+int search_hash_table(hash_table table, char *lexeme) {
   int hashValue = hash(lexeme);
   int probe_num = 1;
   // printf("comparing %s\n", table[hashValue].lexeme);

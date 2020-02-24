@@ -1,3 +1,12 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
+
 #include "hashtable.h"
 #include "lexerDef.h"
 #include <ctype.h>
@@ -7,8 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-token_name searchLookupTable(char *lexeme) {
-  int num = searchHashTable(lookup_table, lexeme);
+token_name search_lookup_table(char *lexeme) {
+  int num = search_hash_table(lookup_table, lexeme);
   if (KEY_NOT_FOUND == num) {
     return ID;
   } else {
@@ -16,7 +25,7 @@ token_name searchLookupTable(char *lexeme) {
   }
 }
 
-TOKEN getToken() {
+TOKEN get_token() {
 
   if (lexeme_begin == BUFFER_SIZE) {
     lexeme_begin = 0;
@@ -29,7 +38,8 @@ TOKEN getToken() {
     lex_size += num_of_rounds * BUFFER_SIZE;
     num_of_rounds = 0;
   }
-  lexeme[lex_size] = '\0';
+  int last_index = (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
+  lexeme[last_index] = '\0';
 
   if (2 == state) 
   {
@@ -40,7 +50,7 @@ TOKEN getToken() {
         return tkn;
     }
 
-    token_name name = searchLookupTable(lexeme);
+    token_name name = search_lookup_table(lexeme);
     tkn.name = name;
     tkn.str = lexeme;
     return tkn;
@@ -132,7 +142,7 @@ void populate_lookup_table() {
   hash_insert(lookup_table, "while", WHILE);
 }
 
-void populateBuffer(FILE *fp) 
+void populate_buffer(FILE *fp) 
 {
   int num;
   if (forward_ptr == BUFFER_SIZE) 
@@ -158,26 +168,27 @@ void lexer_init(FILE *source)
   line_no = 1;
   num_of_rounds = 0;
   int num = fseek(source, 0, SEEK_SET);
-  populateBuffer(source);
+  populate_buffer(source);
 }
 
-char getChar(FILE *fp) {
+char get_char(FILE *fp) {
   if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) &&
       just_retracted == false) {
-    populateBuffer(fp);
+    populate_buffer(fp);
   }
   char c = buffer[forward_ptr];
   int lex_index = forward_ptr - lexeme_begin;
   if (lex_index < 0) {
     lex_index += BUFFER_SIZE;
   }
-  lexeme[lex_index] = c;
+  if(lex_index < MAX_LEXEME_LEN)
+    lexeme[lex_index] = c;
   forward_ptr++;
   just_retracted = false;
   return c;
 }
 
-TOKEN getNextToken(FILE *fp) {
+TOKEN get_next_token(FILE *fp) {
   char c;
   TOKEN tkn;
   while (true) 
@@ -185,7 +196,7 @@ TOKEN getNextToken(FILE *fp) {
     tkn.line_no = line_no;
     switch (state) {
     case 0:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isalpha(c)) {
         state = 1;
       } else if (isdigit(c)) {
@@ -239,7 +250,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 1:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isalnum(c) || '_' == c) {
         state = 1;
       } else {
@@ -249,14 +260,14 @@ TOKEN getNextToken(FILE *fp) {
 
     case 2:;
       retract(1);
-      tkn = getToken();
+      tkn = get_token();
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
 
     case 3:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isdigit(c)) {
         state = 3;
       } else if ('.' == c) {
@@ -268,14 +279,14 @@ TOKEN getNextToken(FILE *fp) {
 
     case 4:;
       retract(1);
-      tkn = getToken();
+      tkn = get_token();
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
 
     case 5:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('.' == c) {
         state = 6;
       } else if (isdigit(c)) {
@@ -288,14 +299,14 @@ TOKEN getNextToken(FILE *fp) {
 
     case 6:;
       retract(2);
-      tkn = getToken();
+      tkn = get_token();
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
 
     case 7:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isdigit(c)) {
         state = 7;
       } else if ('e' == c || 'E' == c) {
@@ -307,25 +318,26 @@ TOKEN getNextToken(FILE *fp) {
 
     case 8:;
       retract(1);
-      tkn = getToken();
+      tkn = get_token();
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
 
     case 9:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('+' == c || '-' == c) {
         state = 10;
       } else if (isdigit(c)) {
         state = 11;
       } else {
+        retract(1);
         state = 48;
       }
       break;
 
     case 10:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isdigit(c)) {
         state = 11;
       } else 
@@ -336,7 +348,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 11:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (isdigit(c)) {
         state = 11;
       } else {
@@ -346,14 +358,14 @@ TOKEN getNextToken(FILE *fp) {
 
     case 12:;
       retract(1);
-      tkn = getToken();
+      tkn = get_token();
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
 
     case 13:;
-      c = getChar(fp);
+      c = get_char(fp);
       if (' ' == c || '\n' == c || '\t' == c) {
         if ('\n' == c)
           line_no++;
@@ -387,7 +399,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 17:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('*' == c) {
         state = 19;
       } else {
@@ -405,7 +417,8 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 19:;
-      c = getChar(fp);
+      lexeme_begin++;
+      c = get_char(fp);
       if ('*' != c) {
         state = 19;
         if('\n' == c)
@@ -416,7 +429,8 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 20:;
-      c = getChar(fp);
+      lexeme_begin++;
+      c = get_char(fp);
       if ('*' == c) {
         state = 21;
       } else {
@@ -428,7 +442,7 @@ TOKEN getNextToken(FILE *fp) {
 
     case 21:;
       state = 0;
-      // getChar(fp);
+      // get_char(fp);
       lexeme_begin = forward_ptr;
       break;
 
@@ -441,7 +455,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 23:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('=' == c) {
         state = 25;
       } else if ('<' == c) {
@@ -469,7 +483,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 26:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('<' == c) {
         state = 46;
       } else {
@@ -483,7 +497,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 27:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('=' == c) {
         state = 29;
       } else if ('>' == c) {
@@ -511,7 +525,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 30:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('>' == c) {
         state = 47;
       } else {
@@ -525,7 +539,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 31:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('=' == c) {
         state = 32;
       } else {
@@ -543,10 +557,11 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 33:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('=' == c) {
         state = 34;
       } else {
+        retract(1);
         state = 48;
       }
       break;
@@ -560,7 +575,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 35:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('=' == c) {
         state = 36;
       } else {
@@ -586,7 +601,7 @@ TOKEN getNextToken(FILE *fp) {
       break;
 
     case 38:;
-      c = getChar(fp);
+      c = get_char(fp);
       if ('.' == c) {
         state = 39;
       } else 
@@ -672,7 +687,8 @@ TOKEN getNextToken(FILE *fp) {
         lex_size += num_of_rounds * BUFFER_SIZE;
         num_of_rounds = 0;
       }
-      lexeme[lex_size] = '\0';
+      int last_index = (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
+      lexeme[last_index] = '\0';
       tkn.str = lexeme;
       lexeme_begin = forward_ptr;
       state = 0;
@@ -694,7 +710,7 @@ void tokenize_source_file(FILE *source) {
   }
 
   while (true) {
-    tkn = getNextToken(source);
+    tkn = get_next_token(source);
     if (tkn.name == DOLLAR) 
     {
       break;
@@ -734,9 +750,9 @@ void tokenize_source_file(FILE *source) {
 void remove_comments(FILE *source, char *no_comment_file) {
 
   FILE *outp_fptr = fopen(no_comment_file, "w");
-  // populateBuffer(source);
+  // populate_buffer(source);
   int state = 0;
-  char ch = getChar(source);
+  char ch = get_char(source);
 
   while (ch != EOF) {
     switch (state) 
@@ -784,7 +800,7 @@ void remove_comments(FILE *source, char *no_comment_file) {
       default:
         break;
     }
-    ch = getChar(source);
+    ch = get_char(source);
   } // end of while - file read
 
   fclose(outp_fptr);
@@ -819,7 +835,7 @@ void remove_comments(FILE *source, char *no_comment_file) {
     if (line)
         free(line);
 
-    printf("\nPress any character to continue\n");
+    printf("\nPress any character(other than enter) to continue\n");
     char ch2;
     scanf("\n%c", &ch2);
     fclose(fptr);

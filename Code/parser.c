@@ -1,3 +1,12 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
+
 #include "parser.h"
 #include "hashtable.h"
 #include "lexer.h"
@@ -70,6 +79,9 @@ void parser_init() {
 	  parse_table[i][j] = NO_MATCHING_RULE;
 	}
   }
+
+  //initialize error variable
+  error_present = false;
 }
 
 void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym) {
@@ -122,7 +134,7 @@ symbol get_symbol(char str[]) {
   symbol sym;
   if ((str[0] >= 'A') && (str[0] <= 'Z')) {
 	sym.is_terminal = false;
-	sym.nt = searchHashTable(non_terminal_table, str);
+	sym.nt = search_hash_table(non_terminal_table, str);
   } else {
 
 	sym.is_terminal = true;
@@ -131,7 +143,7 @@ symbol get_symbol(char str[]) {
 	for (int i = 0; i < strlen(tmp); i++) {
 	  tmp[i] = toupper(tmp[i]);
 	}
-	sym.t = searchHashTable(terminal_table, tmp);
+	sym.t = search_hash_table(terminal_table, tmp);
   }
   return sym;
 }
@@ -161,7 +173,7 @@ int rightmost_set_bit(ull *num) {
   return pos;
 }
 
-void createParseTable() {
+void create_parse_table() {
   for (int i = 0; i < NUM_OF_RULES; i++) 
   {
 	// printf("Filling r")
@@ -198,7 +210,7 @@ void createParseTable() {
   }     // end of for - travwersal in all rules
 }
 
-tree_node *parseInputSourceCode(FILE *source) {
+tree_node *parse_input_source_code(FILE *source) {
 
   stack *main_stack = stack_init();
   stack *aux_stack = stack_init();
@@ -207,7 +219,7 @@ tree_node *parseInputSourceCode(FILE *source) {
   root->sym.nt = MAINPROGRAM;
   root->sym.is_terminal = false;
   push(main_stack, root); // push start symbol on stack
-  TOKEN tkn = getNextToken(source);
+  TOKEN tkn = get_next_token(source);
 
   while (true) {
 	tree_node *node = pop(main_stack);
@@ -218,12 +230,13 @@ tree_node *parseInputSourceCode(FILE *source) {
 	  if (node->sym.t != tkn.name) // terminal on top of stack does not match
 								   // with lookhead symbol
 	  {
-		printf(
-			"%d) Syntax Error : Lookahead token(%s) doesn't match with stack "
-			"top(%s)\n",
+
+		error_present = true;
+		printf("%d) Syntax Error : Lookahead token(%s) doesn't match with stack top(%s)\n",
 		tkn.line_no, terminal_string[tkn.name],
 		terminal_string[node->sym.t]);
-		tkn = getNextToken(source);
+		printf("Ignoring token %s from the source code\n",terminal_string[node->sym.t]);
+		tkn = get_next_token(source);
 		if (tkn.name == DOLLAR) 
 		{
 		  printf("Panic mode error recovery not possible! Only a partial parse "
@@ -257,18 +270,20 @@ tree_node *parseInputSourceCode(FILE *source) {
 		}
 	  }
 
-	  tkn = getNextToken(source);
+	  tkn = get_next_token(source);
 	  continue;
 	}
 
 	if (tkn.name == LEX_ERROR) {
+	  error_present = true;
 	  printf("%d) Lexical Error\n", tkn.line_no);
-	  tkn = getNextToken(source);
+	  tkn = get_next_token(source);
 	  continue;
 	}
 	if (node == NULL) {
 	  if (tkn.name != DOLLAR) // rule not read completely but stack became empty
 	  {
+		  error_present = true;
 		printf("%d) Syntax Error: Extra symbols in the source code\n",
 			   tkn.line_no);
 	  } else {
@@ -281,16 +296,25 @@ tree_node *parseInputSourceCode(FILE *source) {
 
 	if (rule_no == NO_MATCHING_RULE) 
 	{
+	  printf("token is %s\n", terminal_string[tkn.name]);
+	  printf("Waiting for an element in follow of %s\n", non_terminal_string[node->sym.nt]);
 	  while (set_find_elem(follow_set[node->sym.nt], tkn.name) == false) {
-		tkn = getNextToken(source);
+		tkn = get_next_token(source);
 		if (tkn.name == DOLLAR) {
 		  printf("Panic mode error recovery not possible! Only a partial parse "
 				 "tree formed!!\n");
 		  return root;
 		}
 	  }
+	  printf("Token %s found at line number %d\n", terminal_string[tkn.name], tkn.line_no);
+	  printf("Resuming parsing\n");
 	  continue;
 	}
+	// else{
+		// printf("===========================================\n");
+		// print_rule(rule_no);
+		// printf("===========================================\n");
+	// }
 	cell rule = grammar[rule_no];
 	rhsnode_ptr rhs_ptr = rule.head;
 
@@ -504,6 +528,9 @@ void populate_follow_sets() {
 }
 
 void populate_first_sets() {
+
+//   set_add_elem(first_set[STATEMENT], USE);
+//   set_add_elem(first_set[STATEMENTS], USE);
   bool is_changed = true;
   int lhs;
   rhsnode_ptr rhs_ptr;
@@ -517,8 +544,7 @@ void populate_first_sets() {
 		  true) // if terminal, add it and move ahead
 	  {
 		token_name t = (rhs_ptr->sym).t;
-		if (set_find_elem(first_set[lhs], t) ==
-			false) // check if terminal already there in the first set or not
+		if (set_find_elem(first_set[lhs], t) == false) // check if terminal already there in the first set or not
 		{
 		  set_add_elem(first_set[lhs], t);
 		  is_changed = true;
@@ -530,12 +556,10 @@ void populate_first_sets() {
 		ull *lhs_symbol_fset = first_set[lhs];
 		while (temp != NULL) // traverse till end of the rule
 		{
-		  if ((temp->sym).is_terminal ==
-			  true) // if  terminal add and move to next rule
+		  if ((temp->sym).is_terminal == true) // if  terminal add and move to next rule
 		  {
 			token_name t = (temp->sym).t;
-			if (set_find_elem(first_set[lhs],
-							  t)) // check if terminal already there in the
+			if (set_find_elem(first_set[lhs], t)) // check if terminal already there in the
 								  // first set or not
 			{
 			  set_add_elem(first_set[lhs], t);

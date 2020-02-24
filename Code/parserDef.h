@@ -1,3 +1,11 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #ifndef PARSERDEF_H
 #define PARSERDEF_H
 
@@ -49,6 +57,8 @@ cell grammar[NUM_OF_RULES];
 
 hash_element terminal_table[HASH_SIZE];
 hash_element non_terminal_table[HASH_SIZE];
+
+bool error_present;
 
 int parse_table[NUM_OF_NONTERMINALS][NUM_OF_TERMINALS];
 

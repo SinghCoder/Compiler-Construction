@@ -71,8 +71,6 @@ int main(int argc, char *argv[]) {
         }
         grammar_fill(fptr);
 
-        print_grammar();
-
         populate_first_sets();
 
         populate_follow_sets();
@@ -81,7 +79,8 @@ int main(int argc, char *argv[]) {
 
         tree_node *ptr = parseInputSourceCode(source);
 
-        if (ptr == NULL) {
+        if (ptr == NULL) 
+		{
           printf("Empty parse tree\n");
         }
 

@@ -1,0 +1,23 @@
+** This test case is meant only to test your lexical analyzer 
+   and is not correct syntactically. Use this to verify your lexical analyzer **
+
+var_1_, var_2_, var_3_:integer+AND+declare..-23.7e+12um16789+**18.043**
+123abc123.23-/*+while)for(begin--12.03e+a2<<<<<===>=value_123___16FJKHDSFSDjshd547637__4234_3423mdfndf+342543.dfsf+case-case1/
+
+/true
+
+;default<=1876..2098+12.....::=30 switch 
+
+	break [A..19] get_value,print,use, boolean 10..in for++array[187.e+12 1.0E-12e34
+
+**ID, COMMA, ID, COMMA, ID, COLON, INTEGER,PLUS, AND, PLUS, DECLARE, RANGEOP, MINUS, RNUM, ID, PLUS, COMMENT(NOT TO BE TOKENIZED), NUM, ID, LEXICAL ERROR(.) , NUM, MINUS, DIV, MUL, PLUS, WHILE, CP, FOR, OP, BEGIN, MINUS, MINUS, LEXICAL ERROR (12.03e+), ID, DRIVERDEF, DEF, EQ, LEXICAL ERROR (=), GE, ID, LEXICAL ERROR (MORE THAN 20 CHARACTERS IN ID), PLUS, LEXICAL ERROR (342543.), ID, PLUS, CASE, MINUS, ID, DIV, DIV, TRUE, SEMCOL, DEFAULT, LE, NUM, RANGEOP, NUM, PLUS, NUM, RANGEOP, RANGEOP, LEXICAL ERROR (.), COLON, ASSIGNOP, NUM, SWITCH, BREAK,SQBO, ID, RANGEOP, NUM, SQBC, GET_VALUE, COMMA, PRINT, COMMA, USE, COMMA, BOOLEAN, NUM, RANGEOP, IN, FOR, PLUS, PLUS, ARRAY, SQBO , LEXICAL ERROR (187.), ID, PLUS, NUM, RNUM, ID **
+
+**Try to print these in each line on the console in the following format
+      line no     	lexeme		token name
+	4		 var_1_		  ID
+**
+**print also the lexeme for lexical error **
+
+**add more complex combinations and test your lexical analyzer**
+
+

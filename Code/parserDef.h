@@ -17,7 +17,7 @@
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
 #define NO_MATCHING_RULE -1
-
+#define COLUMN_SIZE 20
 
 typedef enum
 {

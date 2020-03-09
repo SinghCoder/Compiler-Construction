@@ -16,7 +16,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-token_name search_lookup_table(char *lexeme) {
+/**
+ * @brief search string in lookup table to check if it's keyword or identifier
+ * 
+ * @param lexeme string to search for
+ * @return token_name - ID or hash_table entry
+ */
+token_name search_lookup_table(char *lexeme) 
+{
   int num = search_hash_table(lookup_table, lexeme);
   if (KEY_NOT_FOUND == num) {
     return ID;
@@ -25,9 +32,17 @@ token_name search_lookup_table(char *lexeme) {
   }
 }
 
-TOKEN get_token() {
+/**
+ * @brief Get the token object recognized by the DFA
+ * 
+ * @return TOKEN - line_no , rnumerated value, name/int_value/real_value
+ */
 
-  if (lexeme_begin == BUFFER_SIZE) {
+TOKEN get_token() 
+{
+
+  if (lexeme_begin == BUFFER_SIZE) 
+  {
     lexeme_begin = 0;
   }
   TOKEN tkn;
@@ -59,7 +74,6 @@ TOKEN get_token() {
   if (4 == state || 6 == state) {
     tkn.name = NUM;
     tkn.num = atoi(lexeme);
-    // printf("\n\nTOKEN.NUM = %d\n\n", tkn.num);
   }
 
   if (8 == state || 12 == state) {
@@ -69,7 +83,14 @@ TOKEN get_token() {
   return tkn;
 }
 
-void retract(int num_of_char) {
+/**
+ * @brief retract and push back a character to stream
+ * 
+ * @param num_of_char - number of chracters to retract
+ */
+
+void retract(int num_of_char) 
+{
   forward_ptr -= num_of_char;
   if (forward_ptr < 0) {
     forward_ptr += BUFFER_SIZE;
@@ -77,7 +98,13 @@ void retract(int num_of_char) {
   just_retracted = true;
 }
 
-void populate_terminal_string() {
+
+/**
+ * @brief Read tokens from the file and make a mapping array which maps enumerated tokens to strings
+ * 
+ */
+void populate_terminal_string() 
+{
 
   FILE *file = fopen("tokens.txt", "r");
   fseek(file, 0, SEEK_END);
@@ -108,7 +135,13 @@ void populate_terminal_string() {
   free(t_file);
 }
 
-void populate_lookup_table() {
+/**
+ * @brief inserts the entries for keywords in the lookup_table hashtable
+ * 
+ */
+
+void populate_lookup_table() 
+{
 
   hash_insert(lookup_table, "integer", INTEGER);
   hash_insert(lookup_table, "real", REAL);
@@ -142,6 +175,12 @@ void populate_lookup_table() {
   hash_insert(lookup_table, "while", WHILE);
 }
 
+/**
+ * @brief used to fill the buffer from source code
+ * 
+ * @param fp - pointer to source code file
+ */
+
 void populate_buffer(FILE *fp) 
 {
   int num;
@@ -155,6 +194,17 @@ void populate_buffer(FILE *fp)
     buffer[num + forward_ptr] = EOF;
 }
 
+/**
+ * @brief does initialization work for lexer
+ * 
+ * - initializes lookup table for keywords
+ * - reset DFA initial state
+ * - resets forward pointer and line number 
+ * - populates buffer
+ * 
+ * @param source 
+ */
+
 void lexer_init(FILE *source) 
 {
   init_hash_table(lookup_table);
@@ -166,12 +216,19 @@ void lexer_init(FILE *source)
   forward_ptr = 0;
   just_retracted = false;
   line_no = 1;
-  num_of_rounds = 0;
-  int num = fseek(source, 0, SEEK_SET);
+  num_of_rounds = 0;  
+  int num = fseek(source, 0, SEEK_SET); // go back to start of source code file
   populate_buffer(source);
 }
 
-char get_char(FILE *fp) {
+/**
+ * @brief gives a character from buffer to dfa, refills buffer when needed
+ * 
+ * @param fp - pointer to source file
+ * @return char 
+ */
+char get_char(FILE *fp) 
+{
   if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) &&
       just_retracted == false) {
     populate_buffer(fp);
@@ -188,6 +245,12 @@ char get_char(FILE *fp) {
   return c;
 }
 
+/**
+ * @brief Get the next token object
+ * 
+ * @param fp - source code file pointer
+ * @return TOKEN 
+ */
 TOKEN get_next_token(FILE *fp) {
   char c;
   TOKEN tkn;
@@ -700,7 +763,14 @@ TOKEN get_next_token(FILE *fp) {
   return tkn;
 }
 
-void tokenize_source_file(FILE *source) {
+/**
+ * @brief Printing all the lexemes recognized by the DFA
+ * 
+ * @param source - source file pointer
+ */
+
+void tokenize_source_file(FILE *source)
+{
   TOKEN tkn;
 
   printf("%-15s  |  %-20s  |  %-20s\n", "LINE_NUMBER", "LEXEME", "TOKEN_NAME");
@@ -747,10 +817,15 @@ void tokenize_source_file(FILE *source) {
   } // end of while
 }
 
+/**
+ * @brief Remove comments from the source file
+ * 
+ * @param source - source file pointer
+ * @param no_comment_file - destination file name
+ */
 void remove_comments(FILE *source, char *no_comment_file) {
 
   FILE *outp_fptr = fopen(no_comment_file, "w");
-  // populate_buffer(source);
   int state = 0;
   char ch = get_char(source);
 
@@ -809,35 +884,30 @@ void remove_comments(FILE *source, char *no_comment_file) {
   char choice;
   scanf("\n%c", &choice);
 
-  if (choice == 'Y') {
-    FILE *fptr = fopen(no_comment_file, "r");
-    // char buf[100];
+  if (choice == 'Y') 
+  {
+      FILE *fptr = fopen(no_comment_file, "r");
+      char * line = NULL;
+      size_t len = 0;
+      ssize_t read;
+      
+      if (fptr == NULL)
+      {
+        printf("Unable to write to file %s\n", no_comment_file);
+        return;
+      }
 
-    // while (fgets(buf, 99, fptr) != NULL) {
-    //   printf("%s", buf);
-    // }
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    
-    if (fptr == NULL)
-    {
-      printf("Unable to write to file %s\n", no_comment_file);
-      return;
-    }
+      while ((read = getline(&line, &len, fptr)) != -1) 
+      {
+          printf("%s", line);
+      }
+      if (line)
+          free(line);
 
-    while ((read = getline(&line, &len, fptr)) != -1) 
-    {
-        printf("%s", line);
-    }
-
-    // fclose(fptr);
-    if (line)
-        free(line);
-
-    printf("\nPress any character(other than enter) to continue\n");
-    char ch2;
-    scanf("\n%c", &ch2);
-    fclose(fptr);
+      getchar();
+      printf("\nPress any character to continue\n");
+      char ch2;
+      scanf("%c", &ch2);
+      fclose(fptr);
   }
 }

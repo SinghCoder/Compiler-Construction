@@ -12,7 +12,12 @@
 #include<stdbool.h>
 #include "parserDef.h"
 
-typedef struct TREENODE{
+/**
+ * @brief n-ary tree node structure 
+ * 
+ */
+typedef struct TREENODE
+{
 	struct TREENODE *parent;
 	struct TREENODE *sibling;
 	struct TREENODE *leftmost_child;

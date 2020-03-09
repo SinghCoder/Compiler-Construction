@@ -14,6 +14,10 @@
 
 #define MAX_PARSING_NODES 200
 
+/**
+ * @brief Stack implemented as dynamic array 
+ * 
+ */
 typedef struct
 {
     tree_node **arr;

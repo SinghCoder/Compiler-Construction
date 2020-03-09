@@ -10,6 +10,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Create a tree node object
+ * 
+ * @return pointer to created node
+ */
+
 tree_node *create_tree_node() {
   tree_node *node = (tree_node *)malloc(sizeof(tree_node));
   if (node == NULL) 
@@ -25,7 +31,14 @@ tree_node *create_tree_node() {
   return node;
 }
 
-void add_child(tree_node *parent, tree_node *child) {
+/**
+ * @brief Add the child as rightmost_child to given node
+ * 
+ */
+
+
+void add_child(tree_node *parent, tree_node *child) 
+{
   if (parent->rightmost_child == NULL) {
     parent->leftmost_child = child;
     parent->rightmost_child = child;

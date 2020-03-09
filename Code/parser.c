@@ -21,6 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief inserts all non-terminal strings in an array, which is used for mapping enumerated non-terminals to corresponding string values
+ * 
+ */
 void populate_non_terminal_string() 
 {
 	FILE *file = fopen("non_terminals.txt", "r");
@@ -31,7 +35,7 @@ void populate_non_terminal_string()
 	char *nt_file = malloc(sizeof(char) * (length + 1));
 	if (nt_file == NULL) 
 	{
-	  perror("parser init failed\n");
+	  perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
 	  exit(1);
 	}
 
@@ -51,7 +55,16 @@ void populate_non_terminal_string()
 	free(nt_file);
 }
 
-void parser_init() {
+/**
+ * @brief Parser initialization
+ * - initializes all first and follow_set to be empty
+ * - inserts entries for terminals and non-terminals in corresponding hashtables
+ * - initializes each entry of parsing table as no_matching_rule
+ * - sets presence of an error to be false
+ */
+
+void parser_init() 
+{
 
   init_hash_table(terminal_table);
   init_hash_table(non_terminal_table);
@@ -84,7 +97,14 @@ void parser_init() {
   error_present = false;
 }
 
-void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym) {
+/**
+ * @brief inserts a symbol at end of the given rule's list
+ * 
+ * @param ptr_tail - tail pointer to rule's linked list
+ * @param sym - symbol to be inserted
+ */
+void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym) 
+{
 
   rhsnode_ptr node = (rhsnode_ptr)malloc(sizeof(rhsnode));
 
@@ -101,7 +121,13 @@ void insert_at_end(rhsnode_ptr *ptr_tail, symbol sym) {
   *ptr_tail = node;
 }
 
-void grammar_fill(FILE *fptr) {
+/**
+ * @brief Constructs an array of linked list to represent grammar
+ * 
+ * @param fptr 
+ */
+void grammar_fill(FILE *fptr) 
+{
 
   int rule_num = 0;
   char buffer[RHS_MAX_LENGTH];
@@ -130,7 +156,13 @@ void grammar_fill(FILE *fptr) {
   }
 }
 
-symbol get_symbol(char str[]) {
+/**
+ * @brief Get the symbol object corresponding to the given string
+ * 
+ * @return symbol - terminal/non_terminal
+ */
+symbol get_symbol(char str[]) 
+{
   symbol sym;
   if ((str[0] >= 'A') && (str[0] <= 'Z')) {
 	sym.is_terminal = false;
@@ -148,7 +180,13 @@ symbol get_symbol(char str[]) {
   return sym;
 }
 
-void print_grammar() {
+/**
+ * @brief Utility to print the grammar
+ * 
+ */
+
+void print_grammar() 
+{
   for (int i = 0; i < NUM_OF_RULES; i++) {
 	printf("%s -> ", non_terminal_string[grammar[i].lhs]);
 	rhsnode_ptr temp = grammar[i].head;
@@ -166,6 +204,11 @@ void print_grammar() {
   }
 }
 
+/**
+ * @brief Find rightmost_set_bit in a given number
+ * 
+ * @return int - position of the bit
+ */
 int rightmost_set_bit(ull *num) {
   ull temp = (*num & (*num - 1));
   int pos = ULL_NUM_BITS - 1 - log2(temp ^ *num);
@@ -173,6 +216,10 @@ int rightmost_set_bit(ull *num) {
   return pos;
 }
 
+/**
+ * @brief Create a parse table using grammar and first and follow sets.
+ * 
+ */
 void create_parse_table() {
   for (int i = 0; i < NUM_OF_RULES; i++) 
   {
@@ -210,6 +257,12 @@ void create_parse_table() {
   }     // end of for - travwersal in all rules
 }
 
+/**
+ * @brief Do the actual parsing of the source code
+ * 
+ * @param source - source file pointer
+ * @return tree_node* - root of the formed parse tree
+ */
 tree_node *parse_input_source_code(FILE *source) {
 
   stack *main_stack = stack_init();
@@ -232,41 +285,34 @@ tree_node *parse_input_source_code(FILE *source) {
 	  {
 
 		error_present = true;
-		printf("%d) Syntax Error : Lookahead token(%s) doesn't match with stack top(%s)\n",
-		tkn.line_no, terminal_string[tkn.name],
-		terminal_string[node->sym.t]);
-		printf("Ignoring token %s from the source code\n",terminal_string[node->sym.t]);
-		tkn = get_next_token(source);
-		if (tkn.name == DOLLAR) 
+		printf(ANSI_COLOR_RED "%d) Syntax Error: " ANSI_COLOR_RESET "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET , tkn.line_no, terminal_string[node->sym.t], terminal_string[tkn.name]);
+		printf("Popping token %s from stack top\n",terminal_string[node->sym.t]);
+		// tkn = get_next_token(source);
+		node = pop(main_stack);
+		if (node == NULL) 
 		{
-		  printf("Panic mode error recovery not possible! Only a partial parse "
-				 "tree formed!!\n");
+		  printf(ANSI_COLOR_BLUE "Panic mode error recovery not possible!" ANSI_COLOR_RESET "Only a partial parse tree formed!!\n");
 		  return root;
 		}
-		push(main_stack, node);
 		continue;
 	  } 
 	  else 
 	  { //la token and stack top match
 		node->token.line_no = tkn.line_no;
 		node->token.name = tkn.name;
-		// printf("************************ parsing a node with value : ");
 		switch (tkn.name) 
 		{
 		  case NUM:
 			node->token.num = tkn.num;
-			// printf("%d***************************", node->token.num);
 			break;
+		  
 		  case RNUM:
 			node->token.rnum = tkn.rnum;
-			// printf("%lf***************************", node->token.rnum);
 			break;
+
 		  default:
 			node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
 			strcpy(node->token.str, tkn.str);
-			// printf("%s***************************", node->token.str);
-			// char *tmp = 
-			// printf("\n================%s=============\n", tkn.str);
 		}
 	  }
 
@@ -274,47 +320,45 @@ tree_node *parse_input_source_code(FILE *source) {
 	  continue;
 	}
 
-	if (tkn.name == LEX_ERROR) {
-	  error_present = true;
-	  printf("%d) Lexical Error\n", tkn.line_no);
-	  tkn = get_next_token(source);
-	  continue;
+	if (tkn.name == LEX_ERROR) 
+	{
+		error_present = true;
+		printf(ANSI_COLOR_RED "%d) Lexical Error:" ANSI_COLOR_RESET "Invalid token " ANSI_COLOR_YELLOW "\"%s\"\n" ANSI_COLOR_RESET, tkn.line_no, tkn.str);
+		tkn = get_next_token(source);
+		push(main_stack, node);
+		continue;
 	}
-	if (node == NULL) {
-	  if (tkn.name != DOLLAR) // rule not read completely but stack became empty
-	  {
-		  error_present = true;
-		printf("%d) Syntax Error: Extra symbols in the source code\n",
-			   tkn.line_no);
-	  } else {
-		printf("\nInput source code is syntactically correct...........\n\n");
-	  }
+	if (node == NULL) 
+	{
+	  	if (tkn.name != DOLLAR) // rule not read completely but stack became empty
+	  	{
+			error_present = true;
+			printf(ANSI_COLOR_RED "%d) Syntax Error: " ANSI_COLOR_RESET "Extra symbols in the source code\n", tkn.line_no);
+	  	} 
+		else 
+		{
+			printf("\nInput source code is now syntactically correct...........\n\n");
+	  	}
 	  break;
 	}
 
 	int rule_no = parse_table[node->sym.nt][tkn.name];
-
 	if (rule_no == NO_MATCHING_RULE) 
 	{
-	  printf("token is %s\n", terminal_string[tkn.name]);
-	  printf("Waiting for an element in follow of %s\n", non_terminal_string[node->sym.nt]);
+	  printf("[%s][%s]", non_terminal_string[node->sym.nt], terminal_string[tkn.name]);
+	  printf(ANSI_COLOR_RED "%d) Syntax Error: " ANSI_COLOR_RESET "no matching rule found in grammar\n", tkn.line_no);
+	  printf("Waiting for an element in follow of " ANSI_COLOR_YELLOW "\"%s\"\n" ANSI_COLOR_RESET, non_terminal_string[node->sym.nt]);
 	  while (set_find_elem(follow_set[node->sym.nt], tkn.name) == false) {
 		tkn = get_next_token(source);
 		if (tkn.name == DOLLAR) {
-		  printf("Panic mode error recovery not possible! Only a partial parse "
-				 "tree formed!!\n");
+		  printf(ANSI_COLOR_BLUE "Panic mode error recovery not possible!" ANSI_COLOR_RESET "Only a partial parse tree formed!!\n");
 		  return root;
 		}
 	  }
-	  printf("Token %s found at line number %d\n", terminal_string[tkn.name], tkn.line_no);
-	  printf("Resuming parsing\n");
+	  printf("Token \"%s\" found at line number %d\n", terminal_string[tkn.name], tkn.line_no);
+	  printf(ANSI_COLOR_GREEN "Resuming parsing\n" ANSI_COLOR_RESET);
 	  continue;
 	}
-	// else{
-		// printf("===========================================\n");
-		// print_rule(rule_no);
-		// printf("===========================================\n");
-	// }
 	cell rule = grammar[rule_no];
 	rhsnode_ptr rhs_ptr = rule.head;
 
@@ -338,6 +382,10 @@ tree_node *parse_input_source_code(FILE *source) {
   return root;
 }
 
+/**
+ * @brief Clear all entries in the grammar linked lists array.
+ * 
+ */
 void free_grammar() {
   for (int i = 0; i < NUM_OF_RULES; i++) {
 	rhsnode_ptr temp = grammar[i].head, prev;
@@ -349,30 +397,41 @@ void free_grammar() {
   }
 }
 
+/**
+ * @brief Print a string as center aligned
+ * 
+ */
 void pretty_print(char* s)
 {
 	int column_size = COLUMN_SIZE,len,left_margin;
 	len = strlen(s);
 	left_margin=(column_size-len)/2;
 	for(int i=0;i<left_margin;i++){
-		printf(" ");
+		fprintf(parse_tree_file_ptr," ");
 	}
-	printf("%s",s);
+	fprintf(parse_tree_file_ptr, "%s",s);
 	int right_margin = left_margin;
 	if(len % 2 == 1)
 		right_margin++;
 	for(int i=0;i<right_margin;i++){
-		printf(" ");
+		fprintf(parse_tree_file_ptr ," ");
 	}
-	printf("|");
+	fprintf(parse_tree_file_ptr,"|");
 }
+
+
+/**
+ * @brief Print a node object
+ * 
+ * @param node 
+ */
 void print_node(tree_node *node) 
 {
 	char* s = (char*) calloc(30,sizeof(char));
 	for(int i=0;i<30;i++){
 		s[i]='\0';
 	}
-	// int column_size = 30,len,left_margin;
+
 	if (node == NULL)
 	  return;
 	bool is_terminal = (node->sym).is_terminal;
@@ -380,48 +439,39 @@ void print_node(tree_node *node)
 	{
 	  if((node->token.name != NUM && node->token.name != RNUM) && node->token.str != NULL)
 	  {
- 		sprintf(s,"%s",(node->token).str);
-		pretty_print(s);
+			sprintf(s,"%s",(node->token).str);
+			pretty_print(s);
 	  }	
-		//   printf("%s|", (node->token).str);
-	  else pretty_print("----");
-		//   printf("----|");
-	 sprintf(s,"%d",(node->token).line_no);
-	 pretty_print(s);
-	//   printf("%d|", (node->token).line_no);
-	 
+	  else 
+	  		pretty_print("----");
+	  sprintf(s,"%d",(node->token).line_no);
+	  pretty_print(s);
+		
 	  if(node->token.str != NULL){
 	  	sprintf(s,"%s",terminal_string[(node->token).name]);
 		pretty_print(s);
 	  }
-		// printf("%s|",terminal_string[(node->token).name]);
 	  else
 	  	pretty_print("----");
-		// printf("----|");
 
 	  switch ((node->token).name) 
 	  {
 		case NUM:
 			sprintf(s,"%d",(node->token).num);
 			pretty_print(s);
-		//   printf("%d|", (node->token).num);
 		  break;
 		case RNUM:
 			sprintf(s,"%f",(node->token).rnum);
 			pretty_print(s);
-		//   printf("%f|", (node->token).rnum);
 		  break;
 		default:
 			pretty_print("----");
-		//   printf("----|");
 		  break;
 	  }
 		sprintf(s,"%s",non_terminal_string[(node->parent->sym).nt]);
 		pretty_print(s);
 		pretty_print("yes");
-		printf("\t\t%s\n",terminal_string[(node->sym).t]);
-	//   printf("%s|yes|%s\n", non_terminal_string[(node->parent->sym).nt],
-			// terminal_string[(node->sym).t]);
+		fprintf(parse_tree_file_ptr,"\t\t%s\n",terminal_string[(node->sym).t]);
 	} 
 	else 
 	{
@@ -429,21 +479,21 @@ void print_node(tree_node *node)
 		pretty_print("----");
 		pretty_print("----");
 		pretty_print("----");
-	//   printf("----|----|----|----|");
 
 	  if (node->parent)
 	  	pretty_print(non_terminal_string[(node->parent->sym).nt]);
-		// printf("%s|", non_terminal_string[(node->parent->sym).nt]);
 	  else
 	  	pretty_print("(ROOT)");
 		pretty_print("no");
-		printf("\t\t%s\n",non_terminal_string[(node->sym).nt]);
-		// printf("%s|", "(ROOT)");
-	//   printf("no|%s\n", non_terminal_string[(node->sym).nt]);
+		fprintf(parse_tree_file_ptr,"\t\t%s\n",non_terminal_string[(node->sym).nt]);
 	}
 }
 
-
+/**
+ * @brief Print the parse tree
+ * 
+ * @param root root node of the tree
+ */
 void print_parse_tree(tree_node *root) 
 {
   if (root == NULL)
@@ -463,6 +513,10 @@ void print_parse_tree(tree_node *root)
   }
 }
 
+/**
+ * @brief Print all first sets of the given grammar
+ * 
+ */
 void print_first_sets() {
   for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
 	printf("FIRST[");
@@ -481,6 +535,10 @@ void print_first_sets() {
   }
 }
 
+/**
+ * @brief Print the follow sets of the given grammar
+ * 
+ */
 void print_follow_sets() {
   for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
 	printf("FOLLOW[");
@@ -499,6 +557,10 @@ void print_follow_sets() {
   }
 }
 
+/**
+ * @brief Print the first set of a given non-terminal
+ * 
+ */
 void print_first(nonterminal nt) {
   // printf("\n{");
   printf("FIRST(%s) = { ", non_terminal_string[nt]);
@@ -512,6 +574,11 @@ void print_first(nonterminal nt) {
   }
   printf(" }\n");
 }
+
+/**
+ * @brief Calculate the follow sets of the non-terminals in grammar
+ * 
+ */
 
 void populate_follow_sets() {
   bool is_changed = true;
@@ -562,8 +629,8 @@ void populate_follow_sets() {
 		  }
 
 		  for (int j = 0; j < SET_SIZE; j++) {
-			if (follow_set[rhs_sym][j] != tmp_follow[j]) {
-			  // printf("is changed....\n");
+			if (follow_set[rhs_sym][j] != tmp_follow[j]) 
+			{
 			  is_changed = true;
 			}
 		  }
@@ -575,10 +642,11 @@ void populate_follow_sets() {
   }     // end of while - infinite loop until convergence
 }
 
+/**
+ * @brief Populate first sets of given non-terminals of the grammar
+ * 
+ */
 void populate_first_sets() {
-
-//   set_add_elem(first_set[STATEMENT], USE);
-//   set_add_elem(first_set[STATEMENTS], USE);
   bool is_changed = true;
   int lhs;
   rhsnode_ptr rhs_ptr;
@@ -678,6 +746,12 @@ void populate_first_sets() {
   }       // end of while - infinite loop until convergence
 } // end of function
 
+
+/**
+ * @brief Get the first set for a string of terminals and non-terminals
+ * 
+ * @param node starting node of the string
+ */
 set get_rule_first_set(rhsnode_ptr node) {
 
   set fset = (set)malloc(sizeof(ull) * SET_SIZE);
@@ -716,7 +790,11 @@ set get_rule_first_set(rhsnode_ptr node) {
   } // end of while - ll traversal
   return fset;
 }
-
+/**
+ * @brief Print a grammar rule
+ * 
+ * @param rule_no Rule number to be printed
+ */
 void print_rule(int rule_no) {
   int lhs = grammar[rule_no].lhs;
   rhsnode_ptr head = grammar[rule_no].head;
@@ -732,6 +810,10 @@ void print_rule(int rule_no) {
   printf("\n");
 }
 
+/**
+ * @brief Print the parse table entries
+ * 
+ */
 void print_parse_table() {
   for (int i = 0; i < NUM_OF_NONTERMINALS; i++) {
 	for (int j = 0; j < NUM_OF_TERMINALS; j++) {

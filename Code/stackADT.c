@@ -10,6 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Initializes stack
+ * 
+ * creates an array of MAX_PARSING_NODES size dynamically
+ * 
+ * @return stack* pointer to structure interface of stack
+ */
+
 stack *stack_init() 
 {
   stack *stack_ptr = (stack *)malloc(sizeof(stack));
@@ -26,6 +34,13 @@ stack *stack_init()
   stack_ptr->top = 0;
   return stack_ptr;
 }
+
+/**
+ * @brief Insert element to stack
+ * 
+ * @param stack_ptr - pointer to structure interface of stack
+ * @param node - tree node element to be inserted
+ */
 
 void push(stack *stack_ptr, tree_node *node) 
 {
@@ -44,13 +59,18 @@ void push(stack *stack_ptr, tree_node *node)
   }
   stack_ptr->arr[stack_ptr->top] = node;
   stack_ptr->top++;
-  // return stack_ptr;
 }
+
+/**
+ * @brief Remove the element from stack top
+ * 
+ * @param stack_ptr - pointer to structure interface of stack
+ * @return tree_node* - Element removed
+ */
 
 tree_node *pop(stack *stack_ptr) {
   if (stack_ptr->top == 0) 
   {
-    // perror("Tried to pop empty stack\n");
     return NULL;
   }
 
@@ -58,10 +78,15 @@ tree_node *pop(stack *stack_ptr) {
   return stack_ptr->arr[stack_ptr->top];
 }
 
+/**
+ * @brief Peek through the stack
+ * 
+ * @param stack_ptr pointer to structure interface of stack
+ * @return tree_node* element at top
+ */
 tree_node *top(stack *stack_ptr) {
   if (stack_ptr->top == 0) 
   {
-    // perror("Tried to find top of empty stack\n");
     return NULL;
   } 
   else 

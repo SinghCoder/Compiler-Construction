@@ -1,0 +1,818 @@
+1. MAINPROGRAM => MODULEDECLARATIONS OTHERMODULES1 DRIVERMODULE OTHERMODULES2
+{
+    1. MAINPROGRAM.node_syn = make_node("MAINPROGRAM", make_node("MODULEDECLARATIONS",MODULEDECLARATIONS.list_head_syn),
+                                                       make_node("MODULEDEFINITIONS", OTHERMODULES1.list_head_syn), 
+                                                       DRIVERMODULE.node_syn, 
+                                                       make_node("MODULEDEFINITIONS", OTHERMODULES2.list_head_syn)
+                                       )
+    2. free(MODULEDECLARATIONS)
+    3. free(OTHERMODULES1)
+    4. free(DRIVERMODULE)
+    5. free(OTHERMODULES2)
+}
+
+
+2. MODULEDECLARATIONS => MODULEDECLARATION MODULEDECLARATIONS1
+{
+    1. MODULEDECLARATIONS.list_head_syn = insert_at_head(MODULEDECLARATIONS1.list_head_syn, MODULEDECLARATION.node_syn)
+    2. free(MODULEDECLARATION)
+    3. free(MODULEDECLARATIONS1)
+}
+
+
+3. MODULEDECLARATIONS => epsilon
+{
+    1. MODULEDECLARATIONS.list_head_syn = NULL
+}
+
+
+4. MODULEDECLARATION => declare module id semicol
+{
+    1. MODULEDECLARATION.node_syn = id
+    2. free(declare)
+    3. free(module)
+    4. free(semicol)
+}
+
+
+5. OTHERMODULES => NTMODULE OTHERMODULES1
+{
+    1. OTHERMODULES.list_head_syn = insert_at_head(OTHERMODULES1.list_head_syn, NTMODULE.node_syn)
+    2. free(NTMODULE)
+    3. free(OTHERMODULES1)
+}
+
+
+6. OTHERMODULES => epsilon
+{
+    1. OTHERMODULES.list_head_syn = NULL
+}
+
+
+7. DRIVERMODULE => driverdef driver program driverenddef MODULEDEF
+{
+    1. DRIVERMODULE.node_syn = make_node("DRIVER", MODULEDEF.node_syn)
+    2. free(driverdef)
+    3. free(driver)
+    4. free(program)
+    5. free(driverenddef)
+    6. free(MODULEDEF)
+}
+
+
+8. NTMODULE => def module id enddef takes input sqbo INPUT_PLIST sqbc semicol RET MODULEDEF
+{
+    1. NTMODULE.node_syn = make_node(id, 
+                                     make_node("PARAMETERS_LIST", INPUT_PLIST.list_head_syn), 
+                                     RET.node_syn, 
+                                     MODULEDEF.node_syn)
+    2. free(def)
+    3. free(module)
+    4. free(enddef)
+    5. free(takes)
+    6. free(input)
+    7. free(sqbo)
+    8. free(INPUT_PLIST)
+    9. free(sqbc)
+    10. free(semicol)
+    11. free(RET)
+    12. free(MODULEDEF)
+}
+
+
+9. MODULEDEF => start STATEMENTS end
+{
+    1. MODULEDEF.node_syn = make_node("STATEMENTS", STATEMENTS.list_head_syn)
+    2. free(start)
+    3. free(STATEMENTS)
+    4. free(end)
+}
+
+
+10. RET => returns sqbo OUTPUT_PLIST sqbc semicol
+{
+    1. RET.node_syn = make_node("PARAMETERS_LIST", OUTPUT_PLIST.list_head_syn)
+    2. free(returns)
+    3. free(sqbo)
+    4. free(OUTPUT_PLIST)
+    5. free(sqbc)
+    6. free(semicol)
+}
+
+
+11. RET => epsilon
+{
+    1. RET.node_syn = make_node("PARAMETERS_LIST", NULL)
+}
+
+
+12. INPUT_PLIST => id colon DATATYPE INPUT_PLIST_DASH
+{
+    1. INPUT_PLIST_DASH.list_head_inh = make_list(DATATYPE.node_syn)
+    2. INPUT_PLIST_DASH.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, id)
+    3. INPUT_PLIST.list_head_syn = INPUT_PLIST_DASH.list_head_syn
+    4. free(colon)
+    5. free(DATATYPE)
+    6. free(INPUT_PLIST_DASH)
+}
+
+
+13. INPUT_PLIST_DASH => comma id colon DATATYPE INPUT_PLIST_DASH1
+{
+    1. INPUT_PLIST_DASH1.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, DATATYPE.node_syn)
+    2. INPUT_PLIST_DASH1.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, id)
+    3. INPUT_PLIST_DASH.list_head_syn = INPUT_PLIST_DASH1.list_head_syn
+    4. free(comma)
+    5. free(colon)
+    6. free(DATATYPE)
+    7. free(INPUT_PLIST_DASH1)
+}
+
+
+14. INPUT_PLIST_DASH => epsilon
+{
+    1. INPUT_PLIST_DASH.list_head_syn = INPUT_PLIST_DASH.list_head_inh
+}
+
+
+15. OUTPUT_PLIST => id colon TYPE OUTPUT_PLIST_DASH
+{
+    1. OUTPUT_PLIST_DASH.list_head_inh = make_list(TYPE.node_syn)
+    2. OUTPUT_PLIST_DASH.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, id)
+    3. OUTPUT_PLIST.list_head_syn = OUTPUT_PLIST_DASH.list_head_syn
+    4. free(colon)
+    5. free(TYPE)
+    6. free(OUTPUT_PLIST_DASH)
+}
+
+
+16. OUTPUT_PLIST_DASH => comma id colon TYPE OUTPUT_PLIST_DASH1
+{
+    1. OUTPUT_PLIST_DASH1.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, TYPE.node_syn)
+    2. OUTPUT_PLIST_DASH1.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, id)
+    3. OUTPUT_PLIST_DASH.list_head_syn = OUTPUT_PLIST_DASH1.list_head_syn
+    4. free(comma)
+    5. free(colon)
+    6. free(TYPE)
+    7. free(OUTPUT_PLIST_DASH1)
+}
+
+
+17. OUTPUT_PLIST_DASH => epsilon
+{
+    1. OUTPUT_PLIST_DASH.list_head_syn = OUTPUT_PLIST_DASH.list_head_inh
+}
+
+
+18. DATATYPE => integer
+{
+    1. DATATYPE.node_syn = integer
+}
+
+
+19. DATATYPE => real
+{
+    1. DATATYPE.node_syn = real
+}
+
+
+20. DATATYPE => boolean
+{
+    1. DATATYPE.node_syn = boolean
+}
+
+
+21. DATATYPE => array sqbo RANGE sqbc of TYPE
+{
+    1. DATATYPE.node_syn = make_node("ARRAY", TYPE.node_syn, RANGE.node_syn)
+    2. free(array)
+    3. free(sqbo)
+    4. free(RANGE)
+    5. free(sqbc)
+    6. free(of)
+    7. free(TYPE)
+}
+
+
+22. TYPE => integer
+{
+    1. TYPE.node_syn = integer
+}
+
+
+23. TYPE => real
+{
+    1. TYPE.node_syn = real;
+}
+
+
+24. TYPE => boolean
+{
+    1. TYPE.node_syn = boolean;
+}
+
+
+25. STATEMENTS => STATEMENT STATEMENTS1
+{
+    1. STATEMENTS.list_head_syn  = insert_at_head(STATEMENTS1.list_head_syn,STATEMENT.node_syn);
+}
+
+
+26. STATEMENTS => epsilon
+{
+    1. STATEMENTS.list_head_syn = NULL;
+}
+
+
+27. STATEMENT => IOSTMT
+{
+    1. STATEMENTS.node_syn = IOSTMT.node_syn;
+    2. free(IOSTMT)
+}
+
+
+28. STATEMENT => SIMPLESTMT
+{
+    1. STATEMENTS.node_syn = SIMPLESTMT.node_syn;
+    2. free(SIMPLESTMT)
+}
+
+
+29. STATEMENT => DECLARESTMT
+{
+    1. STATEMENTS.node_syn = DECLARESTMT.node_syn;
+    2. free(DECALRESTMT)
+}
+
+
+30. STATEMENT => CONDITIONALSTMT
+{
+    1. STATEMENTS.node_syn = CONDITIONALSTMT.node_syn;
+    2. free(CONDITIONALSTMT)
+}
+
+
+31. STATEMENT => ITERATIVESTMT
+{
+    1. STATEMENTS.node_syn = ITERATIVESTMT.node_syn;
+    2. free(ITERATIVESTMT)
+}
+
+
+32. IOSTMT => get_value bo id bc semicol
+{
+    1. IOSTMT.node_syn = make_node("GET_VALUE",id);
+    2. free(get_value)
+    3. free(bo)
+    4. free(bc)
+    5. free(semicol)
+}
+
+
+33. IOSTMT => print bo LITERAL bc semicol
+{
+    1. IOSTMT.node_syn = make_node("PRINT",LITERAL.node_syn);
+    2. free(print)
+    3. free(bo)
+    4. free(LITERAL)
+    5. free(bc)
+    6. free(semicol)
+}
+
+
+34. LITERAL => VAR
+{
+    1. LITERAL.node_syn = VAR.node_syn;
+    2. free(VAR)
+}
+
+
+35. LITERAL => true
+{
+    1. LITERAL.node_syn = true;
+}
+
+
+36. LITERAL => false
+{
+    1. LITERAL.node_syn = false;
+}
+
+
+37. VAR => id WHICHID
+{
+    1. WHICHID.node_inh = id;
+    2. VAR.node_syn = WHICHID.node_syn;
+    3. free(WHICHID)
+}
+
+
+38. VAR => num
+{
+    1. VAR.node_syn = num;
+}
+
+
+39. VAR => rnum
+{
+    1. VAR.node_syn = rnum;
+}
+
+
+40. WHICHID => sqbo INDEX sqbc
+{
+    1. WHICHID.node_syn = make_node("ARRAY_ACCESS",WHICHID.node_inh,INDEX.node_syn);
+}
+
+
+41. WHICHID => epsilon
+{
+    1. WHICHID.node_syn = WHICHID.node_inh;
+}
+
+
+42. SIMPLESTMT => ASSIGNMENTSTMT
+{
+    1. SIMPLESTMT.node_syn = ASSIGNMENTSTMT.node_syn;
+    2. free(ASSIGNMENTSTMT)
+}
+
+
+43. SIMPLESTMT => MODULEREUSESTMT
+{
+    1. SIMPLESTMT.node_syn = MODULEREUSESTMT.node_syn;
+    2. free(MODULEREUSESTMT)
+}
+
+
+44. ASSIGNMENTSTMT => id WHICHSTMT
+{
+    1. WHICHSTMT.node_inh = id
+    2. ASSIGNMENTSTMT.node_syn = WHICHSTMT.node_syn
+    3. free(WHICHSTMT)
+}
+
+
+45. WHICHSTMT => LVALUEIDSTMT
+{
+    1. LVALUEIDSTMT.node_inh = WHICHSTMT.node_inh
+    2. WHICHSTMT.node_syn = LVALUEIDSTMT.node_syn
+    3. free(LVALUEIDSTMT)
+}
+
+
+46. WHICHSTMT => LVALUEARRSTMT
+{
+    1. LVALUEARRSTMT.node_inh = WHICHSTMT.node_inh
+    2. WHICHSTMT.node_syn = LVALUEARRSTMT.node_syn
+    3. free(LVALUEARRSTMT)
+}
+
+
+47. LVALUEIDSTMT => assignop EXPRESSION semicol
+{
+    1. LVALUEIDSTMT.node_syn = make_node("ASSIGN", LVALUEIDSTMT.node_inh, EXPRESSION.node_syn)
+    2. free(assignop)
+    3. free(EXPRESSION)
+    4. free(semicol)
+}
+
+
+48. LVALUEARRSTMT => sqbo INDEX sqbc assignop EXPRESSION semicol
+{
+    1. LVALUEARRSTMT.node_syn = make_node("ASSIGN", 
+                                           make_node("ARRAY_ACCESS", LVALUEARRSTMT.node_inh, INDEX.node_syn), 
+                                           EXPRESSION.node_syn
+                                         )
+    2. free(sqbo)
+    3. free(INDEX)
+    4. free(sqbc)
+    5. free(assignop)
+    6. free(EXPRESSION)
+    7. free(semicol)
+}
+
+
+49. INDEX => num
+{
+    1. INDEX.node_syn = num
+}
+
+
+50. INDEX => id
+{
+    1. INDEX.node_syn = id
+}
+
+
+51. MODULEREUSESTMT => OPTIONAL use module id with parameters IDLIST semicol
+{
+    1. MODULEREUSESTMT.node_syn = make_node("FUNCTIONCALL", ID, 
+                                            make_node("PARAMETERS_LIST", OPTIONAL.list_head_syn), 
+                                            make_node("PARAMETERS_LIST", IDLIST.list_head_syn)
+                                           )
+    2. free(OPTIONAL)
+    3. free(use)
+    4. free(module)
+    5. free(with)
+    6. free(parameters)
+    7. free(IDLIST)
+    8. free(semicol)
+}
+
+
+52. OPTIONAL => sqbo IDLIST sqbc assignop
+{
+    1. OPTIONAL.list_head_syn = IDLIST.list_head_syn
+    2. free(sqbo)
+    3. free(IDLIST)
+    4. free(sqbc)
+    5. free(assignop)
+}
+
+
+53. OPTIONAL => epsilon
+{
+    1. OPTIONAL.list_head_syn = NULL
+}
+
+
+54. IDLIST => id IDLIST_DASH
+{
+    1. IDLIST_DASH.list_head_inh = make_list(id)
+    2. IDLIST.list_head_syn = IDLIST_DASH.list_head_syn
+    3. free(IDLIST_DASH)
+}
+
+
+55. IDLIST_DASH => comma id IDLIST_DASH1
+{
+    1. IDLIST_DASH1.list_head_inh = insert_at_end(IDLIST_DASH.list_head_inh, id)
+    2. IDLIST_DASH.list_head_syn = IDLIST_DASH1.list_head_syn
+    3. free(comma)
+    4. free(IDLIST_DASH1)
+}
+
+
+56. IDLIST_DASH => epsilon
+{
+    1. IDLIST_DASH.list_head_syn = IDLIST_DASH.list_head_inh
+}
+
+
+57. EXPRESSION => RELATIONALEXPR EXPRESSIONDASH
+{
+    1. EXPRESSIONDASH.node_inh = RELATIONALEXPR.node_syn
+    2. EXPRESSION.node_syn = EXPRESSIONDASH.node_syn
+    3. free(RELATIONALEXPR)
+    4. free(EXPRESSIONDASH)
+}
+
+
+58. EXPRESSION => UNARYARITHMETICEXPR
+{
+    1. EXPRESSION.node_syn = UNARYARITHMETICEXPR.node_syn
+    2. free(UNARYARITHMETICEXPR)
+}
+
+
+59. EXPRESSIONDASH => LOGICALOP RELATIONALEXPR EXPRESSIONDASH1
+{
+    1. EXPRESSIONDASH1.node_inh = make_node(LOGICALOP.node_syn, EXPRESSIONDASH.node_inh, RELATIONALEXPR.node_syn)
+    2. EXPRESSIONDASH.node_syn = EXPRESSIONDASH1.node_syn
+    3. free(LOGICALOP)
+    4. free(RELATIONALEXPR)
+    5. free(EXPRESSIONDASH1)
+}
+
+
+60. EXPRESSIONDASH => epsilon
+{
+    1. EXPRESSIONDASH.node_syn = EXPRESSIONDASH.node_inh
+}
+
+
+61. RELATIONALEXPR => NONUNARYARITHMETICEXPR RELATIONALEXPRDASH
+{
+    1. RELATIONALEXPRDASH.node_inh = NONUNARYARITHMETICEXPR.node_syn
+    2. RELATIONALEXPR.node_syn = RELATIONALEXPRDASH.node_syn
+    3. free(NONUNARYARITHMETICEXPR)
+    4. free(RELATIONALEXPRDASH)
+}
+
+
+62. RELATIONALEXPRDASH => RELATIONALOP NONUNARYARITHMETICEXPR RELATIONALEXPRDASH1
+{
+    1. RELATIONALEXPRDASH1.node_inh = make_node(RELATIONALOP.node_syn, RELATIONALEXPRDASH.node_inh, NONUNARYARITHMETICEXPR.node_syn)
+    2. RELATIONALEXPRDASH.node_syn = RELATIONALEXPRDASH1.node_syn
+    3. free(RELATIONALOP)
+    4. free(NONUNARYARITHMETICEXPR)
+    5. free(RELATIONALEXPRDASH1)
+}
+
+
+63. RELATIONALEXPRDASH => epsilon
+{
+    1. RELATIONALEXPRDASH.node_syn = RELATIONALEXPRDASH.node_inh
+}
+
+
+64. LOGICALOP => and
+{
+    1. LOGICALOP.node_syn = and
+}
+
+
+65. LOGICALOP => or
+{
+    1. LOGICALOP.node_syn = or
+}
+
+
+66. RELATIONALOP => lt
+{
+    1. RELATIONALOP.node_syn = lt
+}
+
+
+67. RELATIONALOP => le
+{
+    1. RELATIONALOP.node_syn = le
+}
+
+
+68. RELATIONALOP => gt
+{
+    1. RELATIONALOP.node_syn = gt
+}
+
+
+69. RELATIONALOP => ge
+{
+    1. RELATIONALOP.node_syn = ge
+}
+
+
+70. RELATIONALOP => eq
+{
+    1. RELATIONALOP.node_syn = eq
+}
+
+
+71. RELATIONALOP => ne
+{
+    1. RELATIONALOP.node_syn = ne
+}
+
+
+72. UNARYARITHMETICEXPR => ADDSUBOP RESTUNARYARITHMETICEXPR
+{
+    1. UNARYARITHMETICEXPR.node_syn = RESTUNARYARITHMETICEXPR.node_syn
+    2. RESTUNARYARITHMETICEXPR.node_inh = ADDSUBOP.node_syn
+    3. free(ADDSUBOP)
+    4. free(RESTUNARYARITHMETICEXPR)
+}
+
+
+73. RESTUNARYARITHMETICEXPR => bo NONUNARYARITHMETICEXPR bc
+{
+    1. RESTUNARYARITHMETICEXPR.node_syn = make_node( "UNARYEXPRESSION", RESTUNARYARITHMETICEXPR.node_inh, NONUNARYARITHMETICEXPR.node_syn)
+    2. free(bo)
+    3. free(bc)
+}
+
+
+74. RESTUNARYARITHMETICEXPR => VAR
+{
+    1. RESTUNARYARITHMETICEXPR.node_syn = VAR.node_syn
+    2. free(VAR)
+}
+
+
+75. NONUNARYARITHMETICEXPR => TERM NONUNARYARITHMETICEXPRDASH
+{
+    1. NONUNARYARITHMETICEXPRDASH.node_inh = TERM.node_syn
+    2. NONUNARYARITHMETICEXPR.node_syn = NONUNARYARITHMETICEXPRDASH.node_syn
+    3. free(TERM)
+    4. free(NONUNARYARITHMETICEXPRDASH)
+}
+
+
+76. NONUNARYARITHMETICEXPRDASH => ADDSUBOP TERM NONUNARYARITHMETICEXPRDASH1
+{
+    1. NONUNARYARITHMETICEXPRDASH1.node_inh = make_node(ADDSUBOP.node_syn, NONUNARYARITHMETICEXPRDASH.node_inh, TERM.node_syn)
+    2. NONUNARYARITHMETICEXPRDASH.node_syn = NONUNARYARITHMETICEXPRDASH1.node_syn
+    3. free(ADDSUBOP)
+    4. free(TERM)
+    5. free(NONUNARYARITHMETICEXPRDASH1)
+}
+
+
+77. NONUNARYARITHMETICEXPRDASH => epsilon
+{
+    1. NONUNARYARITHMETICEXPRDASH.node_syn = NONUNARYARITHMETICEXPRDASH.node_inh
+}
+
+
+78. TERM => FACTOR TERM_DASH
+{
+    1. TERM_DASH.node_inh = FACTOR.node_syn
+    2. free(FACTOR)
+    3. free(TERM_DASH)
+}
+
+
+79. TERM_DASH => MULDIVOP FACTOR TERM_DASH1
+{
+    1. TERM_DASH.node_inh = make_node( MULDIVOP.node_syn, TERM_DASH.node_inh, FACTOR.node_syn)
+    2. TERM_DASH.node_syn = TERM_DASH1. node_syn
+    3. free(MULDIVOP)
+    4. free(FACTOR)
+    5. free(TERM_DASH1)
+}
+
+
+80. TERM_DASH => epsilon
+{
+    1. TERM_DASH.node_syn = TERM_DASH.node_inh
+}
+
+
+81. FACTOR => bo RELATIONALEXPR EXPRESSIONDASH bc
+{
+    1. FACTOR.node_syn = EXPRESSIONDASH.node_syn
+    2. free(bo)
+    3. free(RELATIONALEXPR)
+    4. free(EXPRESSIONDASH)
+    5. free(bc)
+}
+
+
+82. FACTOR => LITERAL
+{
+    1. FACTOR.node_syn = LITERAL.node_syn
+    2. free(LITERAL)
+}
+
+
+83. ADDSUBOP => plus
+{
+    1. ADDSUBOP.node_syn = plus
+}
+
+
+84. ADDSUBOP => minus
+{
+    1. ADDSUBOP.node_syn = minus
+}
+
+
+85. MULDIVOP => mul
+{
+    1. MULDIVOP.node_syn = mul
+}
+
+
+86. MULDIVOP => div
+{
+    1. MULDIVOP.node_syn = div
+}
+
+
+87. DECLARESTMT => declare IDLIST colon DATATYPE semicol
+{
+    1. DECALRESTMT.node_syn = make_node("DECLARE",DATATYPE.node_syn,IDLIST.list_head_syn)
+    2. free(declare)
+    3. free(IDLIST)
+    4. free(colon)
+    5. free(DATATYPE)
+    6. free(semicol)
+}
+
+
+88. CONDITIONALSTMT => switch bo id bc start CASESTMT DEFAULTSTMT end
+{
+    1. CONDITIONALSTMT.node_syn = make_node("SWITCH",id,
+                                            make_node("CASES", CASESTMT.list_head_syn),
+                                            make_node("DEFAULT", DEFAULTSTMT.node_syn)
+                                           )
+    2. free(switch)
+    3. free(bo)
+    4. free(bc)
+    5. free(start)
+    6. free(CASESTMT)
+    7. free(DEFAULTSTMT)
+    8. free(end)
+}
+
+
+89. CASESTMT => case VALUE colon STATEMENTS break semicol OTHERCASE
+{
+    1. CASESTMT.list_head_syn = insert_at_head(OTHERCASE.list_head_syn,make_node(  "CASE", VALUE.node_syn,
+                                                                                    make_node("STATEMENTS", STATEMENTS.list_head_syn)
+                                                                                )
+    2. free(case)
+    3. free(VALUE)
+    4. free(colon)
+    5. free(STATEMENTS)
+    6. free(break)
+    7. free(semicol)
+    8. free(OTHERCASE)
+}
+
+
+90. OTHERCASE => case VALUE colon STATEMENTS break semicol OTHERCASE1
+{
+    1. OTHERCASE.list_head_syn = insert_at_head(OTHERCASE1.list_head_syn,make_node( "CASE",VALUE.node_syn,
+                                                                                    make_node("STATEMENTS", STATEMENTS.list_head_syn) 
+                                                                                  )
+    2. free(case)
+    3. free(VALUE)
+    4. free(colon)
+    5. free(STATEMENTS)
+    6. free(break)
+    7. free(semicol)
+    8. free(OTHERCASE1)
+}
+
+
+91. OTHERCASE => epsilon
+{
+    1. OTHERCASE.list_head_syn = NULL;
+}
+
+
+92. VALUE => num
+{
+    1. VALUE.node_syn = num;
+}
+
+
+93. VALUE => true
+{
+    1. VALUE.node_syn = true;
+}
+
+
+94. VALUE => false
+{
+    1. VALUE.node_syn = false;
+}
+
+
+95. DEFAULTSTMT => default colon STATEMENTS break semicol
+{
+    1. DEFAULTSTMT.node_syn = make_node("DEFAULTCASE",
+                                        make_node("STATEMENTS", STATEMENTS.list_head_syn)
+                                       )
+    2. free(default)
+    3. free(colon)
+    4. free(STATEMENTS)
+    5. free(break)
+    6. free(semicol)
+}
+
+
+96. DEFAULTSTMT => epsilon
+{
+    1. DEFAULTSTMT.node_syn = NULL;
+}
+
+
+97. ITERATIVESTMT => for bo id in num1 rangeop num2 bc start STATEMENTS end
+{
+    1. ITERATIVESTMT.node_syn =  make_node("FORLOOP",id,num1,num2,
+                                            make_node("STATEMENTS", STATEMENTS.list_head_syn)
+                                          )
+    2. free(for)
+    3. free(bo)
+    4. free(in)
+    5. free(bc)
+    6. free(start)
+    7. free(STATEMENTS)
+    8. free(end)
+}
+
+
+98. ITERATIVESTMT => while bo EXPRESSION bc start STATEMENTS end
+{
+    1. ITERATIVESTMT.node_syn = make_node("WHILELOOP",EXPRESSION.node_syn,
+                                            make_node("STATEMENTS", STATEMENTS.list_head_syn)
+                                         )   
+    2. free(while)
+    3. free(bo)
+    4. free(EXPRESSION)
+    5. free(bc)
+    6. free(start)
+    7. free(STATEMENTS)
+    8. free(end)
+}
+
+
+99. RANGE => INDEX1 rangeop INDEX2
+{
+    1. RANGE.node_syn = make_node("RANGE",INDEX1.node_syn,INDEX2.node_syn);
+    2. free(INDEX1)
+    3. free(rangeop)
+    4. free(INDEX2)
+}

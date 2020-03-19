@@ -311,7 +311,7 @@ tree_node *parse_input_source_code(FILE *source) {
 			break;
 
 		  default:
-			node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
+			// node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
 			strcpy(node->token.str, tkn.str);
 		}
 	  }
@@ -361,12 +361,14 @@ tree_node *parse_input_source_code(FILE *source) {
 	}
 	cell rule = grammar[rule_no];
 	rhsnode_ptr rhs_ptr = rule.head;
+	
+	node->rule_num = rule_no;
 
 	while (rhs_ptr != NULL) {
 	  tree_node *temp = create_tree_node();
 	  temp->parent = node;
 	  temp->sym = rhs_ptr->sym;
-
+	  temp->rule_num = rule_no;
 	  add_child(node, temp);
 	  push(aux_stack, temp);
 	  rhs_ptr = rhs_ptr->next;
@@ -427,65 +429,38 @@ void pretty_print(char* s)
  */
 void print_node(tree_node *node) 
 {
-	char* s = (char*) calloc(30,sizeof(char));
-	for(int i=0;i<30;i++){
-		s[i]='\0';
-	}
-
 	if (node == NULL)
 	  return;
 	bool is_terminal = (node->sym).is_terminal;
 	if(is_terminal == true) 
 	{
-	  if((node->token.name != NUM && node->token.name != RNUM) && node->token.str != NULL)
-	  {
-			sprintf(s,"%s",(node->token).str);
-			pretty_print(s);
-	  }	
-	  else 
-	  		pretty_print("----");
-	  sprintf(s,"%d",(node->token).line_no);
-	  pretty_print(s);
-		
-	  if(node->token.str != NULL){
-	  	sprintf(s,"%s",terminal_string[(node->token).name]);
-		pretty_print(s);
-	  }
-	  else
-	  	pretty_print("----");
-
+	
 	  switch ((node->token).name) 
 	  {
 		case NUM:
-			sprintf(s,"%d",(node->token).num);
-			pretty_print(s);
+			fprintf(parse_tree_file_ptr,"[num %d]",(node->token).num);
 		  break;
 		case RNUM:
-			sprintf(s,"%f",(node->token).rnum);
-			pretty_print(s);
+			fprintf(parse_tree_file_ptr,"[rnum %f]",(node->token).rnum);
 		  break;
 		default:
-			pretty_print("----");
+			{
+				char tkn_name[MAX_LEXEME_LEN];
+				strcpy(tkn_name,terminal_string[(node->sym).t] );
+
+				for(int i=0; i<strlen(tkn_name); i++)
+					tkn_name[i] = tolower(tkn_name[i]);
+				if(node->token.name != SQBO && node->token.name !=SQBC)
+					fprintf(parse_tree_file_ptr,"[%s %s] ",tkn_name, node->token.str);
+				else
+					fprintf(parse_tree_file_ptr,"[%s] ",tkn_name);
+			}
 		  break;
-	  }
-		sprintf(s,"%s",non_terminal_string[(node->parent->sym).nt]);
-		pretty_print(s);
-		pretty_print("yes");
-		fprintf(parse_tree_file_ptr,"\t\t%s\n",terminal_string[(node->sym).t]);
+	  }	
 	} 
 	else 
 	{
-		pretty_print("----");
-		pretty_print("----");
-		pretty_print("----");
-		pretty_print("----");
-
-	  if (node->parent)
-	  	pretty_print(non_terminal_string[(node->parent->sym).nt]);
-	  else
-	  	pretty_print("(ROOT)");
-		pretty_print("no");
-		fprintf(parse_tree_file_ptr,"\t\t%s\n",non_terminal_string[(node->sym).nt]);
+		fprintf(parse_tree_file_ptr,"[%s(%d) ",non_terminal_string[(node->sym).nt], node->rule_num);
 	}
 }
 
@@ -499,10 +474,14 @@ void print_parse_tree(tree_node *root)
   if (root == NULL)
 	return;
 
+  print_node(root);
+
   if (root->leftmost_child)
 	print_parse_tree(root->leftmost_child);
+//   else
+// 	fprintf(parse_tree_file_ptr,"]");
 
-  print_node(root);
+  
 
   if (root->leftmost_child) {
 	tree_node *temp = root->leftmost_child->sibling;
@@ -511,6 +490,8 @@ void print_parse_tree(tree_node *root)
 	  temp = temp->sibling;
 	}
   }
+  if(root->sym.is_terminal == false)
+	  fprintf(parse_tree_file_ptr,"]");
 }
 
 /**

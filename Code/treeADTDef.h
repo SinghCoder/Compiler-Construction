@@ -24,6 +24,7 @@ typedef struct TREENODE
 	struct TREENODE *rightmost_child;
 	symbol sym;
 	TOKEN token;
+  int rule_num; 
 } tree_node;
 
 #endif

@@ -54,4 +54,6 @@ ull *get_rule_first_set(rhsnode_ptr node);
 bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);
 
 void free_grammar();
+
+// void print_ast_labels();
 #endif

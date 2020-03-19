@@ -28,12 +28,26 @@
 void populate_non_terminal_string() 
 {
 	FILE *file = fopen("non_terminals.txt", "r");
+	FILE *ast_label_file = fopen("ast_node_labels.txt", "r");
+
 	fseek(file, 0, SEEK_END);
 	int length = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
+	fseek(ast_label_file, 0, SEEK_END);
+	int ast_file_length = ftell(ast_label_file);
+	fseek(ast_label_file, 0, SEEK_SET);
+
 	char *nt_file = malloc(sizeof(char) * (length + 1));
+	char *ast_file = malloc(sizeof(char) * (ast_file_length + 1));
+
 	if (nt_file == NULL) 
+	{
+	  perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
+	  exit(1);
+	}
+
+	if (ast_file == NULL) 
 	{
 	  perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
 	  exit(1);
@@ -42,6 +56,10 @@ void populate_non_terminal_string()
 	fread(nt_file, sizeof(char), length, file);
 	nt_file[length] = '\0';
 	fclose(file);
+
+	fread(ast_file, sizeof(char), ast_file_length, ast_label_file);
+	ast_file[ast_file_length] = '\0';
+	fclose(ast_label_file);
 
 	char *nt_read = NULL;
 	int i;
@@ -53,6 +71,16 @@ void populate_non_terminal_string()
 	  nt_read = strtok(NULL, ", \n");
 	}
 	free(nt_file);
+
+	char *ast_label_read = NULL;
+	ast_label_read = strtok(ast_file, ", \n");
+
+	for (i = 0; ast_label_read != NULL; i++) 
+	{
+	  strcpy(ast_label_string[i], ast_label_read);
+	  ast_label_read = strtok(NULL, ", \n");
+	}
+	free(ast_file);
 }
 
 /**

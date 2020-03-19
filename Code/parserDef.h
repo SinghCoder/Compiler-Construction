@@ -16,6 +16,7 @@
 #define RHS_MAX_LENGTH 100
 #define NUM_OF_RULES 99
 #define NUM_OF_NONTERMINALS 53
+#define NUM_OF_AST_LABELS 22
 #define NO_MATCHING_RULE -1
 #define COLUMN_SIZE 20
 #define MAX_FILE_NAME_LEN 100
@@ -33,7 +34,13 @@ typedef enum
     #include "non_terminals.txt"
 } nonterminal;
 
+typedef enum
+{
+    #include "ast_node_labels.txt"
+} ast_label;
+
 char non_terminal_string [NUM_OF_NONTERMINALS][50];
+char ast_label_string [NUM_OF_AST_LABELS][50];
 
 typedef struct{
     union

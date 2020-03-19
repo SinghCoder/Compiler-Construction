@@ -9,6 +9,7 @@
 #include "treeADT.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Create a tree node object
@@ -27,7 +28,7 @@ tree_node *create_tree_node() {
   node->sibling = NULL;
   node->leftmost_child = NULL;
   node->rightmost_child = NULL;
-  node->token.str = NULL;
+  strcpy(node->token.str,"");
   return node;
 }
 

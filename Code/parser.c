@@ -311,7 +311,7 @@ tree_node *parse_input_source_code(FILE *source) {
 			break;
 
 		  default:
-			node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
+			// node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
 			strcpy(node->token.str, tkn.str);
 		}
 	  }

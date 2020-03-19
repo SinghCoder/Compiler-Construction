@@ -28,6 +28,7 @@ void print_menu() {
   printf("4. Print time taken for tokenizing and parsing\n");
   printf("5. Print first sets\n");
   printf("6. Print follow sets\n");
+  printf("7. Print parse tree for tool\n");
   printf(" Press any other to exit \n");
   printf("-----------------------------------------------------------------\n");
   printf("Enter your choice:  ");
@@ -180,6 +181,39 @@ int main(int argc, char *argv[]) {
           fclose(fptr);
           break;
       } 
+      case 7:
+      {
+          lexer_init(source);
+          parser_init();
+
+          FILE *fptr = fopen("grammar.txt", "r");
+          if (fptr == NULL) {
+            perror("fopen");
+          }
+          grammar_fill(fptr); 
+          
+          populate_first_sets();
+
+          populate_follow_sets();
+
+          create_parse_table();
+          print_parse_table();
+
+          tree_node *ptr = parse_input_source_code(source);
+
+          if (ptr == NULL) 
+          {
+            printf("Empty parse tree\n");
+          }
+
+          parse_tree_file_ptr = fopen(parse_tree_file, "w");
+          print_parse_tree_for_tool(ptr);
+          fclose(parse_tree_file_ptr);
+
+          free_grammar();
+          fclose(fptr);
+
+      } break;
       default: 
       {
         exit(0);

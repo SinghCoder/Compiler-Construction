@@ -3,17 +3,8 @@
 #include "treeADT.h"
 #include <string.h>
 
-void print_symbol(tree_node *temp) {
-  if (temp->sym.is_terminal == true) {
-    printf("%s\n", terminal_string[temp->sym.t]);
-  } else {
-    printf("%s\n", non_terminal_string[temp->sym.nt]);
-  }
-}
-
 bool ends_in_dash(char *label) {
   int len = strlen(label);
-  // printf("size is %d\n", len);
   if (len >= 4) {
     char *last_four = &label[len - 4];
     if (strcmp(last_four, "DASH") == 0) {
@@ -25,15 +16,16 @@ bool ends_in_dash(char *label) {
 
 bool is_base_case(tree_node *node) {
   tree_node *rchild = node->rightmost_child;
-  if (rchild == NULL) {
-    return true;
+
+  if (node->sym.is_terminal == true || node->parent == NULL ||
+      node->sym.nt != node->parent->sym.nt) {
+    return false;
   }
 
-  if (rchild->sym.is_terminal == true) {
+  if (rchild == NULL || rchild->sym.is_terminal == true) {
     return true;
   }
-  if (node->parent != NULL && node->sym.nt == node->parent->sym.nt &&
-      node->sym.nt != rchild->sym.nt) {
+  if (node->sym.nt != rchild->sym.nt) {
     return true;
   }
   return false;
@@ -41,31 +33,26 @@ bool is_base_case(tree_node *node) {
 
 bool is_recursion(tree_node *node) {
 
-  if (node->leftmost_child == NULL) {
+  if (is_base_case(node) == true) {
+    return true;
+  }
+
+  if (node->sym.is_terminal == true) {
     return false;
   }
 
   tree_node *rchild = node->rightmost_child;
-  if (rchild->sym.is_terminal == false) {
+  if (rchild != NULL && rchild->sym.is_terminal == false) {
     if (rchild->sym.nt == node->sym.nt) {
       return true;
     }
   }
 
-  if (node->parent != NULL && node->sym.nt == node->parent->sym.nt) {
+  if (ends_in_dash(non_terminal_string[rchild->sym.nt]) == true) {
     return true;
   }
 
-  char label[MAX_SYMBOL_LENGTH];
-  strcpy(label, non_terminal_string[rchild->sym.nt]);
-  if (ends_in_dash(label) == true) {
-    // printf("%s 1 dash\n", label);
-    return true;
-  }
-
-  strcpy(label, non_terminal_string[node->sym.nt]);
-  // printf("%s 2 dash\n", label);
-  return ends_in_dash(label);
+  return false;
 }
 
 bool is_important(tree_node *node) {
@@ -89,46 +76,36 @@ tree_node *copy_node(tree_node *src) {
   return dst;
 }
 
-tree_node *extend_inh_node(tree_node *node1, tree_node *node2) {
-  if (node1 == NULL) {
-    printf("ERROR: In extend_inh_node, node1 = NULL");
-    fflush(stdout);
-    return NULL;
-  }
+void extend_inh_node(tree_node *node1, tree_node *node2) {
 
   if (node2 == NULL) {
-    return node1;
+    return;
   }
 
   if (node1->node_inh == NULL) {
     node1->node_inh = copy_node(node1->parent);
-    node1->node_inh = node2;
-    return node1;
   }
 
-  tree_node *temp = node1->node_inh;
-  while (temp) {
-    if (temp->next == NULL) {
-      temp->next = node2;
-      return node1;
-    }
-    temp = temp->next;
-  }
-  printf("ERROR: while loop in extend_inh_node terminated without exiting.");
-  fflush(stdout);
-  return node1;
+  add_child(node1->node_inh, node2);
+  return;
 }
 
 tree_node *construct_ast(tree_node *parse_tree_root) {
   tree_node *temp = parse_tree_root;
 
   do {
+    // printf("temp is: ");
+    // print_symbol(temp);
+
+    tree_node *lchild = temp->leftmost_child;
+    tree_node *rchild = temp->rightmost_child;
+
     if (temp->visited == false) {
 
       temp->visited = true;
 
       tree_node *child1 = NULL;
-      tree_node *child2 = temp->leftmost_child;
+      tree_node *child2 = lchild;
       while (child2 != NULL) {
         if (is_important(child2) == true) {
           child1 = child2;
@@ -138,44 +115,60 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
         }
       }
 
+      lchild = temp->leftmost_child;
+      rchild = temp->rightmost_child;
+
       if (is_recursion(temp) == true && temp->parent->sym.nt == temp->sym.nt) {
-        temp = extend_inh_node(temp, temp->parent->node_inh);
+        extend_inh_node(temp, temp->parent->node_inh);
         tree_node *sibling = temp->parent->leftmost_child;
 
-        while (sibling != NULL && sibling->sibling != NULL) {
+        while (sibling != temp) {
           if (sibling->sym.is_terminal == false) {
-            temp = extend_inh_node(temp, sibling->node_syn);
+            extend_inh_node(temp, sibling->node_syn);
           } else {
-            temp = extend_inh_node(temp, copy_node(sibling));
+            extend_inh_node(temp, copy_node(sibling));
           }
-          sibling = sibling->next;
+          sibling = sibling->sibling;
+        }
+
+        if (is_base_case(temp) == true) {
+          tree_node *child = lchild;
+
+          while (child != NULL) {
+            if (child->sym.is_terminal == false) {
+              extend_inh_node(temp, child->node_syn);
+            } else {
+              extend_inh_node(temp, copy_node(child));
+            }
+            child = child->sibling;
+          }
         }
       }
 
-      if (temp->leftmost_child != NULL) {
-        temp = temp->leftmost_child;
+      if (lchild != NULL) {
+        temp = lchild;
       }
     }
 
     else {
       if (is_recursion(temp) == false) {
-        if (temp->leftmost_child == NULL) {
-          printf("null: ");
-          print_symbol(temp);
+        if (lchild == NULL) {
+          // printf("null: ");
+          // print_symbol(temp);
           temp->node_syn = create_tree_node();
           temp->node_syn->sym.t = EPSILON;
           temp->node_syn->sym.is_terminal = true;
-        } else if (temp->leftmost_child == temp->rightmost_child) {
-          if (temp->sym.is_terminal == false) {
-            temp->node_syn = temp->leftmost_child->node_syn;
+        } else if (lchild == rchild) {
+          if (lchild->sym.is_terminal == false) {
+            temp->node_syn = lchild->node_syn;
           } else {
-            temp->node_syn = copy_node(temp->leftmost_child);
+            temp->node_syn = copy_node(lchild);
           }
         } else {
           temp->node_syn = copy_node(temp);
-          tree_node *child = temp->leftmost_child;
+          tree_node *child = lchild;
           while (child != NULL) {
-            if (temp->sym.is_terminal == false) {
+            if (child->sym.is_terminal == false) {
               add_child(temp->node_syn, child->node_syn);
             } else {
               add_child(temp->node_syn, copy_node(child));
@@ -186,31 +179,15 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
       }
 
       else {
-        tree_node *rchild = temp->rightmost_child;
         if (is_base_case(temp) == false) {
-          temp->node_syn = temp->rightmost_child->node_syn;
+          temp->node_syn = rchild->node_syn;
 
         } else {
-          tree_node *sibling = temp->leftmost_child;
-
-          while (sibling != NULL) {
-            if (sibling->sym.is_terminal == false) {
-              temp = extend_inh_node(temp, sibling->node_syn);
-            } else {
-              temp = extend_inh_node(temp, copy_node(sibling));
-            }
-            sibling = sibling->next;
-          }
-          if (temp->node_inh == NULL) {
-            temp->node_inh = create_tree_node();
-            temp->node_inh->sym.is_terminal = true;
-            temp->node_inh->sym.t = EPSILON;
-          }
           temp->node_syn = temp->node_inh;
         }
       }
 
-      tree_node *child = temp->leftmost_child;
+      tree_node *child = lchild;
       while (child != NULL) {
         child = delete_child(temp, NULL, child);
       }
@@ -225,19 +202,13 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
   return parse_tree_root->node_syn;
 }
 
-void print_ast_node(tree_node *node) {
-  tree_node *temp = node;
-  while (temp != NULL) {
-    print_symbol(temp);
-    temp = temp->next;
-  }
-}
-
 void print_ast(tree_node *root) {
-  print_ast_node(root);
+  print_symbol(root);
   tree_node *temp = root->leftmost_child;
   while (temp != NULL) {
     print_ast(temp);
     temp = temp->sibling;
   }
+  // printf("over: ");
+  // print_symbol(root);
 }

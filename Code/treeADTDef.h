@@ -20,9 +20,8 @@ typedef struct TREENODE
 {
 	struct TREENODE *parent;
 	struct TREENODE *sibling;
-	struct TREENODE *leftmost_child;
-	struct TREENODE *rightmost_child;
-  struct TREENODE *next;
+  struct TREENODE *leftmost_child;
+  struct TREENODE *rightmost_child;
 
   struct TREENODE *node_inh;
   struct TREENODE *node_syn;

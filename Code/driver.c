@@ -7,6 +7,8 @@
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
 
+#include "driver.h"
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "treeADT.h"
@@ -17,7 +19,7 @@
 
 /**
  * @brief Prints menu options
- * 
+ *
  */
 void print_menu() {
   printf("\t\t MENU\n");
@@ -34,14 +36,112 @@ void print_menu() {
   printf("Enter your choice:  ");
 }
 
+/**
+ * @brief Read tokens from the file and make a mapping array which maps
+ * enumerated tokens to strings
+ *
+ */
+void populate_terminal_string() {
+
+  FILE *file = fopen("tokens.txt", "r");
+  fseek(file, 0, SEEK_END);
+  int length = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  char *t_file = malloc(sizeof(char) * (length + 1));
+  if (t_file == NULL) {
+    perror("terminal_string filling failed\n");
+    exit(1);
+  }
+
+  fread(t_file, sizeof(char), length, file);
+  t_file[length] = '\0';
+  fclose(file);
+
+  char *tk_read = NULL;
+  int i;
+  tk_read = strtok(t_file, ", \n");
+
+  for (i = 0; tk_read != NULL; i++) {
+    strcpy(origin_terminal_string[i], tk_read);
+    tk_read = strtok(NULL, ", \n");
+  }
+
+  free(t_file);
+}
+
+/**
+ * @brief inserts all non-terminal strings in an array, which is used for
+ * mapping enumerated non-terminals to corresponding string values
+ *
+ */
+void populate_non_terminal_string() {
+  FILE *file = fopen("non_terminals.txt", "r");
+  // FILE *ast_label_file = fopen("ast_node_labels.txt", "r");
+
+  fseek(file, 0, SEEK_END);
+  int length = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  // fseek(ast_label_file, 0, SEEK_END);
+  // int ast_file_length = ftell(ast_label_file);
+  // fseek(ast_label_file, 0, SEEK_SET);
+
+  char *nt_file = malloc(sizeof(char) * (length + 1));
+  // char *ast_file = malloc(sizeof(char) * (ast_file_length + 1));
+
+  if (nt_file == NULL) {
+    perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
+    exit(1);
+  }
+
+  // if (ast_file == NULL) {
+  //   perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
+  //   exit(1);
+  // }
+
+  fread(nt_file, sizeof(char), length, file);
+  nt_file[length] = '\0';
+  fclose(file);
+
+  // fread(ast_file, sizeof(char), ast_file_length, ast_label_file);
+  // ast_file[ast_file_length] = '\0';
+  // fclose(ast_label_file);
+
+  char *nt_read = NULL;
+  int i;
+  nt_read = strtok(nt_file, ", \n");
+
+  for (i = 0; nt_read != NULL; i++) {
+    strcpy(origin_non_terminal_string[i], nt_read);
+    nt_read = strtok(NULL, ", \n");
+  }
+  free(nt_file);
+
+  // char *ast_label_read = NULL;
+  // ast_label_read = strtok(ast_file, ", \n");
+
+  // for (i = 0; ast_label_read != NULL; i++) {
+  //   strcpy(ast_label_string[i], ast_label_read);
+  //   ast_label_read = strtok(NULL, ", \n");
+  // }
+  // free(ast_file);
+}
+
 int main(int argc, char *argv[]) {
 
   if (argc < 3) {
-    printf(ANSI_COLOR_RED "\n\nSyntax to run program: "ANSI_COLOR_RESET ANSI_COLOR_YELLOW "make file=<test_case_file> parse_tree_file=<output_file>\n\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_RED
+           "\n\nSyntax to run program: " ANSI_COLOR_RESET ANSI_COLOR_YELLOW
+           "make file=<test_case_file> "
+           "parse_tree_file=<output_file>\n\n" ANSI_COLOR_RESET);
     exit(1);
   }
 
   setvbuf(stdout, NULL, _IONBF, 0);
+
+  populate_non_terminal_string();
+  populate_terminal_string();
 
   int choice;
   char source_file[100];
@@ -54,171 +154,171 @@ int main(int argc, char *argv[]) {
   }
 
   while (true) {
-      print_menu();
-      scanf("%d", &choice);
-      printf("\n");
+    print_menu();
+    scanf("%d", &choice);
+    printf("\n");
 
-      switch (choice) {
-      case 1: 
-      {
-		      lexer_init(source);
-          char no_comment_file[100];
-          printf("Enter name of the output file which will have the source code without comments\n");
-          scanf("%s", no_comment_file);
-		      remove_comments(source, no_comment_file);
-      } break;
+    switch (choice) {
+    case 1: {
+      lexer_init(source, origin_terminal_string);
+      char no_comment_file[100];
+      printf("Enter name of the output file which will have the source code "
+             "without comments\n");
+      scanf("%s", no_comment_file);
+      remove_comments(source, no_comment_file);
+    } break;
 
-      case 2: 
-      {
-          lexer_init(source);
-          tokenize_source_file(source);
-      } break;
+    case 2: {
+      lexer_init(source, origin_terminal_string);
+      tokenize_source_file(source);
+    } break;
 
-      case 3: 
-      {
-          lexer_init(source);
-          parser_init();
+    case 3: {
+      char **non_terminal_string;
+      char **terminal_string;
+      lexer_init(source, origin_terminal_string);
+      parser_init(origin_non_terminal_string);
 
-          FILE *fptr = fopen("grammar.txt", "r");
-          if (fptr == NULL) {
-            perror("fopen");
-          }
-          grammar_fill(fptr); 
-          
-          populate_first_sets();
+      FILE *fptr = fopen("grammar.txt", "r");
+      if (fptr == NULL) {
+        perror("fopen");
+      }
+      grammar_fill(fptr);
 
-          populate_follow_sets();
+      populate_first_sets();
 
-          create_parse_table();
-          print_parse_table();
+      populate_follow_sets();
 
-          tree_node *ptr = parse_input_source_code(source);
+      create_parse_table();
+      // print_parse_table();
 
-          if (ptr == NULL) 
-          {
-            printf("Empty parse tree\n");
-          }
+      tree_node *ptr = parse_input_source_code(source);
 
-          parse_tree_file_ptr = fopen(parse_tree_file, "w");
-          print_parse_tree(ptr);
-          fclose(parse_tree_file_ptr);
+      if (ptr == NULL) {
+        printf("Empty parse tree\n");
+      }
 
-          free_grammar();
-          fclose(fptr);
+      parse_tree_file_ptr = fopen(parse_tree_file, "w");
+      // print_parse_tree(ptr);
+      fclose(parse_tree_file_ptr);
 
-      } break;
-      case 4: 
-      {
-        clock_t start_time, end_time;
+      tree_node *ast_tree = construct_ast(ptr);
 
-        double total_CPU_time, total_CPU_time_in_seconds;
+      printf("*****AST******\n");
+      print_ast(ast_tree);
 
-        start_time = clock();
+      free_grammar();
+      fclose(fptr);
 
-          lexer_init(source);
-          parser_init();
+    } break;
+    case 4: {
+      clock_t start_time, end_time;
 
-          FILE *fptr = fopen("grammar.txt", "r");
-          if (fptr == NULL) {
-            perror("fopen");
-          }
-          grammar_fill(fptr);
+      double total_CPU_time, total_CPU_time_in_seconds;
 
-          populate_first_sets();
+      start_time = clock();
 
-          populate_follow_sets();
+      lexer_init(source, origin_terminal_string);
+      parser_init(origin_non_terminal_string);
 
-          create_parse_table();
+      FILE *fptr = fopen("grammar.txt", "r");
+      if (fptr == NULL) {
+        perror("fopen");
+      }
+      grammar_fill(fptr);
 
-          tree_node *ptr = parse_input_source_code(source);
+      populate_first_sets();
 
-          fclose(fptr);
+      populate_follow_sets();
 
-        end_time = clock();
+      create_parse_table();
 
-        total_CPU_time = (double)(end_time - start_time);
+      tree_node *ptr = parse_input_source_code(source);
 
-        total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
+      fclose(fptr);
 
-        printf(
-            "Total CPU TIME taken (in microseconds):" ANSI_COLOR_GREEN " %lf usecs" ANSI_COLOR_RESET "\nTotal CPU time (in seconds)\t      : "ANSI_COLOR_GREEN"%lf secs\n" ANSI_COLOR_RESET,
-            total_CPU_time, total_CPU_time_in_seconds);
+      end_time = clock();
 
-      } break;
-      case 5: {
-        lexer_init(source);
-        parser_init();
+      total_CPU_time = (double)(end_time - start_time);
 
-        FILE *fptr = fopen("grammar.txt", "r");
-        if (fptr == NULL) {
-          perror("fopen");
-        }
-        grammar_fill(fptr);
+      total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
 
-        populate_first_sets();
+      printf("Total CPU TIME taken (in microseconds):" ANSI_COLOR_GREEN
+             " %lf usecs" ANSI_COLOR_RESET
+             "\nTotal CPU time (in seconds)\t      : " ANSI_COLOR_GREEN
+             "%lf secs\n" ANSI_COLOR_RESET,
+             total_CPU_time, total_CPU_time_in_seconds);
 
-        print_first_sets();
+    } break;
+    case 5: {
+      lexer_init(source, origin_terminal_string);
+      parser_init(origin_non_terminal_string);
 
-        fclose(fptr);
-      } break;
-      case 6: 
-      {
-          lexer_init(source);
-          parser_init();
+      FILE *fptr = fopen("grammar.txt", "r");
+      if (fptr == NULL) {
+        perror("fopen");
+      }
+      grammar_fill(fptr);
 
-          FILE *fptr = fopen("grammar.txt", "r");
-          if (fptr == NULL) 
-		  {
-            perror("fopen");
-          }
-          grammar_fill(fptr);
+      populate_first_sets();
 
-          populate_first_sets();
+      print_first_sets();
 
-          populate_follow_sets();
-          print_follow_sets();
+      fclose(fptr);
+    } break;
+    case 6: {
+      lexer_init(source, origin_terminal_string);
+      parser_init(origin_non_terminal_string);
 
-          fclose(fptr);
-          break;
-      } 
-      case 7:
-      {
-          lexer_init(source);
-          parser_init();
+      FILE *fptr = fopen("grammar.txt", "r");
+      if (fptr == NULL) {
+        perror("fopen");
+      }
+      grammar_fill(fptr);
 
-          FILE *fptr = fopen("grammar.txt", "r");
-          if (fptr == NULL) {
-            perror("fopen");
-          }
-          grammar_fill(fptr); 
-          
-          populate_first_sets();
+      populate_first_sets();
 
-          populate_follow_sets();
+      populate_follow_sets();
+      print_follow_sets();
 
-          create_parse_table();
-          print_parse_table();
+      fclose(fptr);
+      break;
+    }
+    case 7: {
+      lexer_init(source, origin_terminal_string);
+      parser_init(origin_non_terminal_string);
 
-          tree_node *ptr = parse_input_source_code(source);
+      FILE *fptr = fopen("grammar.txt", "r");
+      if (fptr == NULL) {
+        perror("fopen");
+      }
+      grammar_fill(fptr);
 
-          if (ptr == NULL) 
-          {
-            printf("Empty parse tree\n");
-          }
+      populate_first_sets();
 
-          parse_tree_file_ptr = fopen(parse_tree_file, "w");
-          print_parse_tree_for_tool(ptr);
-          fclose(parse_tree_file_ptr);
+      populate_follow_sets();
 
-          free_grammar();
-          fclose(fptr);
+      create_parse_table();
+      print_parse_table();
 
-      } break;
-      default: 
-      {
-        exit(0);
-      } break;
-    }// end of switch
+      tree_node *ptr = parse_input_source_code(source);
+
+      if (ptr == NULL) {
+        printf("Empty parse tree\n");
+      }
+
+      parse_tree_file_ptr = fopen(parse_tree_file, "w");
+      print_parse_tree_for_tool(ptr);
+      fclose(parse_tree_file_ptr);
+
+      free_grammar();
+      fclose(fptr);
+
+    } break;
+    default: {
+      exit(0);
+    } break;
+    } // end of switch
   }
   fclose(source);
 } // end of main

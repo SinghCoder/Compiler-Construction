@@ -1,12 +1,15 @@
 ** This is a small code for verifying syntactic correctness of an empty driver and an empty module **
 <<<driver program>>>
 start
-	
+
 end
 <<module empty>>
 takes input[a:boolean];
 start
-
+      declare index:integer;
+	declare t:boolean;
+	index:=5;
+      t:=2;
 end
 
 ** print the following message on the console

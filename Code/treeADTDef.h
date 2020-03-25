@@ -13,8 +13,8 @@
 #include "parserDef.h"
 
 /**
- * @brief n-ary tree node structure 
- * 
+ * @brief n-ary tree node structure
+ *
  */
 typedef struct TREENODE
 {
@@ -22,9 +22,15 @@ typedef struct TREENODE
 	struct TREENODE *sibling;
 	struct TREENODE *leftmost_child;
 	struct TREENODE *rightmost_child;
-	symbol sym;
-	TOKEN token;
-  int rule_num; 
+  struct TREENODE *next;
+
+  struct TREENODE *node_inh;
+  struct TREENODE *node_syn;
+
+  symbol sym;
+  TOKEN token;
+  int rule_num;
+  bool visited;
 } tree_node;
 
 #endif

@@ -542,6 +542,199 @@ void print_parse_tree(tree_node *root)
   }
 }
 
+bool print_reqd(token_name t){
+	switch(t){
+		case ID:
+		case NUM:
+		case RNUM:
+		case INTEGER:
+		case BOOLEAN:
+		case REAL:
+		case PLUS:
+		case MINUS:
+		case MUL:
+		case DIV:
+		case GE:
+		case GT:
+		case LE:
+		case LT:
+		case NE:
+		case EQ:
+		case AND:
+		case OR:
+		case TRUE:
+		case FALSE:
+		case PRINT:
+		case GET_VALUE:
+			return true;
+			break;
+		default:
+			return false;
+	}
+}
+bool nt_not_reqd(int n, tree_node *node){
+	switch(n){
+		case 4:
+		case 9:
+		case 10:
+		case 13:
+		case 14:
+		case 16:
+		case 17:
+		case 18:
+		case 19:
+		case 20:
+		case 22:
+		case 23:
+		case 24:
+		case 27:
+		case 28:
+		case 29:
+		case 30:
+		case 31:
+		case 34:
+		case 35:
+		case 36:
+		case 38:
+		case 39:
+		case 40:
+		case 41:
+		case 42:
+		case 43:
+		case 45:
+		case 46:
+		case 47:
+		case 49:
+		case 50:
+		case 52:
+		case 53:
+		case 55:
+		case 56:
+		case 59:
+		case 60:
+		case 62:
+		case 63:
+		case 64:
+		case 65:
+		case 66:
+		case 67:
+		case 68:
+		case 69:
+		case 70:
+		case 71:
+		case 73:
+		case 74:
+		case 76:
+		case 77:
+		case 79:
+		case 80:
+		case 82:
+		case 83:
+		case 84:
+		case 85:
+		case 86:
+		case 91:
+		case 92:
+		case 93:
+		case 94:
+		case 95:
+		case 96:
+			node->printed = false;
+			return true;
+			break;
+		default:
+			node->printed = true;
+			return false;
+		
+	}
+}
+/**
+ * @brief Print a node object
+ * 
+ * @param node 
+ */
+void print_ast_node_for_tool(tree_node *node) 
+{
+	if (node == NULL)
+	  return;
+	bool is_terminal = (node->sym).is_terminal;
+	if(is_terminal == true) 
+	{
+	  if(!print_reqd(node->sym.t) && (node->sym.t != EPSILON))
+	  	return;
+	  switch ((node->token).name) 
+	  {
+		case NUM:
+			fprintf(parse_tree_file_ptr,"[num %d]",(node->token).num);
+		  break;
+		case RNUM:
+			fprintf(parse_tree_file_ptr,"[rnum %f]",(node->token).rnum);
+		  break;
+		default:
+			{
+				char tkn_name[MAX_LEXEME_LEN];
+				strcpy(tkn_name,terminal_string[(node->sym).t] );
+
+				for(int i=0; i<strlen(tkn_name); i++)
+					tkn_name[i] = tolower(tkn_name[i]);
+				if(node->sym.t == EPSILON)
+					fprintf(parse_tree_file_ptr,"[NULL] ");
+				else if(node->token.name != SQBO && node->token.name !=SQBC)
+					fprintf(parse_tree_file_ptr,"[%s %s] ",tkn_name, node->token.str);
+				else
+					fprintf(parse_tree_file_ptr,"[%s] ",tkn_name);
+			}
+		  break;
+	  }	
+	} 
+	else 
+	{
+		if(node->parent && node->parent->sym.nt == node->sym.nt)
+			return;
+		if(nt_not_reqd(node->rule_num, node))
+			return;
+		fprintf(parse_tree_file_ptr,"[%s(%d) ",non_terminal_string[(node->sym).nt], node->rule_num);
+	}
+}
+
+/**
+ * @brief Print the parse tree
+ * 
+ * @param root root node of the tree
+ */
+void print_ast_for_tool(tree_node *root) 
+{
+  if (root == NULL)
+	return;
+
+  print_ast_node_for_tool(root);
+	// fprintf(parse_tree_file_ptr, "\n");
+	// for(int i = 0; i < depth+1; i++)
+	// 	fprintf(parse_tree_file_ptr, "\t");
+  if (root->leftmost_child)
+	print_ast_for_tool(root->leftmost_child);
+//   else
+// 	fprintf(parse_tree_file_ptr,"]");
+
+  
+
+  if (root->leftmost_child) {
+	tree_node *temp = root->leftmost_child->sibling;
+	while (temp != NULL) {
+	  print_ast_for_tool(temp);
+	  temp = temp->sibling;
+	}
+  }
+  if(root->sym.is_terminal == false){
+	  if(root->printed == false)
+	  	return;
+	  fprintf(parse_tree_file_ptr,"]");
+	//   for(int i = 0; i < depth+1; i++)
+	// 	fprintf(parse_tree_file_ptr, "\t");
+ }
+}
+
+
 /**
  * @brief Print a node object
  * 
@@ -613,6 +806,9 @@ void print_parse_tree_for_tool(tree_node *root)
   if(root->sym.is_terminal == false)
 	  fprintf(parse_tree_file_ptr,"]");
 }
+
+
+
 
 /**
  * @brief Print all first sets of the given grammar

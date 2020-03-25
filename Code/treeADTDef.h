@@ -25,6 +25,7 @@ typedef struct TREENODE
 	symbol sym;
 	TOKEN token;
   int rule_num; 
+  bool printed;
 } tree_node;
 
 #endif

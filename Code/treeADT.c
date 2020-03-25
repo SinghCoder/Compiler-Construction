@@ -28,6 +28,7 @@ tree_node *create_tree_node() {
   node->leftmost_child = NULL;
   node->rightmost_child = NULL;
   strcpy(node->token.str, "");
+  node->printed = false;
   return node;
 }
 

@@ -1,10 +1,6 @@
 1. MAINPROGRAM => MODULEDECLARATIONS OTHERMODULES1 DRIVERMODULE OTHERMODULES2
 {
-    1. MAINPROGRAM.node_syn = make_node("MAINPROGRAM", make_node("MODULEDECLARATIONS",MODULEDECLARATIONS.list_head_syn),
-                                                       make_node("MODULEDEFINITIONS", OTHERMODULES1.list_head_syn), 
-                                                       DRIVERMODULE.node_syn, 
-                                                       make_node("MODULEDEFINITIONS", OTHERMODULES2.list_head_syn)
-                                       )
+    1. MAINPROGRAM.node_syn = make_node("MAINPROGRAM", MODULEDECLARATIONS.node_syn,OTHERMODULES1.node_syn, DRIVERMODULE.node_syn, OTHERMODULES2.node_syn)
     2. free(MODULEDECLARATIONS)
     3. free(OTHERMODULES1)
     4. free(DRIVERMODULE)
@@ -14,15 +10,22 @@
 
 2. MODULEDECLARATIONS => MODULEDECLARATION MODULEDECLARATIONS1
 {
-    1. MODULEDECLARATIONS.list_head_syn = insert_at_head(MODULEDECLARATIONS1.list_head_syn, MODULEDECLARATION.node_syn)
+    1. if(MODULEDECLARATIONS.node_inh == NULL){
+        MODULEDECLARATIONS1.node_inh = make_node("MODULEDECLARATIONS", MODULEDECLARATION.node_syn)
+    }
+    else{
+        MODULEDECLARATIONS1.node_inh = insert_at_end( MODULEDECLARATIONS.node_inh, MODULEDECLARATION.node_syn)
+    }
     2. free(MODULEDECLARATION)
     3. free(MODULEDECLARATIONS1)
+    4. MODULEDECLARATIONS.node_syn = MODULEDECLARATIONS1.node_syn
 }
 
 
 3. MODULEDECLARATIONS => epsilon
 {
-    1. MODULEDECLARATIONS.list_head_syn = NULL
+    1. MODULEDECLARATIONS.node_inh = insert_at_end( MODULEDECLARATIONS.node_inh, make_node( "NULL" ))
+    2. MODULEDECLARATIONS.node_syn = MODULEDECLARATIONS.node_inh
 }
 
 
@@ -37,15 +40,22 @@
 
 5. OTHERMODULES => NTMODULE OTHERMODULES1
 {
-    1. OTHERMODULES.list_head_syn = insert_at_head(OTHERMODULES1.list_head_syn, NTMODULE.node_syn)
+    1. if(OTHERMODULES.node_inh == NULL){
+        OTHERMODULES1.node_inh = make_node("MODULEDEFINITIONS", NTMODULE.node_syn)
+    }
+    else{
+        OTHERMODULES1.node_inh = insert_at_end( OTHERMODULES.node_inh, NTMODULE.node_syn)
+    }
     2. free(NTMODULE)
     3. free(OTHERMODULES1)
+    4. OTHERMODULES.node_syn = OTHERMODULES1.node_syn
 }
 
 
 6. OTHERMODULES => epsilon
 {
-    1. OTHERMODULES.list_head_syn = NULL
+    1. OTHERMODULES.node_inh = insert_at_end( OTHERMODULES.node_inh, make_node( "NULL" ))
+    2. OTHERMODULES.node_syn = OTHERMODULES.node_inh
 }
 
 
@@ -62,11 +72,7 @@
 
 8. NTMODULE => def module id enddef takes input sqbo INPUT_PLIST sqbc semicol RET MODULEDEF
 {
-    1. NTMODULE.node_syn = make_node("NTMODULE",
-                                    id, 
-                                     make_node("PARAMETERS_LIST", INPUT_PLIST.list_head_syn), 
-                                     RET.node_syn, 
-                                     MODULEDEF.node_syn)
+    1. NTMODULE.node_syn = make_node("NTMODULE",id, INPUT_PLIST.node_syn, RET.node_syn, MODULEDEF.node_syn)
     2. free(def)
     3. free(module)
     4. free(enddef)
@@ -83,7 +89,7 @@
 
 9. MODULEDEF => start STATEMENTS end
 {
-    1. MODULEDEF.node_syn = make_node("STATEMENTS", STATEMENTS.list_head_syn)
+    1. MODULEDEF.node_syn = STATEMENTS.node_syn
     2. free(start)
     3. free(STATEMENTS)
     4. free(end)
@@ -92,7 +98,7 @@
 
 10. RET => returns sqbo OUTPUT_PLIST sqbc semicol
 {
-    1. RET.node_syn = make_node("PARAMETERS_LIST", OUTPUT_PLIST.list_head_syn)
+    1. RET.node_syn = OUTPUT_PLIST.node_syn
     2. free(returns)
     3. free(sqbo)
     4. free(OUTPUT_PLIST)
@@ -109,59 +115,77 @@
 
 12. INPUT_PLIST => id colon DATATYPE INPUT_PLIST_DASH
 {
-    1. INPUT_PLIST_DASH.list_head_inh = make_list(DATATYPE.node_syn)
-    2. INPUT_PLIST_DASH.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, id)
-    3. INPUT_PLIST.list_head_syn = INPUT_PLIST_DASH.list_head_syn
-    4. free(colon)
-    5. free(DATATYPE)
-    6. free(INPUT_PLIST_DASH)
+    1. if(INPUT_PLIST.node_inh == NULL){
+        INPUT_PLIST_DASH.node_inh = make_node("PARAMETERS_LIST",id,  DATATYPE.node_syn)
+    }
+    else{
+        INPUT_PLIST_DASH.node_inh = insert_at_end( INPUT_PLIST.node_inh, id,  DATATYPE.node_syn)
+    }    
+    2. free(colon)
+    3. free(DATATYPE)
+    4. free(INPUT_PLIST_DASH)
+    5. INPUT_PLIST.node_syn = INPUT_PLIST_DASH.node_syn
 }
 
 
 13. INPUT_PLIST_DASH => comma id colon DATATYPE INPUT_PLIST_DASH1
 {
-    1. INPUT_PLIST_DASH1.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, DATATYPE.node_syn)
-    2. INPUT_PLIST_DASH1.list_head_inh = insert_at_end(INPUT_PLIST_DASH.list_head_inh, id)
-    3. INPUT_PLIST_DASH.list_head_syn = INPUT_PLIST_DASH1.list_head_syn
-    4. free(comma)
-    5. free(colon)
-    6. free(DATATYPE)
-    7. free(INPUT_PLIST_DASH1)
+    1. if(INPUT_PLIST_DASH.node_inh == NULL){
+        INPUT_PLIST_DASH1.node_inh = make_node("PARAMETERS_LIST",id,  DATATYPE.node_syn)
+    }
+    else{
+        INPUT_PLIST_DASH1.node_inh = insert_at_end( INPUT_PLIST_DASH.node_inh, id,  DATATYPE.node_syn)
+    }    
+    2. free(comma)
+    3. free(colon)
+    4. free(DATATYPE)
+    5. free(INPUT_PLIST_DASH1)
+    6. INPUT_PLIST_DASH.node_syn = INPUT_PLIST_DASH1.node_syn
 }
 
 
 14. INPUT_PLIST_DASH => epsilon
 {
-    1. INPUT_PLIST_DASH.list_head_syn = INPUT_PLIST_DASH.list_head_inh
+    1. INPUT_PLIST_DASH.node_inh = insert_at_end( INPUT_PLIST_DASH.node_inh, make_node( "NULL" ))
+    2. INPUT_PLIST_DASH.node_syn = INPUT_PLIST_DASH.node_inh
 }
 
 
 15. OUTPUT_PLIST => id colon TYPE OUTPUT_PLIST_DASH
 {
-    1. OUTPUT_PLIST_DASH.list_head_inh = make_list(TYPE.node_syn)
-    2. OUTPUT_PLIST_DASH.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, id)
-    3. OUTPUT_PLIST.list_head_syn = OUTPUT_PLIST_DASH.list_head_syn
-    4. free(colon)
-    5. free(TYPE)
-    6. free(OUTPUT_PLIST_DASH)
+    1. if(OUTPUT_PLIST.node_inh == NULL){
+        OUTPUT_PLIST_DASH.node_inh = make_node("PARAMETERS_LIST",id,  TYPE.node_syn)
+    }
+    else{
+        OUTPUT_PLIST_DASH.node_inh = insert_at_end( OUTPUT_PLIST.node_inh, id, TYPE.node_syn)
+    }     
+    2. free(colon)
+    3. free(TYPE)
+    4. free(OUTPUT_PLIST_DASH)
+    5. OUTPUT_PLIST.node_syn = OUTPUT_PLIST_DASH.node_syn
 }
 
 
 16. OUTPUT_PLIST_DASH => comma id colon TYPE OUTPUT_PLIST_DASH1
 {
-    1. OUTPUT_PLIST_DASH1.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, TYPE.node_syn)
-    2. OUTPUT_PLIST_DASH1.list_head_inh = insert_at_end(OUTPUT_PLIST_DASH.list_head_inh, id)
-    3. OUTPUT_PLIST_DASH.list_head_syn = OUTPUT_PLIST_DASH1.list_head_syn
-    4. free(comma)
-    5. free(colon)
-    6. free(TYPE)
-    7. free(OUTPUT_PLIST_DASH1)
+    1. if(OUTPUT_PLIST_DASH.node_inh == NULL){
+        OUTPUT_PLIST_DASH1.node_inh = make_node("PARAMETERS_LIST",id,  TYPE.node_syn)
+    }
+    else{
+        OUTPUT_PLIST_DASH1.node_inh = insert_at_end( OUTPUT_PLIST_DASH.node_inh, id,  TYPE.node_syn)
+    }    
+    2. free(comma)
+    3. free(colon)
+    4. free(TYPE)
+    5. free(OUTPUT_PLIST_DASH1)
+    6. OUTPUT_PLIST_DASH.node_syn = OUTPUT_PLIST_DASH1.node_syn
 }
 
 
 17. OUTPUT_PLIST_DASH => epsilon
 {
-    1. OUTPUT_PLIST_DASH.list_head_syn = OUTPUT_PLIST_DASH.list_head_inh
+    1. OUTPUT_PLIST_DASH.node_inh = insert_at_end( OUTPUT_PLIST_DASH.node_inh, make_node( "NULL" ))
+    2. OUTPUT_PLIST_DASH.node_syn = OUTPUT_PLIST_DASH.node_inh
 }
 
 
@@ -215,13 +239,20 @@
 
 25. STATEMENTS => STATEMENT STATEMENTS1
 {
-    1. STATEMENTS.list_head_syn  = insert_at_head(STATEMENTS1.list_head_syn,STATEMENT.node_syn);
+    1. if(STATEMENTS.node_inh == NULL){
+        STATEMENTS1.node_inh = make_node("STATEMENTS", STATEMENT.node_syn)
+    }
+    else{
+        STATEMENTS1.node_inh = insert_at_end( STATEMENTS.node_inh, STATEMENT.node_syn)
+    }
+    2. STATEMENTS.node_syn = STATEMENTS1.node_syn
 }
 
 
 26. STATEMENTS => epsilon
 {
-    1. STATEMENTS.list_head_syn = NULL;
+    1. STATEMENTS.node_inh = insert_at_end( STATEMENTS.node_inh, make_node( "NULL" ))
+    2. STATEMENTS.node_syn = STATEMENTS.node_inh
 }
 
 
@@ -302,9 +333,8 @@
 
 37. VAR => id WHICHID
 {
-    1. WHICHID.node_inh = id;
-    2. VAR.node_syn = WHICHID.node_syn;
-    3. free(WHICHID)
+    1. VAR.node_syn = make_node("VAR", id, WHICHID.node_syn)
+    2. free(WHICHID)
 }
 
 
@@ -322,13 +352,13 @@
 
 40. WHICHID => sqbo INDEX sqbc
 {
-    1. WHICHID.node_syn = make_node("ARRAY_ACCESS",WHICHID.node_inh,INDEX.node_syn);
+    1. WHICHID.node_syn = INDEX.node_syn
 }
 
 
 41. WHICHID => epsilon
 {
-    1. WHICHID.node_syn = WHICHID.node_inh;
+    1. WHICHID.node_syn = make_node("NULL")
 }
 
 
@@ -348,31 +378,28 @@
 
 44. ASSIGNMENTSTMT => id WHICHSTMT
 {
-    1. WHICHSTMT.node_inh = id
-    2. ASSIGNMENTSTMT.node_syn = WHICHSTMT.node_syn
-    3. free(WHICHSTMT)
+    1. ASSIGNMENTSTMT.node_syn = make_node("ASSIGN", id, WHICHSTMT.node_syn)
+    2. free(WHICHSTMT)
 }
 
 
 45. WHICHSTMT => LVALUEIDSTMT
-{
-    1. LVALUEIDSTMT.node_inh = WHICHSTMT.node_inh
-    2. WHICHSTMT.node_syn = LVALUEIDSTMT.node_syn
-    3. free(LVALUEIDSTMT)
+{    
+    1. WHICHSTMT.node_syn = LVALUEIDSTMT.node_syn
+    2. free(LVALUEIDSTMT)
 }
 
 
 46. WHICHSTMT => LVALUEARRSTMT
 {
-    1. LVALUEARRSTMT.node_inh = WHICHSTMT.node_inh
-    2. WHICHSTMT.node_syn = LVALUEARRSTMT.node_syn
-    3. free(LVALUEARRSTMT)
+    1. WHICHSTMT.node_syn = LVALUEARRSTMT.node_syn
+    2. free(LVALUEARRSTMT)
 }
 
 
 47. LVALUEIDSTMT => assignop EXPRESSION semicol
 {
-    1. LVALUEIDSTMT.node_syn = make_node("ASSIGN", LVALUEIDSTMT.node_inh, EXPRESSION.node_syn)
+    1. LVALUEIDSTMT.node_syn = EXPRESSION.node_syn
     2. free(assignop)
     3. free(EXPRESSION)
     4. free(semicol)
@@ -381,10 +408,7 @@
 
 48. LVALUEARRSTMT => sqbo INDEX sqbc assignop EXPRESSION semicol
 {
-    1. LVALUEARRSTMT.node_syn = make_node("ASSIGN", 
-                                           make_node("ARRAY_ACCESS", LVALUEARRSTMT.node_inh, INDEX.node_syn), 
-                                           EXPRESSION.node_syn
-                                         )
+    1. LVALUEARRSTMT.node_syn = make_node("ARRAY_ACCESS", INDEX.node_syn, EXPRESSION.node_syn)
     2. free(sqbo)
     3. free(INDEX)
     4. free(sqbc)
@@ -408,10 +432,7 @@
 
 51. MODULEREUSESTMT => OPTIONAL use module id with parameters IDLIST semicol
 {
-    1. MODULEREUSESTMT.node_syn = make_node("FUNCTIONCALL", ID, 
-                                            make_node("PARAMETERS_LIST", OPTIONAL.list_head_syn), 
-                                            make_node("PARAMETERS_LIST", IDLIST.list_head_syn)
-                                           )
+    1. MODULEREUSESTMT.node_syn = make_node("FUNCTIONCALL", ID, OPTIONAL.node_syn, IDLIST.node_syn)
     2. free(OPTIONAL)
     3. free(use)
     4. free(module)
@@ -424,7 +445,7 @@
 
 52. OPTIONAL => sqbo IDLIST sqbc assignop
 {
-    1. OPTIONAL.list_head_syn = IDLIST.list_head_syn
+    1. OPTIONAL.node_syn = IDLIST.node_syn
     2. free(sqbo)
     3. free(IDLIST)
     4. free(sqbc)
@@ -434,22 +455,32 @@
 
 53. OPTIONAL => epsilon
 {
-    1. OPTIONAL.list_head_syn = NULL
+    1. OPTIONAL.node_syn = make_node("NULL")
 }
 
 
 54. IDLIST => id IDLIST_DASH
 {
-    1. IDLIST_DASH.list_head_inh = make_list(id)
-    2. IDLIST.list_head_syn = IDLIST_DASH.list_head_syn
+    1. if(IDLIST.node_inh == NULL){
+        IDLIST_DASH.node_inh = make_node("PARAMETERS_LIST", id)
+    }
+    else{
+        IDLIST_DASH.node_inh = insert_at_end( IDLIST.node_inh, id)
+    }
+    2. IDLIST.node_syn = IDLIST_DASH.node_syn
     3. free(IDLIST_DASH)
 }
 
 
 55. IDLIST_DASH => comma id IDLIST_DASH1
 {
-    1. IDLIST_DASH1.list_head_inh = insert_at_end(IDLIST_DASH.list_head_inh, id)
-    2. IDLIST_DASH.list_head_syn = IDLIST_DASH1.list_head_syn
+    1. if(IDLIST_DASH.node_inh == NULL){
+        IDLIST_DASH1.node_inh = make_node("PARAMETERS_LIST", id)
+    }
+    else{
+        IDLIST_DASH1.node_inh = insert_at_end( IDLIST_DASH.node_inh, id)
+    }
+    2. IDLIST_DASH.node_syn = IDLIST_DASH1.node_syn
     3. free(comma)
     4. free(IDLIST_DASH1)
 }
@@ -457,7 +488,8 @@
 
 56. IDLIST_DASH => epsilon
 {
-    1. IDLIST_DASH.list_head_syn = IDLIST_DASH.list_head_inh
+    1. IDLIST_DASH.node_inh = insert_at_end( IDLIST_DASH.node_inh, make_node( "NULL" ))
+    2. IDLIST_DASH.node_syn = IDLIST_DASH.node_inh
 }
 
 
@@ -682,7 +714,7 @@
 
 87. DECLARESTMT => declare IDLIST colon DATATYPE semicol
 {
-    1. DECALRESTMT.node_syn = make_node("DECLARE",DATATYPE.node_syn,IDLIST.list_head_syn)
+    1. DECALRESTMT.node_syn = make_node("DECLARE",DATATYPE.node_syn,IDLIST.node_syn)
     2. free(declare)
     3. free(IDLIST)
     4. free(colon)
@@ -693,10 +725,7 @@
 
 88. CONDITIONALSTMT => switch bo id bc start CASESTMT DEFAULTSTMT end
 {
-    1. CONDITIONALSTMT.node_syn = make_node("SWITCH",id,
-                                            make_node("CASES", CASESTMT.list_head_syn),
-                                            DEFAULTSTMT.node_syn
-                                           )
+    1. CONDITIONALSTMT.node_syn = make_node("SWITCH",id, CASESTMT.node_syn , DEFAULTSTMT.node_syn)
     2. free(switch)
     3. free(bo)
     4. free(bc)
@@ -709,9 +738,12 @@
 
 89. CASESTMT => case VALUE colon STATEMENTS break semicol OTHERCASE
 {
-    1. CASESTMT.list_head_syn = insert_at_head(OTHERCASE.list_head_syn,make_node(  "CASE", VALUE.node_syn,
-                                                                                    make_node("STATEMENTS", STATEMENTS.list_head_syn)
-                                                                                )
+    1.  if(CASESTMT.node_inh == NULL){
+        OTHERCASE.node_inh = make_node("CASES", make_node(  "CASE", VALUE.node_syn, STATEMENTS.node_syn))
+    }
+    else{
+        OTHERCASE.node_inh = insert_at_end( CASESTMT.node_inh, make_node(  "CASE", VALUE.node_syn, STATEMENTS.node_syn))
+    }
     2. free(case)
     3. free(VALUE)
     4. free(colon)
@@ -719,14 +751,18 @@
     6. free(break)
     7. free(semicol)
     8. free(OTHERCASE)
+    9. CASESTMT.node_syn = OTHERCASE.node_syn
 }
 
 
 90. OTHERCASE => case VALUE colon STATEMENTS break semicol OTHERCASE1
 {
-    1. OTHERCASE.list_head_syn = insert_at_head(OTHERCASE1.list_head_syn,make_node( "CASE",VALUE.node_syn,
-                                                                                    make_node("STATEMENTS", STATEMENTS.list_head_syn) 
-                                                                                  )
+    1. if(OTHERCASE.node_inh == NULL){
+        OTHERCASE1.node_inh = make_node("CASES", make_node(  "CASE", VALUE.node_syn, STATEMENTS.node_syn))
+    }
+    else{
+        OTHERCASE1.node_inh = insert_at_end( OTHERCASE.node_inh, make_node(  "CASE", VALUE.node_syn, STATEMENTS.node_syn))
+    }
     2. free(case)
     3. free(VALUE)
     4. free(colon)
@@ -734,12 +770,14 @@
     6. free(break)
     7. free(semicol)
     8. free(OTHERCASE1)
+    9. OTHERCASE.node_syn = OTHERCASE1.node_syn
 }
 
 
 91. OTHERCASE => epsilon
 {
-    1. OTHERCASE.list_head_syn = NULL;
+    1. OTHERCASE.node_inh = insert_at_end( OTHERCASE.node_inh, make_node( "NULL" ))
+    2. OTHERCASE.node_syn = OTHERCASE.node_inh
 }
 
 
@@ -763,9 +801,7 @@
 
 95. DEFAULTSTMT => default colon STATEMENTS break semicol
 {
-    1. DEFAULTSTMT.node_syn = make_node("DEFAULTCASE",
-                                        make_node("STATEMENTS", STATEMENTS.list_head_syn)
-                                       )
+    1. DEFAULTSTMT.node_syn = make_node("DEFAULTCASE",STATEMENTS.node_syn)
     2. free(default)
     3. free(colon)
     4. free(STATEMENTS)
@@ -776,15 +812,13 @@
 
 96. DEFAULTSTMT => epsilon
 {
-    1. DEFAULTSTMT.node_syn = NULL;
+    1. DEFAULTSTMT.node_syn = make_node("NULL");
 }
 
 
 97. ITERATIVESTMT => for bo id in num1 rangeop num2 bc start STATEMENTS end
 {
-    1. ITERATIVESTMT.node_syn =  make_node("FORLOOP",id,num1,num2,
-                                            make_node("STATEMENTS", STATEMENTS.list_head_syn)
-                                          )
+    1. ITERATIVESTMT.node_syn =  make_node("FORLOOP",id,num1,num2,STATEMENTS.node_syn)
     2. free(for)
     3. free(bo)
     4. free(in)
@@ -797,9 +831,7 @@
 
 98. ITERATIVESTMT => while bo EXPRESSION bc start STATEMENTS end
 {
-    1. ITERATIVESTMT.node_syn = make_node("WHILELOOP",EXPRESSION.node_syn,
-                                            make_node("STATEMENTS", STATEMENTS.list_head_syn)
-                                         )   
+    1. ITERATIVESTMT.node_syn = make_node("WHILELOOP",EXPRESSION.node_syn, STATEMENTS.node_syn)
     2. free(while)
     3. free(bo)
     4. free(EXPRESSION)

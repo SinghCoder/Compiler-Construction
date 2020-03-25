@@ -47,6 +47,8 @@ void print_parse_tree(tree_node *root);
 
 void print_parse_tree_for_tool(tree_node *root);
 
+void print_ast_for_tool(tree_node *root);
+
 void print_rule(int rule_no);
 
 tree_node *parse_input_source_code(FILE *source);

@@ -17,17 +17,21 @@ bool ends_in_dash(char *label) {
 bool is_base_case(tree_node *node) {
   tree_node *rchild = node->rightmost_child;
 
-  if (node->sym.is_terminal == true || node->parent == NULL ||
-      node->sym.nt != node->parent->sym.nt) {
+  if (node->sym.is_terminal == true || node->parent == NULL) {
     return false;
   }
 
-  if (rchild == NULL || rchild->sym.is_terminal == true) {
+  if (node->sym.nt == rchild->sym.nt)
+    return false;
+
+  if (ends_in_dash(non_terminal_string[node->sym.nt])) {
     return true;
   }
-  if (node->sym.nt != rchild->sym.nt) {
+
+  if (node->sym.nt == node->parent->sym.nt) {
     return true;
   }
+
   return false;
 }
 
@@ -118,8 +122,10 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
       lchild = temp->leftmost_child;
       rchild = temp->rightmost_child;
 
-      if (is_recursion(temp) == true && temp->parent->sym.nt == temp->sym.nt) {
-        extend_inh_node(temp, temp->parent->node_inh);
+      if (is_recursion(temp) == true &&
+          !(temp->parent->sym.nt != temp->sym.nt &&
+            ends_in_dash(non_terminal_string[temp->sym.nt]) == false)) {
+        temp->node_inh = temp->parent->node_inh;
         tree_node *sibling = temp->parent->leftmost_child;
 
         while (sibling != temp) {

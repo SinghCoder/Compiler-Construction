@@ -21,7 +21,7 @@ void insert_at_end(rhsnode_ptr *tail, symbol sym);
 
 void print_grammar();
 
-void parser_init();
+void parser_init(char origin_non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH]);
 
 int rightmost_set_bit(unsigned long long *num);
 

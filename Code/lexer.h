@@ -26,7 +26,7 @@ TOKEN get_token();
 
 void retract(int num);
 
-void lexer_init(FILE *source);
+void lexer_init(FILE *source, char origin_terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH]);
 
 token_name search_lookup_table(char *lexeme);
 

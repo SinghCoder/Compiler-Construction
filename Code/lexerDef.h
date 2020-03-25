@@ -12,7 +12,6 @@
 #include "hashtable.h"
 
 #define BUFFER_SIZE 1000
-#define NUM_OF_TERMINALS 61
 
 typedef enum {
 #include "tokens.txt"
@@ -42,6 +41,7 @@ int lexeme_begin;
 int forward_ptr;
 int num_of_rounds;
 int line_no;
-char terminal_string[NUM_OF_TERMINALS][50];
+
+char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 
 #endif

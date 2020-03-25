@@ -10,6 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+void print_symbol(tree_node *temp) {
+  if (temp->sym.is_terminal == true) {
+    printf("%s\n", terminal_string[temp->sym.t]);
+  } else {
+    printf("%s\n", non_terminal_string[temp->sym.nt]);
+  }
+}
+
 /**
  * @brief Create a tree node object
  *
@@ -28,7 +37,6 @@ tree_node *create_tree_node() {
   node->sibling = NULL;
   node->leftmost_child = NULL;
   node->rightmost_child = NULL;
-  node->next = NULL;
   node->node_inh = NULL;
   node->node_syn = NULL;
   strcpy(node->token.str, "");
@@ -48,23 +56,29 @@ void add_child(tree_node *parent, tree_node *child) {
     parent->rightmost_child->sibling = child;
     parent->rightmost_child = child;
   }
+  child->sibling = NULL;
 }
 
 tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {
+  // printf("deleting: ");
+  // print_symbol(child);
+  // print_symbol(parent);
+  // printf("\n");
+
+  if (prev != NULL) {
+    prev->sibling = child->sibling;
+  }
+
   if (child == parent->leftmost_child) {
     parent->leftmost_child = child->sibling;
-    free(child);
-    return parent->leftmost_child;
-  } else if (child == parent->rightmost_child) {
-    prev->sibling = NULL;
-    parent->rightmost_child = prev;
-    free(child);
-    return NULL;
-  } else {
-    if (child == NULL)
-      printf("child");
-    prev->sibling = child->sibling;
-    free(child);
-    return prev->sibling;
   }
+
+  if (child == parent->rightmost_child) {
+    parent->rightmost_child = prev;
+  }
+  free(child);
+  if (prev != NULL)
+    return prev->sibling;
+  else
+    return parent->leftmost_child;
 }

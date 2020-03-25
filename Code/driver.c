@@ -203,7 +203,6 @@ int main(int argc, char *argv[]) {
       fclose(parse_tree_file_ptr);
 
       tree_node *ast_tree = construct_ast(ptr);
-
       printf("*****AST******\n");
       print_ast(ast_tree);
 

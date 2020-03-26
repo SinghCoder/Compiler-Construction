@@ -152,7 +152,6 @@ int main(int argc, char *argv[]) {
     case 3: {
       lexer_init(source);
       parser_init();
-      ast_init();
 
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
@@ -174,12 +173,12 @@ int main(int argc, char *argv[]) {
       }
 
       parse_tree_file_ptr = fopen(parse_tree_file, "w");
-      // print_parse_tree(ptr, parse_tree_file_ptr);
+      // print_parse_tree(ptr);
 
       tree_node *ast_tree = construct_ast(ptr);
       // printf("\n*****AST******\n");
       // print_ast(ast_tree);
-      print_parse_tree_for_tool(ast_tree, parse_tree_file_ptr);
+      print_parse_tree_for_tool(ast_tree);
 
       fclose(parse_tree_file_ptr);
       free_grammar();
@@ -283,7 +282,7 @@ int main(int argc, char *argv[]) {
       }
 
       parse_tree_file_ptr = fopen(parse_tree_file, "w");
-      print_parse_tree_for_tool(ptr, parse_tree_file_ptr);
+      print_parse_tree_for_tool(ptr);
       fclose(parse_tree_file_ptr);
 
       free_grammar();

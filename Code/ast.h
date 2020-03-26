@@ -3,8 +3,6 @@
 
 #include "treeADTDef.h"
 
-
-void ast_init();
 bool ends_in_dash(char *label);
 bool is_base_case(tree_node *node);
 bool is_recursion(tree_node *node);

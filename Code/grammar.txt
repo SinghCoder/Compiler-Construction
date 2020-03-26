@@ -91,6 +91,8 @@ VALUE true
 VALUE false
 DEFAULTSTMT default colon STATEMENTS break semicol
 DEFAULTSTMT epsilon
-ITERATIVESTMT for bo id in num rangeop num bc start STATEMENTS end
-ITERATIVESTMT while bo EXPRESSION bc start STATEMENTS end
+ITERATIVESTMT FORLOOP
+FORLOOP for bo id in num rangeop num bc start STATEMENTS end
+ITERATIVESTMT WHILELOOP
+WHILELOOP while bo EXPRESSION bc start STATEMENTS end
 RANGE INDEX rangeop INDEX

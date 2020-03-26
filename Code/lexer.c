@@ -824,7 +824,7 @@ void remove_comments(FILE *source, char *no_comment_file) {
     FILE *fptr = fopen(no_comment_file, "r");
     char *line = NULL;
     size_t len = 0;
-    ssize_t read;
+    size_t read;
 
     if (fptr == NULL) {
       printf("Unable to write to file %s\n", no_comment_file);

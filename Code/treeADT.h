@@ -15,4 +15,6 @@ tree_node *create_tree_node();
 
 void add_child(tree_node *parent, tree_node *child);
 
+tree_node* delete_child(tree_node* parent, tree_node* prev, tree_node *child);
+
 #endif

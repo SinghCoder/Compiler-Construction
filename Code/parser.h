@@ -31,8 +31,6 @@ void populate_first_sets();
 
 void populate_follow_sets();
 
-unsigned long long int get_nullable_set();
-
 void print_first_sets();
 
 void print_follow_sets();
@@ -45,6 +43,8 @@ void print_parse_table();
 
 void print_parse_tree(tree_node *root);
 
+void print_parse_tree_for_tool(tree_node *root);
+
 void print_rule(int rule_no);
 
 tree_node *parse_input_source_code(FILE *source);
@@ -54,4 +54,7 @@ ull *get_rule_first_set(rhsnode_ptr node);
 bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);
 
 void free_grammar();
+
+void print_symbol(symbol sym);
+
 #endif

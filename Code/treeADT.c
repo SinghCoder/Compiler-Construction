@@ -7,17 +7,10 @@
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
 #include "treeADT.h"
+#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-void print_symbol(tree_node *temp) {
-  if (temp->sym.is_terminal == true) {
-    printf("%s\n", terminal_string[temp->sym.t]);
-  } else {
-    printf("%s\n", non_terminal_string[temp->sym.nt]);
-  }
-}
 
 /**
  * @brief Create a tree node object
@@ -60,10 +53,6 @@ void add_child(tree_node *parent, tree_node *child) {
 }
 
 tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {
-  // printf("deleting: ");
-  // print_symbol(child);
-  // print_symbol(parent);
-  // printf("\n");
 
   if (prev != NULL) {
     prev->sibling = child->sibling;

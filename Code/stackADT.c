@@ -12,23 +12,21 @@
 
 /**
  * @brief Initializes stack
- * 
+ *
  * creates an array of MAX_PARSING_NODES size dynamically
- * 
+ *
  * @return stack* pointer to structure interface of stack
  */
 
-stack *stack_init() 
-{
+stack *stack_init() {
   stack *stack_ptr = (stack *)malloc(sizeof(stack));
-  if(stack_ptr == NULL)
-  {
+  if (stack_ptr == NULL) {
     perror("stack init error.. memory not available\n");
   }
-  stack_ptr->size = MAX_PARSING_NODES;
-  stack_ptr->arr = (tree_node **)malloc( sizeof(tree_node *) * (stack_ptr->size) );
-  if(stack_ptr->arr == NULL)
-  {
+  stack_ptr->size = INIT_STACK_SIZE;
+  stack_ptr->arr =
+      (tree_node **)malloc(sizeof(tree_node *) * (stack_ptr->size));
+  if (stack_ptr->arr == NULL) {
     perror("stack array member init error.. memory not available\n");
   }
   stack_ptr->top = 0;
@@ -37,23 +35,19 @@ stack *stack_init()
 
 /**
  * @brief Insert element to stack
- * 
+ *
  * @param stack_ptr - pointer to structure interface of stack
  * @param node - tree node element to be inserted
  */
 
-void push(stack *stack_ptr, tree_node *node) 
-{
-  if (stack_ptr->top == (stack_ptr->size)) 
-  {
+void push(stack *stack_ptr, tree_node *node) {
+  if (stack_ptr->top == (stack_ptr->size)) {
     stack_ptr->size *= 2;
-    tree_node **tmp = realloc(stack_ptr->arr, sizeof(tree_node *) * stack_ptr->size);
-    if(tmp == NULL)
-    {
+    tree_node **tmp =
+        realloc(stack_ptr->arr, sizeof(tree_node *) * stack_ptr->size);
+    if (tmp == NULL) {
       perror("Error in doubling stack's size: realloc failed\n");
-    }
-    else
-    {
+    } else {
       stack_ptr->arr = tmp;
     }
   }
@@ -63,14 +57,13 @@ void push(stack *stack_ptr, tree_node *node)
 
 /**
  * @brief Remove the element from stack top
- * 
+ *
  * @param stack_ptr - pointer to structure interface of stack
  * @return tree_node* - Element removed
  */
 
 tree_node *pop(stack *stack_ptr) {
-  if (stack_ptr->top == 0) 
-  {
+  if (stack_ptr->top == 0) {
     return NULL;
   }
 
@@ -80,17 +73,14 @@ tree_node *pop(stack *stack_ptr) {
 
 /**
  * @brief Peek through the stack
- * 
+ *
  * @param stack_ptr pointer to structure interface of stack
  * @return tree_node* element at top
  */
 tree_node *top(stack *stack_ptr) {
-  if (stack_ptr->top == 0) 
-  {
+  if (stack_ptr->top == 0) {
     return NULL;
-  } 
-  else 
-  {
+  } else {
     return stack_ptr->arr[stack_ptr->top - 1];
   }
 }

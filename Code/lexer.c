@@ -160,9 +160,7 @@ void populate_buffer(FILE *fp) {
  * @param source
  */
 
-void lexer_init(
-    FILE *source,
-    char origin_terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH]) {
+void lexer_init(FILE *source) {
   init_hash_table(lookup_table);
   populate_lookup_table();
 
@@ -172,9 +170,6 @@ void lexer_init(
   just_retracted = false;
   line_no = 1;
   num_of_rounds = 0;
-
-  for (int i = 0; i < NUM_OF_TERMINALS; i++)
-    strcpy(terminal_string[i], origin_terminal_string[i]);
 
   int num = fseek(source, 0, SEEK_SET); // go back to start of source code file
   populate_buffer(source);

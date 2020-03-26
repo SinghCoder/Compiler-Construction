@@ -12,11 +12,11 @@
 #include "parserDef.h"
 #include "treeADT.h"
 
-#define MAX_PARSING_NODES 200
+#define INIT_STACK_SIZE 200
 
 /**
- * @brief Stack implemented as dynamic array 
- * 
+ * @brief Stack implemented as dynamic array
+ *
  */
 typedef struct
 {

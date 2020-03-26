@@ -63,7 +63,7 @@ void populate_terminal_string() {
   tk_read = strtok(t_file, ", \n");
 
   for (i = 0; tk_read != NULL; i++) {
-    strcpy(origin_terminal_string[i], tk_read);
+    strcpy(terminal_string[i], tk_read);
     tk_read = strtok(NULL, ", \n");
   }
 
@@ -77,55 +77,31 @@ void populate_terminal_string() {
  */
 void populate_non_terminal_string() {
   FILE *file = fopen("non_terminals.txt", "r");
-  // FILE *ast_label_file = fopen("ast_node_labels.txt", "r");
 
   fseek(file, 0, SEEK_END);
   int length = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  // fseek(ast_label_file, 0, SEEK_END);
-  // int ast_file_length = ftell(ast_label_file);
-  // fseek(ast_label_file, 0, SEEK_SET);
-
   char *nt_file = malloc(sizeof(char) * (length + 1));
-  // char *ast_file = malloc(sizeof(char) * (ast_file_length + 1));
 
   if (nt_file == NULL) {
     perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
     exit(1);
   }
 
-  // if (ast_file == NULL) {
-  //   perror(ANSI_COLOR_RED "Parser init failed \n" ANSI_COLOR_RESET);
-  //   exit(1);
-  // }
-
   fread(nt_file, sizeof(char), length, file);
   nt_file[length] = '\0';
   fclose(file);
-
-  // fread(ast_file, sizeof(char), ast_file_length, ast_label_file);
-  // ast_file[ast_file_length] = '\0';
-  // fclose(ast_label_file);
 
   char *nt_read = NULL;
   int i;
   nt_read = strtok(nt_file, ", \n");
 
   for (i = 0; nt_read != NULL; i++) {
-    strcpy(origin_non_terminal_string[i], nt_read);
+    strcpy(non_terminal_string[i], nt_read);
     nt_read = strtok(NULL, ", \n");
   }
   free(nt_file);
-
-  // char *ast_label_read = NULL;
-  // ast_label_read = strtok(ast_file, ", \n");
-
-  // for (i = 0; ast_label_read != NULL; i++) {
-  //   strcpy(ast_label_string[i], ast_label_read);
-  //   ast_label_read = strtok(NULL, ", \n");
-  // }
-  // free(ast_file);
 }
 
 int main(int argc, char *argv[]) {
@@ -160,7 +136,7 @@ int main(int argc, char *argv[]) {
 
     switch (choice) {
     case 1: {
-      lexer_init(source, origin_terminal_string);
+      lexer_init(source);
       char no_comment_file[100];
       printf("Enter name of the output file which will have the source code "
              "without comments\n");
@@ -169,15 +145,15 @@ int main(int argc, char *argv[]) {
     } break;
 
     case 2: {
-      lexer_init(source, origin_terminal_string);
+      lexer_init(source);
       tokenize_source_file(source);
     } break;
 
     case 3: {
-      lexer_init(source, origin_terminal_string);
-      parser_init(origin_non_terminal_string);
-      ast_init(origin_non_terminal_string);
-      
+      lexer_init(source);
+      parser_init();
+      ast_init();
+
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
         perror("fopen");
@@ -198,14 +174,13 @@ int main(int argc, char *argv[]) {
       }
 
       parse_tree_file_ptr = fopen(parse_tree_file, "w");
-      // print_parse_tree(ptr);
-      
+      // print_parse_tree(ptr, parse_tree_file_ptr);
 
       tree_node *ast_tree = construct_ast(ptr);
-      printf("*****AST******\n");
+      // printf("\n*****AST******\n");
       // print_ast(ast_tree);
-      print_parse_tree_for_tool(ast_tree);
-      
+      print_parse_tree_for_tool(ast_tree, parse_tree_file_ptr);
+
       fclose(parse_tree_file_ptr);
       free_grammar();
       fclose(fptr);
@@ -218,8 +193,8 @@ int main(int argc, char *argv[]) {
 
       start_time = clock();
 
-      lexer_init(source, origin_terminal_string);
-      parser_init(origin_non_terminal_string);
+      lexer_init(source);
+      parser_init();
 
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
@@ -251,8 +226,8 @@ int main(int argc, char *argv[]) {
 
     } break;
     case 5: {
-      lexer_init(source, origin_terminal_string);
-      parser_init(origin_non_terminal_string);
+      lexer_init(source);
+      parser_init();
 
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
@@ -267,8 +242,8 @@ int main(int argc, char *argv[]) {
       fclose(fptr);
     } break;
     case 6: {
-      lexer_init(source, origin_terminal_string);
-      parser_init(origin_non_terminal_string);
+      lexer_init(source);
+      parser_init();
 
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
@@ -285,8 +260,8 @@ int main(int argc, char *argv[]) {
       break;
     }
     case 7: {
-      lexer_init(source, origin_terminal_string);
-      parser_init(origin_non_terminal_string);
+      lexer_init(source);
+      parser_init();
 
       FILE *fptr = fopen("grammar.txt", "r");
       if (fptr == NULL) {
@@ -308,7 +283,7 @@ int main(int argc, char *argv[]) {
       }
 
       parse_tree_file_ptr = fopen(parse_tree_file, "w");
-      print_parse_tree_for_tool(ptr);
+      print_parse_tree_for_tool(ptr, parse_tree_file_ptr);
       fclose(parse_tree_file_ptr);
 
       free_grammar();

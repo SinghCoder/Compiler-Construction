@@ -10,6 +10,7 @@
 #define LEXERDEF_H
 
 #include "hashtable.h"
+#include "driver.h"
 
 #define BUFFER_SIZE 1000
 
@@ -27,8 +28,6 @@ typedef struct token {
   int line_no;
 } TOKEN;
 
-// typedef enum { false, true } bool;  // boolean type
-
 int state;
 int just_retracted;
 
@@ -42,6 +41,6 @@ int forward_ptr;
 int num_of_rounds;
 int line_no;
 
-char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
+extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 
 #endif

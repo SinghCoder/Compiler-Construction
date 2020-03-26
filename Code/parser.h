@@ -21,7 +21,7 @@ void insert_at_end(rhsnode_ptr *tail, symbol sym);
 
 void print_grammar();
 
-void parser_init(char origin_non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH]);
+void parser_init();
 
 int rightmost_set_bit(unsigned long long *num);
 
@@ -30,8 +30,6 @@ void create_parse_table();
 void populate_first_sets();
 
 void populate_follow_sets();
-
-unsigned long long int get_nullable_set();
 
 void print_first_sets();
 
@@ -43,9 +41,9 @@ void print_rule_fset(ull *fset);
 
 void print_parse_table();
 
-void print_parse_tree(tree_node *root);
+void print_parse_tree(tree_node *root, FILE* parse_tree_file_ptr);
 
-void print_parse_tree_for_tool(tree_node *root);
+void print_parse_tree_for_tool(tree_node *root, FILE* parse_tree_file_ptr);
 
 void print_rule(int rule_no);
 
@@ -57,5 +55,6 @@ bool is_superset(ull a[SET_SIZE], ull b[SET_SIZE]);
 
 void free_grammar();
 
-// void print_ast_labels();
+void print_symbol(symbol sym);
+
 #endif

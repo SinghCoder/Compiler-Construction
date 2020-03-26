@@ -488,27 +488,32 @@ void print_node_for_tool(tree_node *node) {
   if (is_terminal == true) {
 
     switch ((node->token).name) {
-    case NUM:
-      fprintf(parse_tree_file_ptr, "[num %d]", (node->token).num);
-      break;
-    case RNUM:
-      fprintf(parse_tree_file_ptr, "[rnum %f]", (node->token).rnum);
-      break;
-    default: {
-      char tkn_name[MAX_LEXEME_LEN];
-      strcpy(tkn_name, terminal_string[(node->sym).t]);
+		case NUM:
+			fprintf(parse_tree_file_ptr, "[num %d]", (node->token).num);
+		break;
 
-      for (int i = 0; i < strlen(tkn_name); i++)
-        tkn_name[i] = tolower(tkn_name[i]);
-      if (node->token.name != SQBO && node->token.name != SQBC)
-        fprintf(parse_tree_file_ptr, "[%s %s] ", tkn_name, node->token.str);
-      else
-        fprintf(parse_tree_file_ptr, "[%s] ", tkn_name);
-    } break;
+		case RNUM:
+			fprintf(parse_tree_file_ptr, "[rnum %f]", (node->token).rnum);
+		break;
+
+		default: {
+			char tkn_name[MAX_LEXEME_LEN];
+			strcpy(tkn_name, terminal_string[(node->sym).t]);
+
+			for (int i = 0; i < strlen(tkn_name); i++)
+				tkn_name[i] = tolower(tkn_name[i]);
+
+			if (node->token.name != SQBO && node->token.name != SQBC)
+				fprintf(parse_tree_file_ptr, "[%s %s] ", tkn_name, node->token.str);
+
+			else
+				fprintf(parse_tree_file_ptr, "[%s] ", tkn_name);
+				
+		} break;
     }
   } else {
-    fprintf(parse_tree_file_ptr, "[%s(%d) ",
-            non_terminal_string[(node->sym).nt], node->rule_num);
+    fprintf(parse_tree_file_ptr, "[%s ",
+            non_terminal_string[(node->sym).nt]);
   }
 }
 

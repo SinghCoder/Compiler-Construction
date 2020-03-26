@@ -40,7 +40,6 @@ typedef enum
 } ast_label;
 
 char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
-char ast_label_string[NUM_OF_AST_LABELS][50];
 
 typedef struct{
     union

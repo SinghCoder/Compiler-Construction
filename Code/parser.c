@@ -357,7 +357,7 @@ void free_grammar() {
  * @brief Print a string as center aligned
  *
  */
-void pretty_print(char *s, FILE *parse_tree_file_ptr) {
+void pretty_print(char *s) {
   int column_size = COLUMN_SIZE, len, left_margin;
   len = strlen(s);
   left_margin = (column_size - len) / 2;
@@ -379,7 +379,7 @@ void pretty_print(char *s, FILE *parse_tree_file_ptr) {
  *
  * @param node
  */
-void print_node(tree_node *node, FILE *parse_tree_file_ptr) {
+void print_node(tree_node *node) {
   char *s = (char *)calloc(30, sizeof(char));
   for (int i = 0; i < 30; i++) {
     s[i] = '\0';
@@ -392,47 +392,46 @@ void print_node(tree_node *node, FILE *parse_tree_file_ptr) {
     if ((node->token.name != NUM && node->token.name != RNUM) &&
         node->token.str != NULL) {
       sprintf(s, "%s", (node->token).str);
-      pretty_print(s, parse_tree_file_ptr);
+      pretty_print(s);
     } else
-      pretty_print("----", parse_tree_file_ptr);
+      pretty_print("----");
     sprintf(s, "%d", (node->token).line_no);
-    pretty_print(s, parse_tree_file_ptr);
+    pretty_print(s);
 
     if (node->token.str != NULL) {
       sprintf(s, "%s", terminal_string[(node->token).name]);
-      pretty_print(s, parse_tree_file_ptr);
+      pretty_print(s);
     } else
-      pretty_print("----", parse_tree_file_ptr);
+      pretty_print("----");
 
     switch ((node->token).name) {
     case NUM:
       sprintf(s, "%d", (node->token).num);
-      pretty_print(s, parse_tree_file_ptr);
+      pretty_print(s);
       break;
     case RNUM:
       sprintf(s, "%f", (node->token).rnum);
-      pretty_print(s, parse_tree_file_ptr);
+      pretty_print(s);
       break;
     default:
-      pretty_print("----", parse_tree_file_ptr);
+      pretty_print("----");
       break;
     }
     sprintf(s, "%s", non_terminal_string[(node->parent->sym).nt]);
-    pretty_print(s, parse_tree_file_ptr);
-    pretty_print("yes", parse_tree_file_ptr);
+    pretty_print(s);
+    pretty_print("yes");
     fprintf(parse_tree_file_ptr, "\t\t%s\n", terminal_string[(node->sym).t]);
   } else {
-    pretty_print("----", parse_tree_file_ptr);
-    pretty_print("----", parse_tree_file_ptr);
-    pretty_print("----", parse_tree_file_ptr);
-    pretty_print("----", parse_tree_file_ptr);
+    pretty_print("----");
+    pretty_print("----");
+    pretty_print("----");
+    pretty_print("----");
 
     if (node->parent)
-      pretty_print(non_terminal_string[(node->parent->sym).nt],
-                   parse_tree_file_ptr);
+      pretty_print(non_terminal_string[(node->parent->sym).nt]);
     else
-      pretty_print("(ROOT)", parse_tree_file_ptr);
-    pretty_print("no", parse_tree_file_ptr);
+      pretty_print("(ROOT)");
+    pretty_print("no");
     fprintf(parse_tree_file_ptr, "\t\t%s\n",
             non_terminal_string[(node->sym).nt]);
   }
@@ -443,19 +442,19 @@ void print_node(tree_node *node, FILE *parse_tree_file_ptr) {
  *
  * @param root root node of the tree
  */
-void print_parse_tree(tree_node *root, FILE *parse_tree_file_ptr) {
+void print_parse_tree(tree_node *root) {
   if (root == NULL)
     return;
 
   if (root->leftmost_child)
-    print_parse_tree(root->leftmost_child, parse_tree_file_ptr);
+    print_parse_tree(root->leftmost_child);
 
-  print_node(root, parse_tree_file_ptr);
+  print_node(root);
 
   if (root->leftmost_child) {
     tree_node *temp = root->leftmost_child->sibling;
     while (temp != NULL) {
-      print_parse_tree(temp, parse_tree_file_ptr);
+      print_parse_tree(temp);
       temp = temp->sibling;
     }
   }
@@ -466,7 +465,7 @@ void print_parse_tree(tree_node *root, FILE *parse_tree_file_ptr) {
  *
  * @param node
  */
-void print_node_for_tool(tree_node *node, FILE *parse_tree_file_ptr) {
+void print_node_for_tool(tree_node *node) {
   if (node == NULL)
     return;
   bool is_terminal = (node->sym).is_terminal;
@@ -506,21 +505,21 @@ void print_node_for_tool(tree_node *node, FILE *parse_tree_file_ptr) {
  *
  * @param root root node of the tree
  */
-void print_parse_tree_for_tool(tree_node *root, FILE *parse_tree_file_ptr) {
+void print_parse_tree_for_tool(tree_node *root) {
   if (root == NULL)
     return;
 
-  print_node_for_tool(root, parse_tree_file_ptr);
+  print_node_for_tool(root);
 
   if (root->leftmost_child)
-    print_parse_tree_for_tool(root->leftmost_child, parse_tree_file_ptr);
+    print_parse_tree_for_tool(root->leftmost_child);
   //   else
   // 	fprintf(parse_tree_file_ptr,"]");
 
   if (root->leftmost_child) {
     tree_node *temp = root->leftmost_child->sibling;
     while (temp != NULL) {
-      print_parse_tree_for_tool(temp, parse_tree_file_ptr);
+      print_parse_tree_for_tool(temp);
       temp = temp->sibling;
     }
   }

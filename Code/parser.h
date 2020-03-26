@@ -41,9 +41,9 @@ void print_rule_fset(ull *fset);
 
 void print_parse_table();
 
-void print_parse_tree(tree_node *root, FILE* parse_tree_file_ptr);
+void print_parse_tree(tree_node *root);
 
-void print_parse_tree_for_tool(tree_node *root, FILE* parse_tree_file_ptr);
+void print_parse_tree_for_tool(tree_node *root);
 
 void print_rule(int rule_no);
 

@@ -24,6 +24,8 @@ typedef enum
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 
+extern  FILE* parse_tree_file_ptr;
+
 typedef struct{
     union
     {

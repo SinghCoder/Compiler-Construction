@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void ast_init() {}
-
 bool ends_in_dash(char *label) {
   int len = strlen(label);
   if (len >= 4) {
@@ -92,6 +90,8 @@ bool is_useful_terminal(token_name t) {
   case MINUS:
   case MUL:
   case DIV:
+  case DRIVER:
+  case DEFAULT:
 
     return true;
     break;

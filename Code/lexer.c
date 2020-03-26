@@ -7,6 +7,7 @@
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
 
+#include "driver.h"
 #include "hashtable.h"
 #include "lexerDef.h"
 #include <ctype.h>
@@ -18,12 +19,11 @@
 
 /**
  * @brief search string in lookup table to check if it's keyword or identifier
- * 
+ *
  * @param lexeme string to search for
  * @return token_name - ID or hash_table entry
  */
-token_name search_lookup_table(char *lexeme) 
-{
+token_name search_lookup_table(char *lexeme) {
   int num = search_hash_table(lookup_table, lexeme);
   if (KEY_NOT_FOUND == num) {
     return ID;
@@ -34,15 +34,13 @@ token_name search_lookup_table(char *lexeme)
 
 /**
  * @brief Get the token object recognized by the DFA
- * 
+ *
  * @return TOKEN - line_no , rnumerated value, name/int_value/real_value
  */
 
-TOKEN get_token() 
-{
+TOKEN get_token() {
 
-  if (lexeme_begin == BUFFER_SIZE) 
-  {
+  if (lexeme_begin == BUFFER_SIZE) {
     lexeme_begin = 0;
   }
   TOKEN tkn;
@@ -56,18 +54,16 @@ TOKEN get_token()
   int last_index = (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
   lexeme[last_index] = '\0';
 
-  if (2 == state) 
-  {
-    if (lex_size > 20) 
-    {
-        tkn.name = LEX_ERROR;
-        strcpy(tkn.str , lexeme);
-        return tkn;
+  if (2 == state) {
+    if (lex_size > 20) {
+      tkn.name = LEX_ERROR;
+      strcpy(tkn.str, lexeme);
+      return tkn;
     }
 
     token_name name = search_lookup_table(lexeme);
     tkn.name = name;
-    strcpy(tkn.str , lexeme);
+    strcpy(tkn.str, lexeme);
     return tkn;
   }
 
@@ -85,12 +81,11 @@ TOKEN get_token()
 
 /**
  * @brief retract and push back a character to stream
- * 
+ *
  * @param num_of_char - number of chracters to retract
  */
 
-void retract(int num_of_char) 
-{
+void retract(int num_of_char) {
   forward_ptr -= num_of_char;
   if (forward_ptr < 0) {
     forward_ptr += BUFFER_SIZE;
@@ -98,50 +93,12 @@ void retract(int num_of_char)
   just_retracted = true;
 }
 
-
-/**
- * @brief Read tokens from the file and make a mapping array which maps enumerated tokens to strings
- * 
- */
-void populate_terminal_string() 
-{
-
-  FILE *file = fopen("tokens.txt", "r");
-  fseek(file, 0, SEEK_END);
-  int length = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  char *t_file = malloc(sizeof(char) * (length + 1));
-  if (t_file == NULL) 
-  {
-      perror("terminal_string filling failed\n");
-      exit(1);
-  }
-
-  fread(t_file, sizeof(char), length, file);
-  t_file[length] = '\0';
-  fclose(file);
-
-  char *tk_read = NULL;
-  int i;
-  tk_read = strtok(t_file, ", \n");
-
-  for (i = 0; tk_read != NULL; i++) 
-  {
-    strcpy(terminal_string[i], tk_read);
-    tk_read = strtok(NULL, ", \n");
-  }
-
-  free(t_file);
-}
-
 /**
  * @brief inserts the entries for keywords in the lookup_table hashtable
- * 
+ *
  */
 
-void populate_lookup_table() 
-{
+void populate_lookup_table() {
 
   hash_insert(lookup_table, "integer", INTEGER);
   hash_insert(lookup_table, "real", REAL);
@@ -177,15 +134,13 @@ void populate_lookup_table()
 
 /**
  * @brief used to fill the buffer from source code
- * 
+ *
  * @param fp - pointer to source code file
  */
 
-void populate_buffer(FILE *fp) 
-{
+void populate_buffer(FILE *fp) {
   int num;
-  if (forward_ptr == BUFFER_SIZE) 
-  {
+  if (forward_ptr == BUFFER_SIZE) {
     forward_ptr = 0;
     num_of_rounds++;
   }
@@ -196,19 +151,17 @@ void populate_buffer(FILE *fp)
 
 /**
  * @brief does initialization work for lexer
- * 
+ *
  * - initializes lookup table for keywords
  * - reset DFA initial state
- * - resets forward pointer and line number 
+ * - resets forward pointer and line number
  * - populates buffer
- * 
- * @param source 
+ *
+ * @param source
  */
 
-void lexer_init(FILE *source) 
-{
+void lexer_init(FILE *source) {
   init_hash_table(lookup_table);
-  populate_terminal_string();
   populate_lookup_table();
 
   state = 0;
@@ -216,19 +169,19 @@ void lexer_init(FILE *source)
   forward_ptr = 0;
   just_retracted = false;
   line_no = 1;
-  num_of_rounds = 0;  
+  num_of_rounds = 0;
+
   int num = fseek(source, 0, SEEK_SET); // go back to start of source code file
   populate_buffer(source);
 }
 
 /**
  * @brief gives a character from buffer to dfa, refills buffer when needed
- * 
+ *
  * @param fp - pointer to source file
- * @return char 
+ * @return char
  */
-char get_char(FILE *fp) 
-{
+char get_char(FILE *fp) {
   if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) &&
       just_retracted == false) {
     populate_buffer(fp);
@@ -238,7 +191,7 @@ char get_char(FILE *fp)
   if (lex_index < 0) {
     lex_index += BUFFER_SIZE;
   }
-  if(lex_index < MAX_LEXEME_LEN)
+  if (lex_index < MAX_LEXEME_LEN)
     lexeme[lex_index] = c;
   forward_ptr++;
   just_retracted = false;
@@ -247,15 +200,14 @@ char get_char(FILE *fp)
 
 /**
  * @brief Get the next token object
- * 
+ *
  * @param fp - source code file pointer
- * @return TOKEN 
+ * @return TOKEN
  */
 TOKEN get_next_token(FILE *fp) {
   char c;
   TOKEN tkn;
-  while (true) 
-  {
+  while (true) {
     tkn.line_no = line_no;
     switch (state) {
     case 0:;
@@ -403,8 +355,7 @@ TOKEN get_next_token(FILE *fp) {
       c = get_char(fp);
       if (isdigit(c)) {
         state = 11;
-      } else 
-      {
+      } else {
         retract(1);
         state = 48;
       }
@@ -447,7 +398,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 15:;
       tkn.name = PLUS;
-      strcpy(tkn.str , "+");
+      strcpy(tkn.str, "+");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -455,7 +406,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 16:;
       tkn.name = MINUS;
-      strcpy(tkn.str , "-");
+      strcpy(tkn.str, "-");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -473,7 +424,7 @@ TOKEN get_next_token(FILE *fp) {
     case 18:;
       retract(1);
       tkn.name = MUL;
-      strcpy(tkn.str , "*");
+      strcpy(tkn.str, "*");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -484,7 +435,7 @@ TOKEN get_next_token(FILE *fp) {
       c = get_char(fp);
       if ('*' != c) {
         state = 19;
-        if('\n' == c)
+        if ('\n' == c)
           line_no++;
       } else {
         state = 20;
@@ -498,7 +449,7 @@ TOKEN get_next_token(FILE *fp) {
         state = 21;
       } else {
         state = 19;
-        if('\n' == c)
+        if ('\n' == c)
           line_no++;
       }
       break;
@@ -511,7 +462,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 22:;
       tkn.name = DIV;
-      strcpy(tkn.str , "/");
+      strcpy(tkn.str, "/");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -531,7 +482,7 @@ TOKEN get_next_token(FILE *fp) {
     case 24:;
       retract(1);
       tkn.name = LT;
-      strcpy(tkn.str , "<");
+      strcpy(tkn.str, "<");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -539,7 +490,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 25:;
       tkn.name = LE;
-      strcpy(tkn.str , "<=");
+      strcpy(tkn.str, "<=");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -552,7 +503,7 @@ TOKEN get_next_token(FILE *fp) {
       } else {
         retract(1);
         tkn.name = DEF;
-        strcpy(tkn.str , "<<");
+        strcpy(tkn.str, "<<");
         lexeme_begin = forward_ptr;
         state = 0;
         return tkn;
@@ -573,7 +524,7 @@ TOKEN get_next_token(FILE *fp) {
     case 28:;
       retract(1);
       tkn.name = GT;
-      strcpy(tkn.str , ">");
+      strcpy(tkn.str, ">");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -581,7 +532,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 29:;
       tkn.name = GE;
-      strcpy(tkn.str , ">=");
+      strcpy(tkn.str, ">=");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -594,7 +545,7 @@ TOKEN get_next_token(FILE *fp) {
       } else {
         retract(1);
         tkn.name = ENDDEF;
-        strcpy(tkn.str , ">>");
+        strcpy(tkn.str, ">>");
         lexeme_begin = forward_ptr;
         state = 0;
         return tkn;
@@ -613,7 +564,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 32:;
       tkn.name = EQ;
-      strcpy(tkn.str , "==");
+      strcpy(tkn.str, "==");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -631,7 +582,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 34:;
       tkn.name = NE;
-      strcpy(tkn.str , "!=");
+      strcpy(tkn.str, "!=");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -648,7 +599,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 36:;
       tkn.name = ASSIGNOP;
-      strcpy(tkn.str , ":=");
+      strcpy(tkn.str, ":=");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -657,7 +608,7 @@ TOKEN get_next_token(FILE *fp) {
     case 37:;
       retract(1);
       tkn.name = COLON;
-      strcpy(tkn.str , ":");
+      strcpy(tkn.str, ":");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -667,8 +618,7 @@ TOKEN get_next_token(FILE *fp) {
       c = get_char(fp);
       if ('.' == c) {
         state = 39;
-      } else 
-      {
+      } else {
         retract(1);
         state = 48;
       }
@@ -676,7 +626,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 39:;
       tkn.name = RANGEOP;
-      strcpy(tkn.str , "..");
+      strcpy(tkn.str, "..");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -684,7 +634,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 40:;
       tkn.name = SEMICOL;
-      strcpy(tkn.str , ";");
+      strcpy(tkn.str, ";");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -692,7 +642,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 41:;
       tkn.name = COMMA;
-      strcpy(tkn.str , ",");
+      strcpy(tkn.str, ",");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -700,7 +650,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 42:;
       tkn.name = SQBO;
-      strcpy(tkn.str , "[");
+      strcpy(tkn.str, "[");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -708,7 +658,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 43:;
       tkn.name = SQBC;
-      strcpy(tkn.str , "]");
+      strcpy(tkn.str, "]");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -716,7 +666,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 44:;
       tkn.name = BO;
-      strcpy(tkn.str , "(");
+      strcpy(tkn.str, "(");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -724,21 +674,21 @@ TOKEN get_next_token(FILE *fp) {
 
     case 45:;
       tkn.name = BC;
-      strcpy(tkn.str , ")");
+      strcpy(tkn.str, ")");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
     case 46:;
       tkn.name = DRIVERDEF;
-      strcpy(tkn.str , "<<<");
+      strcpy(tkn.str, "<<<");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
     case 47:;
       tkn.name = DRIVERENDDEF;
-      strcpy(tkn.str , ">>>");
+      strcpy(tkn.str, ">>>");
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -750,9 +700,10 @@ TOKEN get_next_token(FILE *fp) {
         lex_size += num_of_rounds * BUFFER_SIZE;
         num_of_rounds = 0;
       }
-      int last_index = (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
+      int last_index =
+          (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
       lexeme[last_index] = '\0';
-      strcpy(tkn.str , lexeme);
+      strcpy(tkn.str, lexeme);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -765,12 +716,11 @@ TOKEN get_next_token(FILE *fp) {
 
 /**
  * @brief Printing all the lexemes recognized by the DFA
- * 
+ *
  * @param source - source file pointer
  */
 
-void tokenize_source_file(FILE *source)
-{
+void tokenize_source_file(FILE *source) {
   TOKEN tkn;
 
   printf("%-15s  |  %-20s  |  %-20s\n", "LINE_NUMBER", "LEXEME", "TOKEN_NAME");
@@ -781,23 +731,16 @@ void tokenize_source_file(FILE *source)
 
   while (true) {
     tkn = get_next_token(source);
-    if (tkn.name == DOLLAR) 
-    {
+    if (tkn.name == DOLLAR) {
       break;
-    } 
-    else 
-    {
-      if (tkn.name == LEX_ERROR) 
-      {
+    } else {
+      if (tkn.name == LEX_ERROR) {
         printf("==========================================================\n");
         printf("%-15d  |  %-20s  |  %-20s\n", tkn.line_no, tkn.str,
                "LEXICAL ERROR");
         printf("==========================================================\n");
-      } 
-      else 
-      {
-        if (tkn.name != DELIM) 
-        {
+      } else {
+        if (tkn.name != DELIM) {
           printf("%-15d  |  ", tkn.line_no);
           switch (tkn.name) {
           case NUM:
@@ -819,7 +762,7 @@ void tokenize_source_file(FILE *source)
 
 /**
  * @brief Remove comments from the source file
- * 
+ *
  * @param source - source file pointer
  * @param no_comment_file - destination file name
  */
@@ -830,50 +773,43 @@ void remove_comments(FILE *source, char *no_comment_file) {
   char ch = get_char(source);
 
   while (ch != EOF) {
-    switch (state) 
-    {
-      case 0:
-      {
-        if ('*' == ch)
-          state = 1;
-        else
+    switch (state) {
+    case 0: {
+      if ('*' == ch)
+        state = 1;
+      else
+        fputc(ch, outp_fptr);
+      break;
+    }
+    case 1: {
+      if ('*' == ch)
+        state = 2;
+      else {
+        state = 0;
+        fputc('*', outp_fptr);
+        fputc(ch, outp_fptr);
+      }
+      break;
+    }
+    case 2: {
+      if ('*' == ch)
+        state = 3;
+      else {
+        state = 2;
+        if ('\n' == ch)
           fputc(ch, outp_fptr);
-        break;
       }
-      case 1:
-      {
-        if ('*' == ch)
-          state = 2;
-        else 
-        {
-          state = 0;
-          fputc('*', outp_fptr);
-          fputc(ch, outp_fptr);
-        }
-        break;
-      }
-      case 2:
-      {
-        if ('*' == ch)
-          state = 3;
-        else 
-        {
-          state = 2;
-          if ('\n' == ch)
-            fputc(ch, outp_fptr);
-        }
-        break;
-      }
-      case 3:
-      {
-        if ('*' == ch)
-          state = 0;
-        else
-          state = 2;
-        break;
-      }
-      default:
-        break;
+      break;
+    }
+    case 3: {
+      if ('*' == ch)
+        state = 0;
+      else
+        state = 2;
+      break;
+    }
+    default:
+      break;
     }
     ch = get_char(source);
   } // end of while - file read
@@ -884,30 +820,27 @@ void remove_comments(FILE *source, char *no_comment_file) {
   char choice;
   scanf("\n%c", &choice);
 
-  if (choice == 'Y') 
-  {
-      FILE *fptr = fopen(no_comment_file, "r");
-      char * line = NULL;
-      size_t len = 0;
-      ssize_t read;
-      
-      if (fptr == NULL)
-      {
-        printf("Unable to write to file %s\n", no_comment_file);
-        return;
-      }
+  if (choice == 'Y') {
+    FILE *fptr = fopen(no_comment_file, "r");
+    char *line = NULL;
+    size_t len = 0;
+    size_t read;
 
-      while ((read = getline(&line, &len, fptr)) != -1) 
-      {
-          printf("%s", line);
-      }
-      if (line)
-          free(line);
+    if (fptr == NULL) {
+      printf("Unable to write to file %s\n", no_comment_file);
+      return;
+    }
 
-      getchar();
-      printf("\nPress any character to continue\n");
-      char ch2;
-      scanf("%c", &ch2);
-      fclose(fptr);
+    while ((read = getline(&line, &len, fptr)) != -1) {
+      printf("%s", line);
+    }
+    if (line)
+      free(line);
+
+    getchar();
+    printf("\nPress any character to continue\n");
+    char ch2;
+    scanf("%c", &ch2);
+    fclose(fptr);
   }
 }

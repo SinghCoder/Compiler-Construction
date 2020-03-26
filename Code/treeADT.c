@@ -7,39 +7,41 @@
   Yash Vijay           -   2017A7PS0072P
 *****************************************/
 #include "treeADT.h"
+#include "parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /**
  * @brief Create a tree node object
- * 
+ *
  * @return pointer to created node
  */
 
 tree_node *create_tree_node() {
   tree_node *node = (tree_node *)malloc(sizeof(tree_node));
-  if (node == NULL) 
-  {
+  if (node == NULL) {
     perror("tree_node allocation error..\n");
     exit(0);
   }
+
+  node->visited = false;
   node->parent = NULL;
   node->sibling = NULL;
   node->leftmost_child = NULL;
   node->rightmost_child = NULL;
-  strcpy(node->token.str,"");
+  node->node_inh = NULL;
+  node->node_syn = NULL;
+  strcpy(node->token.str, "");
   return node;
 }
 
 /**
  * @brief Add the child as rightmost_child to given node
- * 
+ *
  */
 
-
-void add_child(tree_node *parent, tree_node *child) 
-{
+void add_child(tree_node *parent, tree_node *child) {
   if (parent->rightmost_child == NULL) {
     parent->leftmost_child = child;
     parent->rightmost_child = child;
@@ -47,4 +49,25 @@ void add_child(tree_node *parent, tree_node *child)
     parent->rightmost_child->sibling = child;
     parent->rightmost_child = child;
   }
+  child->sibling = NULL;
+}
+
+tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {
+
+  if (prev != NULL) {
+    prev->sibling = child->sibling;
+  }
+
+  if (child == parent->leftmost_child) {
+    parent->leftmost_child = child->sibling;
+  }
+
+  if (child == parent->rightmost_child) {
+    parent->rightmost_child = prev;
+  }
+  free(child);
+  if (prev != NULL)
+    return prev->sibling;
+  else
+    return parent->leftmost_child;
 }

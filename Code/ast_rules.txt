@@ -62,7 +62,8 @@
 
 8. NTMODULE => def module id enddef takes input sqbo INPUT_PLIST sqbc semicol RET MODULEDEF
 {
-    1. NTMODULE.node_syn = make_node(id, 
+    1. NTMODULE.node_syn = make_node("NTMODULE",
+                                    id, 
                                      make_node("PARAMETERS_LIST", INPUT_PLIST.list_head_syn), 
                                      RET.node_syn, 
                                      MODULEDEF.node_syn)
@@ -694,7 +695,7 @@
 {
     1. CONDITIONALSTMT.node_syn = make_node("SWITCH",id,
                                             make_node("CASES", CASESTMT.list_head_syn),
-                                            make_node("DEFAULT", DEFAULTSTMT.node_syn)
+                                            DEFAULTSTMT.node_syn
                                            )
     2. free(switch)
     3. free(bo)

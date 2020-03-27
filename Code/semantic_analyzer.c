@@ -7,6 +7,8 @@
 
 void semantic_analyzer_init(){
     curr_sym_tab.parent_table = NULL;
+    curr_sym_tab.next_table = NULL;
+    curr_sym_tab.sibling_table = NULL;
     init_hash_table(curr_sym_tab.table);
 }
 
@@ -80,7 +82,7 @@ void insert_type_in_list(types_list *list, type *t){
     }
 }
 
-void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
+void insert_function_definition(struct symbol_table_wrapper* t1,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
     // printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     type *t = (type*) malloc( sizeof(type) );
     t->name = MODULE;
@@ -114,9 +116,9 @@ void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree
         }
     }
 
-    hash_insert_ptr_val(curr_sym_tab.table, lexeme, t);
+    hash_insert_ptr_val(t1->table, lexeme, t);
 }
-void insert_in_sym_table(tree_node *node){
+void insert_in_sym_table(struct symbol_table_wrapper* t1,tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );    
     if(node->parent == NULL)
         return;
@@ -151,7 +153,7 @@ void insert_in_sym_table(tree_node *node){
             break;
     }
 
-    hash_insert_ptr_val(curr_sym_tab.table, node->token.str, type_ptr);
+    hash_insert_ptr_val(t1->table, node->token.str, type_ptr);
 }
 
 void print_types_list(types_list *list){
@@ -171,7 +173,57 @@ void print_types_list(types_list *list){
     }
 
 }
-
+void print_symbol_table(struct symbol_table_wrapper* curr_sym_tab){
+    if(curr_sym_tab==NULL) printf("havoc\n");
+    for(int i=0;i<HASH_SIZE;i++){
+        printf("%s ",curr_sym_tab->table[i].lexeme);
+        printf("%d ",((type*)curr_sym_tab->table[i].value)->name);
+        if(((type*)curr_sym_tab->table[i].value)->name==ARRAY){
+            printf("ARRAY ");
+            printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.primitive_type);
+            printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.range_high);
+            printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.range_low);
+            printf("%d\n",((type*)curr_sym_tab->table[i].value)->typeinfo.array.is_dynamic);
+        }
+        else if(((type*)curr_sym_tab->table[i].value)->name==MODULE){
+            printf("MODULE ");
+            print_types_list(((type*)curr_sym_tab->table[i].value)->typeinfo.module.input_types);
+            print_types_list(((type*)curr_sym_tab->table[i].value)->typeinfo.module.output_types);
+            printf("%d\n",((type*)curr_sym_tab->table[i].value)->typeinfo.module.is_declared);            
+        }
+        printf("\n-----------\n");
+    }
+    printf("************************\n****************************\n");
+    if(curr_sym_tab->next_table == NULL) return;
+    struct symbol_table_wrapper* tmp = curr_sym_tab->next_table;
+    while(tmp!=NULL){
+        print_symbol_table(tmp);
+        tmp=tmp->sibling_table;
+    }
+}
+// void print_symbol_table(struct symbol_table_wrapper* curr_sym_tab){
+//     if(curr_sym_tab==NULL) printf("havoc\n");
+//     for(int i=0;i<HASH_SIZE;i++){
+//         printf("%s ",curr_sym_tab->table[i].lexeme);
+//         // if(curr_sym_tab->table[i].value==NULL) continue;
+//         printf("%d ",((type*)curr_sym_tab->table[i].value)->name);
+//         if(((type*)curr_sym_tab->table[i].value)->name==ARRAY){
+//             printf("ARRAY ");
+//             printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.primitive_type);
+//             printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.range_high);
+//             printf("%d ",((type*)curr_sym_tab->table[i].value)->typeinfo.array.range_low);
+//             printf("%d\n",((type*)curr_sym_tab->table[i].value)->typeinfo.array.is_dynamic);
+//         }
+//         else if(((type*)curr_sym_tab->table[i].value)->name==MODULE){
+//             printf("MODULE ");
+//             print_types_list(((type*)curr_sym_tab->table[i].value)->typeinfo.module.input_types);
+//             print_types_list(((type*)curr_sym_tab->table[i].value)->typeinfo.module.output_types);
+//             printf("%d\n",((type*)curr_sym_tab->table[i].value)->typeinfo.module.is_declared);            
+//         }
+//         printf("\n-----------\n");
+//     }
+//     printf("-------------------\n---------------------\n");
+// }
 void print_symbol_(tree_node *temp) {	(types_list*) malloc( sizeof(types_list));
     if(!temp)
         return;
@@ -182,6 +234,7 @@ void print_symbol_(tree_node *temp) {	(types_list*) malloc( sizeof(types_list));
   }	
 }
 void construct_symtable(tree_node *ast_root) {
+  struct symbol_table_wrapper *tmp=&curr_sym_tab;
   tree_node *node = ast_root;
 //   printf("```````````````````````````````````````````````````````````\n");
 //   print_symbol_(node);
@@ -196,41 +249,56 @@ void construct_symtable(tree_node *ast_root) {
             if(node->sym.is_terminal == false){
                 if(is_new_scope_openable(node->sym.nt) == true && node->sym.nt != MAINPROGRAM){
                     st_wrapper *new_sym_tab_ptr = (st_wrapper*)malloc(sizeof(st_wrapper));
-                    new_sym_tab_ptr->parent_table = &curr_sym_tab;
+                    new_sym_tab_ptr->parent_table = tmp;
+                    new_sym_tab_ptr->sibling_table = NULL;
+                    new_sym_tab_ptr->next_table = NULL;
                     init_hash_table(new_sym_tab_ptr->table);
-                    curr_sym_tab = *new_sym_tab_ptr;
+                    if(tmp->next_table==NULL) {
+                        printf("1\n");
+                        tmp->next_table = new_sym_tab_ptr;
+                    }
+                    else if(tmp->next_table->sibling_table==NULL) {
+                        printf("2\n");
+                        tmp->next_table->sibling_table = new_sym_tab_ptr;
+                    }
+                    else{
+                        printf("3\n");
+                        tmp=tmp->next_table;
+                        while(tmp->sibling_table!=NULL){
+                            tmp=tmp->sibling_table;
+                        }
+                        tmp->sibling_table = new_sym_tab_ptr;
+                    }
+                    tmp = new_sym_tab_ptr;
                     printf("\n\n New Scope Opened \n\n");
                 }
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
+                    insert_function_definition(tmp,node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
                 }
             }
             else{
                 if(node->sym.t == ID){
-                    int check_hash_table = search_hash_table(curr_sym_tab.table, node->token.str);
+                    int check_hash_table = search_hash_table(tmp->table, node->token.str);
                     if( check_hash_table == KEY_NOT_FOUND ){
-                        insert_in_sym_table(node);
+                        insert_in_sym_table(tmp,node);
                     }
                 }
             }
 
             if(node->leftmost_child != NULL){
                 node = node->leftmost_child;
-                // printf("node = node->leftmost_child\n");
-                // print_symbol_(node);
             }
-
         } 
         else{      
             if(node->sym.is_terminal == false){
                 if(is_new_scope_openable(node->sym.nt) == true && node->sym.nt != MAINPROGRAM){                                
-                    curr_sym_tab = *(curr_sym_tab.parent_table);
+                    tmp=tmp->parent_table;
                     printf("\n\n A scope closed \n\n");
                 }   
             }
             else{
-                if(key_present_in_table(curr_sym_tab.table, node->token.str)){
-                    type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, node->token.str);
+                if(key_present_in_table(tmp->table, node->token.str)){
+                    type *type_ptr = (type*)search_hash_table_ptr_val(tmp->table, node->token.str);
                     if(type_ptr){
                         printf("Received entry for %s, type_name = %s\n", node->token.str, terminal_string[type_ptr->name] );
                         if(type_ptr->name == ARRAY){
@@ -247,7 +315,6 @@ void construct_symtable(tree_node *ast_root) {
                             printf("Output_types_list : ");
                             print_types_list(type_ptr->typeinfo.module.output_types);
                             printf("\n");
-
                         }
                     }
                 }
@@ -264,4 +331,12 @@ void construct_symtable(tree_node *ast_root) {
             }
         } 
     }while (node != NULL);;
+}
+struct symbol_table_wrapper* key_present_in_parent(struct symbol_table_wrapper* sym_table,char* lexeme){
+    if(sym_table==NULL) return NULL;
+    bool b = key_present_in_table(sym_table->table,lexeme);
+    if(b==false){
+        return key_present_in_parent(sym_table->parent_table,lexeme);
+    }
+    else return sym_table;
 }

@@ -54,8 +54,6 @@ void parser_init() {
     }
   }
 
-  // initialize error variable
-  error_present = false;
 }
 
 /**
@@ -224,22 +222,21 @@ tree_node *parse_input_source_code(FILE *source) {
       if (node->sym.t != tkn.name) // terminal on top of stack does not match
                                    // with lookhead symbol
       {
-
-        error_present = true;
-        printf(ANSI_COLOR_RED
-               "%d) Syntax Error: " ANSI_COLOR_RESET
-               "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET
-               " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET,
-               tkn.line_no, terminal_string[node->sym.t],
-               terminal_string[tkn.name]);
+        
+        char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+        sprintf(type_err,"%d) SYNTAX ERORR", tkn.line_no);
+        
+        char *err_msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+        sprintf(err_msg, "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET,terminal_string[node->sym.t], terminal_string[tkn.name]);
+        
+        print_error(type_err, err_msg);        
+        
         printf("Popping token %s from stack top\n",
                terminal_string[node->sym.t]);
         // tkn = get_next_token(source);
         node = pop(main_stack);
         if (node == NULL) {
-          printf(ANSI_COLOR_BLUE
-                 "Panic mode error recovery not possible!" ANSI_COLOR_RESET
-                 "Only a partial parse tree formed!!\n");
+          print_error("Panic Mode Error Recovery Not possible", "Partial parse tree formed");          
           return root;
         }
         continue;
@@ -266,11 +263,11 @@ tree_node *parse_input_source_code(FILE *source) {
     }
 
     if (tkn.name == LEX_ERROR) {
-      error_present = true;
-      printf(ANSI_COLOR_RED "%d) Lexical Error:" ANSI_COLOR_RESET
-                            "Invalid token " ANSI_COLOR_YELLOW
-                            "\"%s\"\n" ANSI_COLOR_RESET,
-             tkn.line_no, tkn.str);
+
+      char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+      sprintf(err_type, "%d) LEXICAL ERROR", tkn.line_no);
+      print_error(err_type, tkn.str);
+
       tkn = get_next_token(source);
       push(main_stack, node);
       continue;
@@ -278,10 +275,9 @@ tree_node *parse_input_source_code(FILE *source) {
     if (node == NULL) {
       if (tkn.name != DOLLAR) // rule not read completely but stack became empty
       {
-        error_present = true;
-        printf(ANSI_COLOR_RED "%d) Syntax Error: " ANSI_COLOR_RESET
-                              "Extra symbols in the source code\n",
-               tkn.line_no);
+        char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+        sprintf(type_err, "%d) SYNTAX ERORR", tkn.line_no);        
+        print_error(type_err, "Extra symbols in the source code");        
       } else {
         printf(
             "\nInput source code is now syntactically correct...........\n\n");
@@ -291,20 +287,19 @@ tree_node *parse_input_source_code(FILE *source) {
 
     int rule_no = parse_table[node->sym.nt][tkn.name];
     if (rule_no == NO_MATCHING_RULE) {
-      printf("[%s][%s]", non_terminal_string[node->sym.nt],
-             terminal_string[tkn.name]);
-      printf(ANSI_COLOR_RED "%d) Syntax Error: " ANSI_COLOR_RESET
-                            "no matching rule found in grammar\n",
-             tkn.line_no);
-      printf("Waiting for an element in follow of " ANSI_COLOR_YELLOW
-             "\"%s\"\n" ANSI_COLOR_RESET,
-             non_terminal_string[node->sym.nt]);
+      // printf("[%s][%s]", non_terminal_string[node->sym.nt],
+            //  terminal_string[tkn.name]);
+      
+      char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+      sprintf(type_err, "%d) SYNTAX ERORR", tkn.line_no);        
+      print_error(type_err, "No matching rule found in grammar");  
+
+      printf("Waiting for an element in follow of " ANSI_COLOR_YELLOW "\"%s\"\n" ANSI_COLOR_RESET, non_terminal_string[node->sym.nt]);
+      
       while (set_find_elem(follow_set[node->sym.nt], tkn.name) == false) {
         tkn = get_next_token(source);
         if (tkn.name == DOLLAR) {
-          printf(ANSI_COLOR_BLUE
-                 "Panic mode error recovery not possible!" ANSI_COLOR_RESET
-                 "Only a partial parse tree formed!!\n");
+          print_error("Panic Mode Error Recovery Not possible", "Partial parse tree formed");          
           return root;
         }
       }
@@ -496,7 +491,7 @@ void print_node_for_tool(tree_node *node) {
     } break;
     }
   } else {
-    fprintf(parse_tree_file_ptr, "[%s ", non_terminal_string[(node->sym).nt]);
+    fprintf(parse_tree_file_ptr, "[%s(%d) ", non_terminal_string[(node->sym).nt], node->num_child);
   }
 }
 

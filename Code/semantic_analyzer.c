@@ -35,8 +35,27 @@ type *retreive_type(tree_node *node){
         type_ptr->name = ARRAY;
         type_ptr->typeinfo.array.primitive_type = node->rightmost_child->sym.t;        
         
-        type_ptr->typeinfo.array.range_low = ( node->leftmost_child->leftmost_child->sym.is_terminal) ? node->leftmost_child->leftmost_child->token.num : OBTAIN_DYNAMICALLY;
-        type_ptr->typeinfo.array.range_high = ( node->leftmost_child->rightmost_child->sym.is_terminal) ? node->leftmost_child->rightmost_child->token.num : OBTAIN_DYNAMICALLY;
+        if( node->leftmost_child->leftmost_child->sym.t == NUM ){
+            type_ptr->typeinfo.array.range_low = node->leftmost_child->leftmost_child->token.num;
+            type_ptr->typeinfo.array.is_dynamic = false;
+        }
+        else{
+            type_ptr->typeinfo.array.range_low = OBTAIN_DYNAMICALLY;
+            type_ptr->typeinfo.array.is_dynamic = true;
+            
+        }
+
+        if( node->leftmost_child->rightmost_child->sym.t == NUM ){
+            type_ptr->typeinfo.array.range_high = node->leftmost_child->rightmost_child->token.num;
+            type_ptr->typeinfo.array.is_dynamic = false;
+        }
+        else{
+            type_ptr->typeinfo.array.range_high = OBTAIN_DYNAMICALLY;
+            type_ptr->typeinfo.array.is_dynamic = true;
+            
+        }
+        
+        type_ptr->typeinfo.array.range_high = ( node->leftmost_child->rightmost_child->sym.t == NUM) ? node->leftmost_child->rightmost_child->token.num : OBTAIN_DYNAMICALLY;
          
     }
     else{
@@ -142,6 +161,9 @@ void print_types_list(types_list *list){
     while(type_tmp != NULL){
         printf("%s", terminal_string[type_tmp->t->name]);
         if(type_tmp->t->name == ARRAY){
+            if(type_tmp->t->typeinfo.array.is_dynamic == true){
+                printf(" Dynamic indexes ");
+            }
             printf("[%d...%d] of %s", type_tmp->t->typeinfo.array.range_low, type_tmp->t->typeinfo.array.range_high, terminal_string[type_tmp->t->typeinfo.array.primitive_type]);
         }
         printf(" | ");
@@ -180,7 +202,7 @@ void construct_symtable(tree_node *ast_root) {
                     printf("\n\n New Scope Opened \n\n");
                 }
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(node->leftmost_child->token.str, node->leftmost_child->sibling->leftmost_child, node->leftmost_child->sibling->sibling->leftmost_child); //pass the list heads for input and output types
+                    insert_function_definition(node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
                 }
             }
             else{
@@ -212,6 +234,9 @@ void construct_symtable(tree_node *ast_root) {
                     if(type_ptr){
                         printf("Received entry for %s, type_name = %s\n", node->token.str, terminal_string[type_ptr->name] );
                         if(type_ptr->name == ARRAY){
+                            if(type_ptr->typeinfo.array.is_dynamic){
+                                printf(" Dynamically indexed ");
+                            }
                             printf("Range: [%d..%d] Primitive type : %s\n", type_ptr->typeinfo.array.range_low, type_ptr->typeinfo.array.range_high, terminal_string[type_ptr->typeinfo.array.primitive_type]);
                         }
                         else if(type_ptr->name == MODULE){

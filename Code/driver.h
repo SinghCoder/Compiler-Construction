@@ -24,5 +24,6 @@ char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 char parse_tree_file[MAX_FILE_NAME_LEN];
 FILE *parse_tree_file_ptr;
 
+void print_error(char *type, char *message);
 
 #endif

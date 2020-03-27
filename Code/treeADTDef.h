@@ -33,6 +33,7 @@ typedef struct TREENODE
   symbol sym;
   TOKEN token;
   int rule_num;
+  int num_child;
   bool visited;
 } tree_node;
 

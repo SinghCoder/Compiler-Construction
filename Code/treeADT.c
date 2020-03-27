@@ -49,6 +49,7 @@ void add_child(tree_node *parent, tree_node *child) {
     parent->rightmost_child->sibling = child;
     parent->rightmost_child = child;
   }
+  child->parent = parent;
   child->sibling = NULL;
 }
 

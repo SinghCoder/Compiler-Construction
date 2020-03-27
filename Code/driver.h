@@ -4,8 +4,8 @@
 #include<stdio.h>
 
 #define NUM_OF_TERMINALS 61
-#define NUM_OF_NONTERMINALS 53
-#define NUM_OF_RULES 98
+#define NUM_OF_NONTERMINALS 54
+#define NUM_OF_RULES 99
 #define MAX_SYMBOL_LENGTH 50
 #define MAX_FILE_NAME_LEN 100
 #define COLUMN_SIZE 20
@@ -23,5 +23,6 @@ char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 
 char parse_tree_file[MAX_FILE_NAME_LEN];
 FILE *parse_tree_file_ptr;
+
 
 #endif

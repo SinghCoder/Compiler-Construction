@@ -251,6 +251,20 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
                     // avoid nullifying parents/siblings fields
       }
 
+		tree_node *ast_node = temp->node_syn;
+	  if( (ast_node != NULL) && 
+	  		(ast_node->leftmost_child == ast_node->rightmost_child) &&
+			  (ast_node->leftmost_child != NULL) &&
+			  	(ast_node->leftmost_child->sym.is_terminal == false) ){// It's a chain of non-terminals in AST, remove it
+
+			tree_node *ast_child = ast_node->leftmost_child;
+			ast_child->parent = ast_node->parent;
+			ast_child->sibling = ast_node->parent;
+			*ast_node = *ast_child;
+			free(ast_child);
+
+		}
+
       if (temp->sibling != NULL) {
         temp = temp->sibling;
       } else {

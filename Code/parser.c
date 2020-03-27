@@ -311,13 +311,10 @@ tree_node *parse_input_source_code(FILE *source) {
     cell rule = grammar[rule_no];
     rhsnode_ptr rhs_ptr = rule.head;
 
-    node->rule_num = rule_no + 1;
-
     while (rhs_ptr != NULL) {
       tree_node *temp = create_tree_node();
       temp->parent = node;
       temp->sym = rhs_ptr->sym;
-      temp->rule_num = rule_no;
       add_child(node, temp);
       push(aux_stack, temp);
       rhs_ptr = rhs_ptr->next;

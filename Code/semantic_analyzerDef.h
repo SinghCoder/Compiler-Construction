@@ -4,7 +4,7 @@
 #include "driver.h"
 #include <limits.h>
 
-#define OBTAIN_DYNAMICALLY INT_MAX
+#define OBTAIN_DYNAMICALLY 0x3f3f3f3f
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
@@ -20,6 +20,7 @@ struct types_list_node{
 typedef struct types_list{
     types_list_node *first;
     types_list_node *last;    
+    int length;
 } types_list;
 
 struct type{

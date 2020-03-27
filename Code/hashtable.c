@@ -157,4 +157,5 @@ void* search_hash_table_ptr_val(hash_table table, char *lexeme){
 		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
 		probe_num++;
 	}
+	return NULL;
 }

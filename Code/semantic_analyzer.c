@@ -78,6 +78,7 @@ void insert_type_in_list(types_list *list, type *t){
         list->last->next = type_node;
         list->last = type_node;
     }
+    list->length++;
 }
 
 void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
@@ -89,10 +90,12 @@ void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree
     t->typeinfo.module.input_types = (types_list*) malloc( sizeof(types_list));
     t->typeinfo.module.input_types->first = NULL;
     t->typeinfo.module.input_types->last = NULL;
+    t->typeinfo.module.input_types->length = 0;
 
     t->typeinfo.module.output_types = (types_list*) malloc( sizeof(types_list));
     t->typeinfo.module.output_types->first = NULL;
     t->typeinfo.module.output_types->last = NULL;
+    t->typeinfo.module.output_types->length = 0;
 
     if(inp_par_node_list != NULL){      // It will be NULL if function does not accepts any input, bcz then input_plist will be epsilon node and it's leftmost child = NULL
         tree_node *inp_type_node = inp_par_node_list->sibling;  // It will always exist bcz atleast one input if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
@@ -155,9 +158,12 @@ void insert_in_sym_table(tree_node *node){
 }
 
 void print_types_list(types_list *list){
-    if(list == NULL)
+    if(list == NULL){
+        printf("[0]");
         return;
+    }
     types_list_node *type_tmp = list->first;
+    printf("[%d] - ", list->length);
     while(type_tmp != NULL){
         printf("%s", terminal_string[type_tmp->t->name]);
         if(type_tmp->t->name == ARRAY){
@@ -172,7 +178,7 @@ void print_types_list(types_list *list){
 
 }
 
-void print_symbol_(tree_node *temp) {	(types_list*) malloc( sizeof(types_list));
+void print_symbol_(tree_node *temp) {
     if(!temp)
         return;
   if (temp->sym.is_terminal == true) {	
@@ -188,9 +194,14 @@ void construct_symtable(tree_node *ast_root) {
 //   printf("```````````````````````````````````````````````````````````\n");
   do{
         // printf("===================\n");
+        // if(!node->visited)
+        //     printf("Entered : ");
+        // else
+        //     printf("Exited : ");
         // print_symbol_(node);
         // printf("===================\n");
         if (node->visited == false) {
+            // print_symbol_(node);
             node->visited = true;
 
             if(node->sym.is_terminal == false){
@@ -199,7 +210,7 @@ void construct_symtable(tree_node *ast_root) {
                     new_sym_tab_ptr->parent_table = &curr_sym_tab;
                     init_hash_table(new_sym_tab_ptr->table);
                     curr_sym_tab = *new_sym_tab_ptr;
-                    printf("\n\n New Scope Opened \n\n");
+                    printf("\n\n New Scope Opened at %s \n\n", non_terminal_string[node->sym.nt]);
                 }
                 if(node->sym.nt == NTMODULE){
                     insert_function_definition(node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types

@@ -251,6 +251,28 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
                     // avoid nullifying parents/siblings fields
       }
 
+		tree_node *ast_node = temp->node_syn;
+	  if( (ast_node != NULL) && 
+	  		(ast_node->leftmost_child == ast_node->rightmost_child) &&
+			  (ast_node->leftmost_child != NULL) &&
+			  	(ast_node->leftmost_child->sym.is_terminal == false) ){// It's a chain of non-terminals in AST, remove it
+
+			tree_node *ast_child = ast_node->leftmost_child;
+			ast_node->leftmost_child = ast_child->leftmost_child;
+			ast_node->rightmost_child = ast_child->rightmost_child;
+			// ast_node->sym = ast_child->sym;
+			// ast_node->token = ast_child->token;
+			ast_node->num_child = ast_child->num_child;
+			ast_node->node_inh = ast_child->node_inh;
+			ast_node->node_syn = ast_child->node_syn;
+			// printf("Collapsing %s-%s chain\n", non_terminal_string[ast_node->sym.nt], non_terminal_string[ast_child->sym.nt]);
+			// ast_child->parent = ast_node->parent;
+			// ast_child->sibling = ast_node->parent;
+			// *ast_node = *ast_child;
+			// free(ast_child);
+
+		}
+
       if (temp->sibling != NULL) {
         temp = temp->sibling;
       } else {

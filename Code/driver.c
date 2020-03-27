@@ -178,8 +178,7 @@ int main(int argc, char *argv[]) {
 			// print_parse_tree(ptr);
 
 			tree_node *ast_tree = construct_ast(ptr);
-			// printf("\n*****AST******\n");
-			// print_ast(ast_tree);
+			
 			print_parse_tree_for_tool(ast_tree);
 
 			fclose(parse_tree_file_ptr);

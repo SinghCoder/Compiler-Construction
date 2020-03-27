@@ -45,8 +45,57 @@ type *retreive_type(tree_node *node){
     return type_ptr;
 }
 
-void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
+void insert_type_in_list(types_list *list, type *t){
+    types_list_node *type_node = (types_list_node*) malloc( sizeof(types_list_node) );
+    type_node->t = t;
+    type_node->next = NULL;
 
+    if(list->first == NULL){                
+        list->first = type_node;
+        list->last = type_node;
+    }
+
+    else{
+        list->last->next = type_node;
+        list->last = type_node;
+    }
+}
+
+void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
+    // printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    type *t = (type*) malloc( sizeof(type) );
+    t->name = MODULE;
+    t->typeinfo.module.is_declared = true;
+    
+    t->typeinfo.module.input_types = (types_list*) malloc( sizeof(types_list));
+    t->typeinfo.module.input_types->first = NULL;
+    t->typeinfo.module.input_types->last = NULL;
+
+    t->typeinfo.module.output_types = (types_list*) malloc( sizeof(types_list));
+    t->typeinfo.module.output_types->first = NULL;
+    t->typeinfo.module.output_types->last = NULL;
+
+    if(inp_par_node_list != NULL){      // It will be NULL if function does not accepts any input, bcz then input_plist will be epsilon node and it's leftmost child = NULL
+        tree_node *inp_type_node = inp_par_node_list->sibling;  // It will always exist bcz atleast one input if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
+        while(inp_type_node != NULL){
+            insert_type_in_list(t->typeinfo.module.input_types, retreive_type(inp_type_node));
+            inp_type_node = inp_type_node->sibling;     // rn at node labelled ID
+            if(inp_type_node)
+                inp_type_node = inp_type_node->sibling; // goto corresponding type which is ur sibling
+        }
+    }
+
+    if(outp_par_node_list != NULL){      // It will be NULL if function does not returns any output, bcz then output_plist will be epsilon node and it's leftmost child = NULL
+        tree_node *outp_type_node = outp_par_node_list->sibling;  // It will always exist bcz atleast one output if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
+        while(outp_type_node != NULL){
+            insert_type_in_list(t->typeinfo.module.output_types, retreive_type(outp_type_node));
+            outp_type_node = outp_type_node->sibling;     // rn at node labelled ID
+            if(outp_type_node)
+                outp_type_node = outp_type_node->sibling; // goto corresponding type which is ur sibling
+        }
+    }
+
+    hash_insert_ptr_val(curr_sym_tab.table, lexeme, t);
 }
 void insert_in_sym_table(tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );    
@@ -85,7 +134,23 @@ void insert_in_sym_table(tree_node *node){
 
     hash_insert_ptr_val(curr_sym_tab.table, node->token.str, type_ptr);
 }
-void print_symbol_(tree_node *temp) {	
+
+void print_types_list(types_list *list){
+    if(list == NULL)
+        return;
+    types_list_node *type_tmp = list->first;
+    while(type_tmp != NULL){
+        printf("%s", terminal_string[type_tmp->t->name]);
+        if(type_tmp->t->name == ARRAY){
+            printf("[%d...%d] of %s", type_tmp->t->typeinfo.array.range_low, type_tmp->t->typeinfo.array.range_high, terminal_string[type_tmp->t->typeinfo.array.primitive_type]);
+        }
+        printf(" | ");
+        type_tmp = type_tmp->next;
+    }
+
+}
+
+void print_symbol_(tree_node *temp) {	(types_list*) malloc( sizeof(types_list));
     if(!temp)
         return;
   if (temp->sym.is_terminal == true) {	
@@ -112,9 +177,10 @@ void construct_symtable(tree_node *ast_root) {
                     new_sym_tab_ptr->parent_table = &curr_sym_tab;
                     init_hash_table(new_sym_tab_ptr->table);
                     curr_sym_tab = *new_sym_tab_ptr;
+                    printf("\n\n New Scope Opened \n\n");
                 }
-                else if(node->sym.nt == NTMODULE){
-                    insert_function_definition(node->leftmost_child->token.str, node->leftmost_child->sibling, node->leftmost_child->sibling->sibling);
+                if(node->sym.nt == NTMODULE){
+                    insert_function_definition(node->leftmost_child->token.str, node->leftmost_child->sibling->leftmost_child, node->leftmost_child->sibling->sibling->leftmost_child); //pass the list heads for input and output types
                 }
             }
             else{
@@ -137,6 +203,7 @@ void construct_symtable(tree_node *ast_root) {
             if(node->sym.is_terminal == false){
                 if(is_new_scope_openable(node->sym.nt) == true && node->sym.nt != MAINPROGRAM){                                
                     curr_sym_tab = *(curr_sym_tab.parent_table);
+                    printf("\n\n A scope closed \n\n");
                 }   
             }
             else{
@@ -145,7 +212,17 @@ void construct_symtable(tree_node *ast_root) {
                     if(type_ptr){
                         printf("Received entry for %s, type_name = %s\n", node->token.str, terminal_string[type_ptr->name] );
                         if(type_ptr->name == ARRAY){
-                            printf("Range: [%d..%d] Primitive type : %s", type_ptr->typeinfo.array.range_low, type_ptr->typeinfo.array.range_high, terminal_string[type_ptr->typeinfo.array.primitive_type]);
+                            printf("Range: [%d..%d] Primitive type : %s\n", type_ptr->typeinfo.array.range_low, type_ptr->typeinfo.array.range_high, terminal_string[type_ptr->typeinfo.array.primitive_type]);
+                        }
+                        else if(type_ptr->name == MODULE){
+                            printf("is_declared : %d\n", type_ptr->typeinfo.module.is_declared);
+                            printf("Input_types_list : ");
+                            print_types_list(type_ptr->typeinfo.module.input_types);
+                            printf("\n");
+                            printf("Output_types_list : ");
+                            print_types_list(type_ptr->typeinfo.module.output_types);
+                            printf("\n");
+
                         }
                     }
                 }

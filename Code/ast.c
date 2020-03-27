@@ -184,7 +184,7 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
             if (child->sym.is_terminal == false) {
               extend_inh_node(temp, child->node_syn);
             } else {
-              if (child->sym.t != EPSILON || temp->node_inh == NULL) {
+              if (child->sym.t != EPSILON || (temp->node_inh == NULL && !ends_in_dash(non_terminal_string[temp->sym.nt]))) {
                 extend_inh_node(temp, copy_node(child));
               }
             }

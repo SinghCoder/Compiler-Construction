@@ -27,12 +27,217 @@ bool is_new_scope_openable(nonterminal nt){
             break;
     }
 }
+operator get_operator(tree_node *node){
+    operator op;
+
+    switch(node->sym.t){
+        case PLUS:
+        case MINUS:
+        case MUL:
+        case DIV:
+            op = ARITH_OP;
+            break;
+        
+        case LT:
+        case LE:
+        case GT:
+        case GE:
+        case NE:
+        case EQ:
+            op = REL_OP;
+            break;
+        
+        case AND:
+        case OR:
+            op = LOGICAL_OP;
+            break;
+        
+        default:
+            op = NO_MATCHING_OP;
+            break;
+    }
+
+    return op;
+}
+
+type get_EopE_type(type t1, operator op, type t2){
+    printf("t1 : %s, t2 : %s\n", terminal_string[t1.name], terminal_string[t2.name]);
+    type e_type;
+
+    switch(op){
+        case ARITH_OP:
+            if(t1.name == t2.name){
+                if(t1.name == INTEGER){
+                    e_type.name = INTEGER;
+                }
+                else if(t1.name == REAL){
+                    e_type.name = REAL;
+                }
+                else{
+                    printf("ARITHOP, both same but not int/real\n");
+                    e_type.name = TYPE_ERROR;
+                }
+            }
+            else{
+                printf("ARITHOP, both not same\n");
+                e_type.name = TYPE_ERROR;
+            }
+        break;
+
+        case REL_OP:
+
+            if(t1.name == t2.name){
+                if(t1.name == INTEGER){
+                    e_type.name = BOOLEAN;
+                }
+                else if(t1.name == REAL){
+                    e_type.name = BOOLEAN;
+                }
+                else{
+                    printf("RELOP, both same but not int/real\n");
+                    e_type.name = TYPE_ERROR;
+                }
+            }
+            else{
+                printf("RELOP, both not same\n");
+                e_type.name = TYPE_ERROR;
+            }
+
+        break;
+
+        case LOGICAL_OP:
+
+            if(t1.name == t2.name){
+                if(t1.name == BOOLEAN){
+                    e_type.name = BOOLEAN;
+                }
+                else{
+                    e_type.name = TYPE_ERROR;
+                }
+            }
+            else{
+                e_type.name = TYPE_ERROR;
+            }
+
+        break;
+
+        default:
+            e_type.name = TYPE_ERROR;
+        break;
+    }
+
+    return e_type;
+}
+
+type get_expr_type(tree_node *expr_node){
+    int num_child = expr_node->num_child;
+    type t;
+    // printf("inside get expr type\n");
+    // printf("    left : ");
+    // print_symbol_(expr_node->leftmost_child);
+    // printf("    top : ");
+    // print_symbol_(expr_node);
+    // printf("    right : ");
+    // print_symbol_(expr_node->rightmost_child);
+
+    switch(num_child){
+        case 0:
+        {
+            switch(expr_node->sym.t){
+                case NUM:
+                    t.name = INTEGER;
+                break;
+                
+                case RNUM:
+                    t.name = REAL;
+                break;
+                
+                case TRUE:
+                case FALSE:
+                    t.name = BOOLEAN;
+                break;
+                
+                default:
+                    t.name = TYPE_ERROR;
+                break;
+            }
+        }
+        break;
+        case 1: // expr -> num | rnum | true | false
+        {
+            switch(expr_node->leftmost_child->sym.t){
+                case NUM:
+                    t.name = INTEGER;
+                break;
+                
+                case RNUM:
+                    t.name = REAL;
+                break;
+                
+                case TRUE:
+                case FALSE:
+                    t.name = BOOLEAN;
+                break;
+                
+                default:
+                    t.name = TYPE_ERROR;
+                break;
+            }
+        }
+        break;
+        
+        case 2:     // expr -> id epsilon | id <index> | unary_op expr
+        {
+            if(expr_node->rightmost_child->sym.is_terminal == true){       // id | id <index>
+
+                type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, expr_node->leftmost_child->token.str);
+                if(type_ptr == NULL){
+                    t.name = TYPE_ERROR;
+                }
+                else{
+                    if(type_ptr->name == ARRAY){    // finding type of a[smth] , return primitive type of array
+                        t.name = type_ptr->typeinfo.array.primitive_type;
+                    }
+                    else{
+                        t.name = type_ptr->name;
+                    }
+                }
+
+            }
+            else{   // unaryop expr
+                t = get_expr_type(expr_node->rightmost_child);
+            }
+        }
+        break;
+        
+        default:
+        {
+            // printf(">2 nodes\n");
+            tree_node *child = expr_node->leftmost_child;
+            type t1 = get_expr_type(child), t2;
+            operator op;
+
+            while(child->sibling != NULL){
+                op = get_operator(child->sibling);
+                t2 = get_expr_type(child->sibling->sibling);
+
+                t1 = get_EopE_type(t1, op, t2);
+
+                child = child->sibling->sibling;
+            }
+            t = t1;
+        }
+        break;
+    }
+
+    return t;
+}
 
 type *retreive_type(tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );
     if(node->sym.is_terminal == false)   //primitive type
     {
-        type_ptr->name = ARRAY;
+        type_ptr->name = ARRAY; // types include only real, bool, int, Array
         type_ptr->typeinfo.array.primitive_type = node->rightmost_child->sym.t;        
         
         if( node->leftmost_child->leftmost_child->sym.t == NUM ){
@@ -238,6 +443,32 @@ void construct_symtable(tree_node *ast_root) {
                     curr_sym_tab = *(curr_sym_tab.parent_table);
                     printf("\n\n A scope closed \n\n");
                 }   
+                
+                /**
+                 * @brief Type checking
+                 */
+                if(node->sym.nt == ASSIGNMENTSTMT){
+                    type rhs_type = get_expr_type(node->rightmost_child);
+                    type lhs_type;
+                    printf("%s = .. type checking\n", node->leftmost_child->token.str);
+                    if(get_nth_child(node, 2)->sym.t == EPSILON){   // ASSIGNMENTSMT is id = smth
+                        type *type_ptr = search_hash_table_ptr_val(curr_sym_tab.table, node->leftmost_child->token.str);
+                        if(!type_ptr){
+                            print_error("SEMANTIC ERROR", "ID not defined");
+                        }
+                        else{
+                            lhs_type = *type_ptr;
+                            printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]);
+                            if(lhs_type.name != rhs_type.name){
+                                print_error("SEMANTIC ERROR", "lhs and rhs types don't match");
+                            }
+                            else{
+                                printf("=======Type matches=======\n");
+                            }
+                        }
+                    }
+                }
+
             }
             else{
                 if(key_present_in_table(curr_sym_tab.table, node->token.str)){

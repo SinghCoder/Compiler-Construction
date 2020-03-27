@@ -3,7 +3,7 @@
 
 #include<stdio.h>
 
-#define NUM_OF_TERMINALS 61
+#define NUM_OF_TERMINALS 62
 #define NUM_OF_NONTERMINALS 54
 #define NUM_OF_RULES 99
 #define MAX_SYMBOL_LENGTH 50

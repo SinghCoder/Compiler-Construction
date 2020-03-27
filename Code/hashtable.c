@@ -56,6 +56,7 @@ int hash(char *str) {
  * 
  */
 void init_hash_table(hash_table table) {
+	
 	if (table == NULL) 
 	{
 		perror("HASH table allocation error: memory not available\n");

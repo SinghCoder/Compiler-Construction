@@ -43,6 +43,8 @@ bool key_present_in_table(hash_table table, char *lexeme);
 typedef struct symbol_table_wrapper{
 	hash_table table;
 	struct symbol_table_wrapper *parent_table;
+	struct symbol_table_wrapper *next_table;
+	struct symbol_table_wrapper *sibling_table;
 }st_wrapper;
 
 #endif

@@ -12,6 +12,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "treeADT.h"
+#include "semantic_analyzer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +31,7 @@ void print_menu() {
   printf("4. Print time taken for tokenizing and parsing\n");
   printf("5. Print first sets\n");
   printf("6. Print follow sets\n");
-  printf("7. Print parse tree for tool\n");
+  printf("7. Construct Symbol table\n");
   printf(" Press any other to exit \n");
   printf("-----------------------------------------------------------------\n");
   printf("Enter your choice:  ");
@@ -281,8 +282,10 @@ int main(int argc, char *argv[]) {
         printf("Empty parse tree\n");
       }
 
+      tree_node *ast_tree = construct_ast(ptr);
+      construct_symtable(ast_tree);
       parse_tree_file_ptr = fopen(parse_tree_file, "w");
-      print_parse_tree_for_tool(ptr);
+      // print_parse_tree_for_tool(ptr);
       fclose(parse_tree_file_ptr);
 
       free_grammar();

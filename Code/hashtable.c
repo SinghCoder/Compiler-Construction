@@ -64,7 +64,8 @@ void init_hash_table(hash_table table) {
 	for (int i = 0; i < HASH_SIZE; i++) 
 	{
 		table[i].present = false;
-		table[i].value = 0; 
+		table[i].value = malloc(sizeof(int));
+		*(int*)(table[i].value) = 0; 
 	}
 }
 
@@ -87,7 +88,25 @@ void hash_insert(hash_table table, char *lexeme, int value) {
 	strcpy(table[hashValue].lexeme, lexeme);
 
 	table[hashValue].present = true;
-	table[hashValue].value = value;
+	table[hashValue].value = malloc(sizeof(int));
+	*(int*)(table[hashValue].value) = value;
+}
+
+void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr){
+	printf("Inserting in hash table %s\n", lexeme);
+	int hashValue;
+	hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+			hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+			probe_num++;
+	}
+	strcpy(table[hashValue].lexeme, lexeme);
+
+	table[hashValue].present = true;
+	table[hashValue].value = value_ptr;
+
 }
 
 /**
@@ -103,10 +122,39 @@ int search_hash_table(hash_table table, char *lexeme) {
 	{
 		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
 		{
-			return table[hashValue].value;
+			return *(int*)(table[hashValue].value);
 		}
 		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
 		probe_num++;
 	}
 	return KEY_NOT_FOUND;
+}
+
+bool key_present_in_table(hash_table table, char *lexeme){
+	int hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
+		{
+			return true;
+		}
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
+	}
+	return false;
+}
+
+void* search_hash_table_ptr_val(hash_table table, char *lexeme){
+	int hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
+		{
+			return table[hashValue].value;
+		}
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
+	}
 }

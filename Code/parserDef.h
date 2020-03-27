@@ -55,8 +55,8 @@ ull follow_set[NUM_OF_NONTERMINALS][SET_SIZE];
 
 cell grammar[NUM_OF_RULES];
 
-hash_element terminal_table[HASH_SIZE];
-hash_element non_terminal_table[HASH_SIZE];
+hash_table terminal_table;
+hash_table non_terminal_table;
 
 bool error_present;
 

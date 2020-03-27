@@ -29,6 +29,7 @@ struct type{
             token_name primitive_type;
             int range_low;
             int range_high;
+            bool is_dynamic;
         }array;
 
         struct{

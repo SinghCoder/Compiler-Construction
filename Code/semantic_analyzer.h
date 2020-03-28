@@ -5,13 +5,24 @@
 #include "hashtable.h"
 #include "semantic_analyzerDef.h"
 
+typedef enum { ARITH_OP, REL_OP, LOGICAL_OP, NO_MATCHING_OP} operator;
+
 void construct_symtable(tree_node *ast_root);
 void semantic_analyzer_init();
-void insert_in_sym_table(struct symbol_table_wrapper*,tree_node *node);
-void insert_function_definition(struct symbol_table_wrapper*,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list);
-void print_symbol_table(struct symbol_table_wrapper*);
-struct symbol_table_wrapper* key_present_in_parent(struct symbol_table_wrapper* sym_table,char* lexeme);
+
+void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node);
+void insert_function_definition(struct symbol_table_wrapper *sym_table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list);
+void print_symbol_table(struct symbol_table_wrapper *sym_table);
+void *key_search_recursive(st_wrapper *sym_table,char *lexeme);
 void insert_type_in_list(types_list *list, type *t);
-struct symbol_table_wrapper curr_sym_tab;
+type get_expr_type(tree_node *expr_node);
+
 void print_types_list(types_list *list);
+
+operator get_operator(tree_node *node);
+
+type get_EopE_type(type t1, operator op, type t2);
+
+void print_symbol_(tree_node *temp);
+
 #endif

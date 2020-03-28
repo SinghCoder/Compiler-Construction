@@ -3,7 +3,7 @@
 
 #include<stdio.h>
 
-#define NUM_OF_TERMINALS 61
+#define NUM_OF_TERMINALS 62
 #define NUM_OF_NONTERMINALS 54
 #define NUM_OF_RULES 99
 #define MAX_SYMBOL_LENGTH 50
@@ -25,5 +25,7 @@ char parse_tree_file[MAX_FILE_NAME_LEN];
 FILE *parse_tree_file_ptr;
 
 void print_error(char *type, char *message);
+
+int num_ast_nodes;
 
 #endif

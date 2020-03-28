@@ -36,7 +36,7 @@ void print_menu() {
 	printf("5. Print first sets\n");
 	printf("6. Print follow sets\n");
 	printf("7. Construct Symbol table\n");
-	printf("8. Adhyay2000 checking\n");
+	printf("8. Print all the symbolt tables\n");
 	printf(" Press any other to exit \n");
 	printf("-----------------------------------------------------------------\n");
 	printf("Enter your choice:  ");
@@ -179,8 +179,7 @@ int main(int argc, char *argv[]) {
 			// print_parse_tree(ptr);
 
 			tree_node *ast_tree = construct_ast(ptr);
-			// printf("\n*****AST******\n");
-			// print_ast(ast_tree);
+			
 			print_parse_tree_for_tool(ast_tree);
 
 			fclose(parse_tree_file_ptr);
@@ -292,8 +291,8 @@ int main(int argc, char *argv[]) {
 
 			free_grammar();
 			fclose(fptr);
-
 		}
+		break;
 		case 8: {
 			lexer_init(source);
 			parser_init();
@@ -316,20 +315,19 @@ int main(int argc, char *argv[]) {
 			if (ptr == NULL) {
 				printf("Empty parse tree\n");
 			}
-			curr_sym_tab.next_table=NULL;
-			curr_sym_tab.parent_table=NULL;
-			curr_sym_tab.sibling_table=NULL;
-			init_hash_table(curr_sym_tab.table);
+			num_ast_nodes = 0;
 			tree_node *ast_tree = construct_ast(ptr);
 			construct_symtable(ast_tree);
-			// parse_tree_file_ptr = fopen(parse_tree_file, "w");
-			// // print_parse_tree_for_tool(ptr);
-			// fclose(parse_tree_file_ptr);
-			print_symbol_table(&curr_sym_tab);
+			parse_tree_file_ptr = fopen(parse_tree_file, "w");
+			// print_parse_tree_for_tool(ast_tree);
+			fclose(parse_tree_file_ptr);
+			print_symbol_table(root_sym_tab_ptr);
+			printf("\t\t\t\tNUMBER OF AST NODES: %d", num_ast_nodes);
 			free_grammar();
 			fclose(fptr);
 
-		}break;
+		}
+		break;
 		default: {
 			exit(0);
 		} break;

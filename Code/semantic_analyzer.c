@@ -463,46 +463,49 @@ void construct_symtable(tree_node *ast_root) {
                     if(!type_ptr){
                         print_error("SEMANTIC ERROR", "ID not defined");
                     }
-                    
-                    if(get_nth_child(node, 2)->sym.t == EPSILON)    // lhs is id (maybe array id or normal id)
-                        lhs_type = *type_ptr;
-                    
-                    else{                        // lhs is array access
-                        lhs_type.name = type_ptr->typeinfo.array.primitive_type;
-                        if(type_ptr->typeinfo.array.is_dynamic == false){
-                            array_access = true;
-                            tree_node *index_node = node->leftmost_child->sibling;
-                            if(index_node->token.name != NUM){
-                                if(index_node->token.name != ID){
-                                    print_error("SEMANTIC ERROR", "INVALID ARRAY ACCESS");
-                                }
-                                else{
-                                    type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, index_node->token.str);
-                                    if(type_ptr){
-                                        type index_id_type = *type_ptr;
-                                        if(index_id_type.name != INTEGER){
-                                            print_error("SEMANTIC ERROR", "ARRAY INDEX NOT INT");
+                    else{
+                        if(get_nth_child(node, 2)->sym.t == EPSILON)    // lhs is id (maybe array id or normal id)
+                            lhs_type = *type_ptr;
+                        
+                        else{                        // lhs is array access
+                            lhs_type.name = type_ptr->typeinfo.array.primitive_type;
+                            if(type_ptr->typeinfo.array.is_dynamic == false){
+                                array_access = true;
+                                tree_node *index_node = node->leftmost_child->sibling;
+                                if(index_node != NULL){
+                                    if(index_node->token.name != NUM){
+                                        if(index_node->token.name != ID){
+                                            print_error("SEMANTIC ERROR", "INVALID ARRAY ACCESS");
                                         }
-                                    }                                    
+                                        else{
+                                            type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, index_node->token.str);
+                                            if(type_ptr){
+                                                type index_id_type = *type_ptr;
+                                                if(index_id_type.name != INTEGER){
+                                                    print_error("SEMANTIC ERROR", "ARRAY INDEX NOT INT");
+                                                }
+                                            }                                    
+                                        }
+                                    }else{
+                                        int index = index_node->token.num;
+                                        int lb = type_ptr->typeinfo.array.range_low;
+                                        int ub = type_ptr->typeinfo.array.range_high;
+                                        if(! (index >= lb && index <= ub) )
+                                            print_error("SEMANTIC ERROR", "INDEX OUT OF BOUNDS");                                       
+                                    }
                                 }
-                            }else{
-                                int index = index_node->token.num;
-                                int lb = type_ptr->typeinfo.array.range_low;
-                                int ub = type_ptr->typeinfo.array.range_high;
-                                if(! (index >= lb && index <= ub) )
-                                    print_error("SEMANTIC ERROR", "INDEX OUT OF BOUNDS");                                       
                             }
                         }
-                    }
                     
-                    printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]);
-                    
-                    if(lhs_type.name != rhs_type.name){
-                        print_error("SEMANTIC ERROR", "lhs and rhs types don't match");
-                    }
-                    
-                    else{
-                        printf("=======Type matches=======\n");
+                        printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]);
+                        
+                        if(lhs_type.name != rhs_type.name){
+                            print_error("SEMANTIC ERROR", "lhs and rhs types don't match");
+                        }
+                        
+                        else{
+                            printf("=======Type matches=======\n");
+                        }
                     }
                 }   
                 /**

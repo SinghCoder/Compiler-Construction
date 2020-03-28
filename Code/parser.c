@@ -217,12 +217,14 @@ tree_node *parse_input_source_code(FILE *source) {
 	tree_node *node = pop(main_stack);
 	if ((node != NULL) && (node->sym).is_terminal == true) {
 	  if (node->sym.t == EPSILON) {
+		  node->token.name = EPSILON;
+		  strcpy(node->token.str, "epsilon");
 		continue;
 	  }
 	  if (node->sym.t != tkn.name) // terminal on top of stack does not match
 								   // with lookhead symbol
 	  {
-		
+		// node->token.name = LEX_ERROR;
 		char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
 		sprintf(type_err,"%d) SYNTAX ERORR", tkn.line_no);
 		
@@ -524,7 +526,6 @@ void print_node_for_tool(tree_node *node) {
 void print_parse_tree_for_tool(tree_node *root) {
   if (root == NULL)
 	return;
-
   print_node_for_tool(root);
 
   if (root->leftmost_child)

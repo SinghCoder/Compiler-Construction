@@ -26,4 +26,6 @@ FILE *parse_tree_file_ptr;
 
 void print_error(char *type, char *message);
 
+int num_ast_nodes;
+
 #endif

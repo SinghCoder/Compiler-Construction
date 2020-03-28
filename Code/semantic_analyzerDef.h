@@ -8,7 +8,7 @@
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
-
+extern int num_ast_nodes;
 typedef struct types_list_node types_list_node;
 typedef struct type type;
 
@@ -40,5 +40,8 @@ struct type{
         }module;
     } typeinfo;
 };
+
+struct symbol_table_wrapper *curr_sym_tab_ptr;
+struct symbol_table_wrapper *root_sym_tab_ptr;
 
 #endif

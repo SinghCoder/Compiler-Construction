@@ -16,6 +16,7 @@
 #define HASH_SIZE 67
 #define MAX_LEXEME_LEN 100
 #define KEY_NOT_FOUND -1
+
 typedef struct {
 		char lexeme[MAX_LEXEME_LEN];
 		void *value;

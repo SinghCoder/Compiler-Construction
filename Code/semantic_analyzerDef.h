@@ -4,7 +4,10 @@
 #include "driver.h"
 #include <limits.h>
 
-#define OBTAIN_DYNAMICALLY INT_MAX
+#define OBTAIN_DYNAMICALLY 0x3f3f3f3f
+#define WIDTH_BOOLEAN 1
+#define WIDTH_INTEGER 2
+#define WIDTH_REAL 4
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
@@ -24,6 +27,8 @@ typedef struct types_list{
 
 struct type{
     token_name name;
+    int width;
+    int offset;
     union{
         struct{
             token_name primitive_type;

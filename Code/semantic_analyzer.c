@@ -151,6 +151,35 @@ void insert_in_sym_table(tree_node *node){
             break;
     }
 
+    if(type_ptr->name == BOOLEAN)
+        type_ptr->width = WIDTH_BOOLEAN;
+
+    else if(type_ptr->name == INTEGER)
+        type_ptr->width = WIDTH_INTEGER;
+
+    else if(type_ptr->name == REAL)
+        type_ptr->width = WIDTH_REAL;
+    else
+    {
+        // type is array type
+        // actually width of array is size*width(type) - I don't know how to do it for dynamic arrays, so currently, assigning width of array as
+        // width of type only without multiplying by size
+
+        if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
+            type_ptr->width = WIDTH_BOOLEAN; // This is actually wrong
+
+        if(type_ptr->typeinfo.array.primitive_type == INTEGER)
+            type_ptr->width = WIDTH_INTEGER; // This is actually wrong
+
+        if(type_ptr->typeinfo.array.primitive_type == REAL)
+            type_ptr->width = WIDTH_REAL; // This is actually wrong
+
+        if(type_ptr->typeinfo.array.is_dynamic == false)
+            type_ptr->width = type_ptr->width * (type_ptr->typeinfo.array.range_high - type_ptr->typeinfo.array.range_low + 1);
+
+        // Note: array of array is not allowed
+    }
+
     hash_insert_ptr_val(curr_sym_tab.table, node->token.str, type_ptr);
 }
 

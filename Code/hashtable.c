@@ -56,6 +56,7 @@ int hash(char *str) {
  * 
  */
 void init_hash_table(hash_table table) {
+	
 	if (table == NULL) 
 	{
 		perror("HASH table allocation error: memory not available\n");
@@ -64,8 +65,7 @@ void init_hash_table(hash_table table) {
 	for (int i = 0; i < HASH_SIZE; i++) 
 	{
 		table[i].present = false;
-		table[i].value = malloc(sizeof(int));
-		*(int*)(table[i].value) = 0; 
+		table[i].value = NULL; 
 	}
 }
 
@@ -146,6 +146,9 @@ bool key_present_in_table(hash_table table, char *lexeme){
 }
 
 void* search_hash_table_ptr_val(hash_table table, char *lexeme){
+	if(table == NULL){
+		return NULL;
+	}
 	int hashValue = hash(lexeme);
 	int probe_num = 1;
 	while (table[hashValue].present == true) 
@@ -158,4 +161,16 @@ void* search_hash_table_ptr_val(hash_table table, char *lexeme){
 		probe_num++;
 	}
 	return NULL;
+}
+
+void* key_search_recursive(st_wrapper *sym_table,char *lexeme){
+    if(sym_table == NULL) 
+        return NULL;
+    
+    bool b = key_present_in_table(sym_table->table, lexeme);
+
+    if(b == false)
+        return key_search_recursive(sym_table->parent_table, lexeme);
+    else 
+        return search_hash_table_ptr_val(sym_table->table, lexeme);
 }

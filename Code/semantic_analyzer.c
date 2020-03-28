@@ -5,9 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-void semantic_analyzer_init(){
-    curr_sym_tab.parent_table = NULL;
-    init_hash_table(curr_sym_tab.table);
+st_wrapper *symbol_table_init(){
+    st_wrapper *sym_tab = (st_wrapper*) malloc( sizeof( st_wrapper ));
+    sym_tab->parent_table = curr_sym_tab_ptr;
+    sym_tab->leftmost_child_table = NULL;
+    sym_tab->rightmost_child_table = NULL;
+    sym_tab->sibling_table = NULL;
+    init_hash_table(sym_tab->table);
+
+    if(root_sym_tab_ptr == NULL)
+        root_sym_tab_ptr = sym_tab;
+        
+    return sym_tab;
 }
 
 bool is_new_scope_openable(nonterminal nt){
@@ -190,7 +199,7 @@ type get_expr_type(tree_node *expr_node){
         {
             if(expr_node->rightmost_child->sym.is_terminal == true){       // id | id <index>
 
-                type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, expr_node->leftmost_child->token.str);
+                type *type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, expr_node->leftmost_child->token.str);
                 if(type_ptr == NULL){
                     t.name = TYPE_ERROR;
                 }
@@ -289,7 +298,7 @@ void insert_type_in_list(types_list *list, type *t){
     list->length++;
 }
 
-void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
+void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
     // printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     type *t = (type*) malloc( sizeof(type) );
     t->name = MODULE;
@@ -325,12 +334,38 @@ void insert_function_definition(char *lexeme, tree_node *inp_par_node_list, tree
         }
     }
 
-    hash_insert_ptr_val(curr_sym_tab.table, lexeme, t);
+    hash_insert_ptr_val(table->table, lexeme, t);
 }
-void insert_in_sym_table(tree_node *node){
+
+bool is_declaring_node(tree_node *node){
+    
+    if(node == NULL)
+        return false;
+    
+    switch(node->sym.nt){
+        case MODULEDECLARATIONS:            
+        case INPUT_PLIST:
+        case OUTPUT_PLIST:        
+        case FORLOOP:
+            return true;
+        break;
+        case IDLIST:
+            if(node->parent && node->parent->sym.nt == DECLARESTMT)
+                return true;
+            else
+                return false;
+        break;
+        default:
+            return false;
+        break;
+    }
+}
+
+void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );    
-    if(node->parent == NULL)
+    if(node == NULL || node->parent == NULL)
         return;
+    
     switch(node->parent->sym.nt){
         case MODULEDECLARATIONS:            
             type_ptr->name = MODULE;
@@ -362,7 +397,7 @@ void insert_in_sym_table(tree_node *node){
             break;
     }
 
-    hash_insert_ptr_val(curr_sym_tab.table, node->token.str, type_ptr);
+    hash_insert_ptr_val(sym_table->table, node->token.str, type_ptr);
 }
 
 void print_types_list(types_list *list){
@@ -385,8 +420,49 @@ void print_types_list(types_list *list){
     }
 
 }
+void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
+    if(sym_tab_ptr == NULL){
+        printf("Empty Symbol table\n");   
+        return;
+    }
+    printf("************************Printing Symbol table for a new scope**********************\n");
+    for(int i=0; i < HASH_SIZE; i++){
+        type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
+        if(type_ptr != NULL)
+        {
+            printf("%s ",sym_tab_ptr->table[i].lexeme);
+            printf("Type : %s ",terminal_string[ type_ptr->name] );
+            
+            if(type_ptr->name == ARRAY){
+                printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );
+                printf("Range high : %d ",type_ptr->typeinfo.array.range_high);
+                printf("Range low : %d ",type_ptr->typeinfo.array.range_low);
+                printf("is_dynamic : %d\n",type_ptr->typeinfo.array.is_dynamic);
+            }
 
-void print_symbol_(tree_node *temp) {
+            else if(type_ptr->name == MODULE){
+                printf("\n");
+                print_types_list(type_ptr->typeinfo.module.input_types);
+                print_types_list(type_ptr->typeinfo.module.output_types);
+                printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);            
+            }
+            printf("\n------------------------------------------------\n");
+        }
+    }
+    if(sym_tab_ptr->leftmost_child_table){
+        printf("\t\t\t\t Leftmost child\n");
+        print_symbol_table(sym_tab_ptr->leftmost_child_table);
+    }
+    printf("************************Printing Symbol table for this scope ends**********************\n");
+    if(sym_tab_ptr->sibling_table){
+        printf("\t\t\t\t Sibling\n");
+        print_symbol_table(sym_tab_ptr->sibling_table);
+    }
+    
+}
+
+void print_symbol_(tree_node *temp) {    
+    num_ast_nodes++;
     if(!temp)
         return;
   if (temp->sym.is_terminal == true) {	
@@ -400,53 +476,95 @@ void construct_symtable(tree_node *ast_root) {
 //   printf("```````````````````````````````````````````````````````````\n");
 //   print_symbol_(node);
 //   printf("```````````````````````````````````````````````````````````\n");
-  do{
-        // printf("===================\n");
+    if(node == NULL)
+        return;
+  do{        
+        if(node->visited == false) {
+            printf("=========================================\n");
         // if(!node->visited)
         //     printf("Entered : ");
         // else
         //     printf("Exited : ");
-        // print_symbol_(node);
-        // printf("===================\n");
-        if (node->visited == false) {
+        print_symbol_(node);
+        printf("========================================\n");
             // print_symbol_(node);
             node->visited = true;
-
+            /**
+             * @brief It's a nt, check if it opens up a new scope, if it does create a new symbol table
+             * If it's NTMODULE, install function parameters and return types in symbol table
+             */
             if(node->sym.is_terminal == false){
-                if(is_new_scope_openable(node->sym.nt) == true && node->sym.nt != MAINPROGRAM){
-                    st_wrapper *new_sym_tab_ptr = (st_wrapper*)malloc(sizeof(st_wrapper));
-                    new_sym_tab_ptr->parent_table = &curr_sym_tab;
-                    init_hash_table(new_sym_tab_ptr->table);
-                    curr_sym_tab = *new_sym_tab_ptr;
-                    printf("\n\n New Scope Opened at %s \n\n", non_terminal_string[node->sym.nt]);
-                }
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
+                    insert_function_definition(curr_sym_tab_ptr,node->leftmost_child->token.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
                 }
+                if(is_new_scope_openable(node->sym.nt) == true){
+                    st_wrapper *new_sym_tab_ptr = symbol_table_init();
+
+                    init_hash_table(new_sym_tab_ptr->table);
+                    /**
+                     * @brief Insert new symbol table in parent's children list
+                     * 
+                     */                    
+                    if(curr_sym_tab_ptr){
+                        printf("Insert new symbol table in parent's children list\n");
+                        if(curr_sym_tab_ptr->leftmost_child_table==NULL) {
+                            // printf("as leftmost child\n");
+                            curr_sym_tab_ptr->leftmost_child_table = new_sym_tab_ptr;
+                            curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr; 
+                        }
+                        else{
+                            // printf("as rightmost child\n");
+                            curr_sym_tab_ptr->rightmost_child_table->sibling_table = new_sym_tab_ptr;
+                            curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr;
+                        }
+                    }
+                    curr_sym_tab_ptr = new_sym_tab_ptr;
+                    printf("\n\n New Scope Opened at %s \n\n", non_terminal_string[node->sym.nt]);
+                }                
             }
+            /**
+             * @brief If it's ID, install it in symbol table if it's part of a declaration
+             * insert_in_sym_table checks if it's part of a declaration and installs it correspondingly in symbol table
+             */
             else{
                 if(node->sym.t == ID){
-                    int check_hash_table = search_hash_table(curr_sym_tab.table, node->token.str);
+                    int check_hash_table = search_hash_table(curr_sym_tab_ptr->table, node->token.str);
+                    
                     if( check_hash_table == KEY_NOT_FOUND ){
-                        insert_in_sym_table(node);
+                        insert_in_sym_table(curr_sym_tab_ptr, node);
                     }
+                    else{
+                        if(is_declaring_node(node->parent)){
+                            print_error("SEMANTIC ERORR", "ID DECLARED ALREADY");
+                        }
+                    }
+
                 }
             }
 
+            /**
+             * @brief Doing post order traversal, go to leftmost child as long as possible
+             * 
+             */
             if(node->leftmost_child != NULL){
                 node = node->leftmost_child;
-                // printf("node = node->leftmost_child\n");
-                // print_symbol_(node);
             }
-
         } 
+        /**
+         * @brief Have already visited the node, returning after visiting all children
+         * 
+         */
         else{      
+            /**
+             * @brief If it opened up a new scope, close it
+             * 
+             */
             if(node->sym.is_terminal == false){
-                if(is_new_scope_openable(node->sym.nt) == true && node->sym.nt != MAINPROGRAM){                                
-                    curr_sym_tab = *(curr_sym_tab.parent_table);
-                    printf("\n\n A scope closed \n\n");
+                if(is_new_scope_openable(node->sym.nt) == true){    
+                    if(curr_sym_tab_ptr)                            
+                        curr_sym_tab_ptr = curr_sym_tab_ptr->parent_table;
+                    printf("\n\t A scope closed \n");
                 }   
-                
                 /**
                  * @brief Type checking
                  */
@@ -455,7 +573,7 @@ void construct_symtable(tree_node *ast_root) {
                     type lhs_type;
                     printf("%s = .. type checking\n", node->leftmost_child->token.str);
                     
-                    type *type_ptr = search_hash_table_ptr_val(curr_sym_tab.table, node->leftmost_child->token.str);
+                    type *type_ptr = key_search_recursive(curr_sym_tab_ptr, node->leftmost_child->token.str);
                     
                     bool arr_ind_in_range = false;
                     bool array_access = false;
@@ -478,7 +596,7 @@ void construct_symtable(tree_node *ast_root) {
                                             print_error("SEMANTIC ERROR", "INVALID ARRAY ACCESS");
                                         }
                                         else{
-                                            type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, index_node->token.str);
+                                            type *type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, index_node->token.str);
                                             if(type_ptr){
                                                 type index_id_type = *type_ptr;
                                                 if(index_id_type.name != INTEGER){
@@ -512,11 +630,14 @@ void construct_symtable(tree_node *ast_root) {
                  * @brief Type checking ends here
                  * 
                  */
-
-            }   // if non-terminal
-            else{   // terminal
-                if(key_present_in_table(curr_sym_tab.table, node->token.str)){
-                    type *type_ptr = (type*)search_hash_table_ptr_val(curr_sym_tab.table, node->token.str);
+            }    // if non-terminal
+            /**
+             * @brief It's a terminal and visited
+             * 
+             */
+            else{
+                if(curr_sym_tab_ptr){
+                    type *type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, node->token.str);
                     if(type_ptr){
                         printf("Received entry for %s, type_name = %s\n", node->token.str, terminal_string[type_ptr->name] );
                         if(type_ptr->name == ARRAY){
@@ -533,8 +654,16 @@ void construct_symtable(tree_node *ast_root) {
                             printf("Output_types_list : ");
                             print_types_list(type_ptr->typeinfo.module.output_types);
                             printf("\n");
-
                         }
+                    }
+                    else{
+                        // printf("=============termianl visited and type dne : ");
+                        // print_symbol(node->sym);
+                        // printf(", parent : ");
+                        // print_symbol(node->parent->sym);
+                        // printf("\n");
+                        if((node->token.name == ID) && is_declaring_node(node->parent))
+                            print_error("SEMANTIC ERROR" , "ID not declared");
                     }
                 }
             }
@@ -549,5 +678,5 @@ void construct_symtable(tree_node *ast_root) {
                 // print_symbol_(node);
             }
         } 
-    }while (node != NULL);;
+    }while (node != NULL);
 }

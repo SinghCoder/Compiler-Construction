@@ -7,6 +7,7 @@
 	Yash Vijay           -   2017A7PS0072P
 *****************************************/
 #include "hashtable.h"
+#include "semantic_analyzerDef.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,11 +83,13 @@ void hash_insert(hash_table table, char *lexeme, int value) {
 	int probe_num = 1;
 	while (table[hashValue].present == true) 
 	{
-			hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
-			probe_num++;
+		if(strcmp(lexeme, table[hashValue].lexeme) == 0)	//updating a key's value instead inserting a new one
+			break;
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
 	}
-	strcpy(table[hashValue].lexeme, lexeme);
 
+	strcpy(table[hashValue].lexeme, lexeme);
 	table[hashValue].present = true;
 	table[hashValue].value = malloc(sizeof(int));
 	*(int*)(table[hashValue].value) = value;
@@ -99,8 +102,10 @@ void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr){
 	int probe_num = 1;
 	while (table[hashValue].present == true) 
 	{
-			hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
-			probe_num++;
+		if(strcmp(lexeme, table[hashValue].lexeme) == 0)	//updating a key's value instead inserting a new one
+			break;
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
 	}
 	strcpy(table[hashValue].lexeme, lexeme);
 
@@ -161,16 +166,4 @@ void* search_hash_table_ptr_val(hash_table table, char *lexeme){
 		probe_num++;
 	}
 	return NULL;
-}
-
-void* key_search_recursive(st_wrapper *sym_table,char *lexeme){
-    if(sym_table == NULL) 
-        return NULL;
-    
-    bool b = key_present_in_table(sym_table->table, lexeme);
-
-    if(b == false)
-        return key_search_recursive(sym_table->parent_table, lexeme);
-    else 
-        return search_hash_table_ptr_val(sym_table->table, lexeme);
 }

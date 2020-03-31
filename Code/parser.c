@@ -218,7 +218,7 @@ tree_node *parse_input_source_code(FILE *source) {
 	if ((node != NULL) && (node->sym).is_terminal == true) {
 	  if (node->sym.t == EPSILON) {
 		  node->token.name = EPSILON;
-		  strcpy(node->token.str, "epsilon");
+		  strcpy(node->token.id.str, "epsilon");
 		continue;
 	  }
 	  if (node->sym.t != tkn.name) // terminal on top of stack does not match
@@ -255,8 +255,8 @@ tree_node *parse_input_source_code(FILE *source) {
 		  break;
 
 		default:
-		  // node->token.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
-		  strcpy(node->token.str, tkn.str);
+		  // node->token.id.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
+		  strcpy(node->token.id.str, tkn.id.str);
 		}
 	  }
 
@@ -268,7 +268,7 @@ tree_node *parse_input_source_code(FILE *source) {
 
 	  char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
 	  sprintf(err_type, "%d) LEXICAL ERROR", tkn.line_no);
-	  print_error(err_type, tkn.str);
+	  print_error(err_type, tkn.id.str);
 
 	  tkn = get_next_token(source);
 	  push(main_stack, node);
@@ -384,15 +384,15 @@ void print_node(tree_node *node) {
   bool is_terminal = (node->sym).is_terminal;
   if (is_terminal == true) {
 	if ((node->token.name != NUM && node->token.name != RNUM) &&
-		node->token.str != NULL) {
-	  sprintf(s, "%s", (node->token).str);
+		node->token.id.str != NULL) {
+	  sprintf(s, "%s", (node->token).id.str);
 	  pretty_print(s);
 	} else
 	  pretty_print("----");
 	sprintf(s, "%d", (node->token).line_no);
 	pretty_print(s);
 
-	if (node->token.str != NULL) {
+	if (node->token.id.str != NULL) {
 	  sprintf(s, "%s", terminal_string[(node->token).name]);
 	  pretty_print(s);
 	} else
@@ -503,7 +503,7 @@ void print_node_for_tool(tree_node *node) {
 		tkn_name[i] = tolower(tkn_name[i]);
 
 	  if (node->token.name != SQBO && node->token.name != SQBC)
-		fprintf(parse_tree_file_ptr, "[%s %s] ", tkn_name, node->token.str);
+		fprintf(parse_tree_file_ptr, "[%s %s] ", tkn_name, node->token.id.str);
 
 	  else
 		fprintf(parse_tree_file_ptr, "[%s] ", tkn_name);

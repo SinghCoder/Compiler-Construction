@@ -13,7 +13,7 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
 void insert_function_definition(struct symbol_table_wrapper *sym_table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list);
 void print_symbol_table(struct symbol_table_wrapper *sym_table);
 void insert_param_in_list(params_list *list, type *t, char *param_name);
-type get_expr_type(tree_node *expr_node);
+type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr);
 
 void print_params_list(params_list *list);
 
@@ -34,5 +34,7 @@ type* check_encl_fun_params(type *fun_type, char *lexeme, bool *is_outp_param);
 void mark_outp_param_assigned(char *id_str, type *fn_type_ptr);
 void compare_args_list(params_type parm_type, tree_node *fncall_args_list, params_list *fndefn_params_list, type *encl_fun_type_ptr, int line_no);
 bool is_types_matching(type *t1, type *t2);
-
+void mark_while_loop_var_assigned(tree_node *while_node, char *var_name);
+bool is_id_part_of_while_loop(tree_node *id_node/*In param*/, tree_node **while_node /*Out param*/);
+void install_id_in_loop_args(tree_node *while_node, char *id_str);
 #endif

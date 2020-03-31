@@ -159,16 +159,17 @@ type get_EopE_type(type t1, operator op, type t2){
     return e_type;
 }
 
-type get_expr_type(tree_node *expr_node){
+type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
     int num_child = expr_node->num_child;
     type t;
-    printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^inside get expr type^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-    printf("    left : ");
-    print_symbol_(expr_node->leftmost_child);
-    printf("    top : ");
-    print_symbol_(expr_node);
-    printf("    right : ");
-    print_symbol_(expr_node->rightmost_child);
+    // printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^inside get expr type^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+    // printf("    left : ");
+    // print_symbol_(expr_node->leftmost_child);
+    // printf("    top : ");
+    // print_symbol_(expr_node);    
+    // printf("    right : ");
+    // print_symbol_(expr_node->rightmost_child);
+    // printf("\n");
 
     switch(num_child){
         case 0:
@@ -220,11 +221,11 @@ type get_expr_type(tree_node *expr_node){
         {
             if(expr_node->rightmost_child->sym.is_terminal == true){       // id | id <index>
 
-                type *type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, expr_node->leftmost_child->token.id.str, expr_node->encl_fun_type_ptr, NULL);
+                type *type_ptr = (type*)key_search_recursive(sym_tab_ptr, expr_node->leftmost_child->token.id.str, expr_node->encl_fun_type_ptr, NULL);
                 if(type_ptr == NULL){
                     t.name = TYPE_ERROR;
                 }
-                else{
+                else{                    
                     if(type_ptr->name == ARRAY){    
                         if(expr_node->leftmost_child->sibling->sym.t != EPSILON)  // finding type of a[smth] , return primitive type of array
                             t.name = type_ptr->typeinfo.array.primitive_type;
@@ -238,7 +239,7 @@ type get_expr_type(tree_node *expr_node){
 
             }
             else{   // unaryop expr
-                t = get_expr_type(expr_node->rightmost_child);
+                t = get_expr_type(expr_node->rightmost_child, sym_tab_ptr);
             }
         }
         break;
@@ -247,16 +248,16 @@ type get_expr_type(tree_node *expr_node){
         {
             // printf(">2 nodes\n");
             tree_node *child = expr_node->leftmost_child;
-            type t1 = get_expr_type(child), t2;
+            type t1 = get_expr_type(child, sym_tab_ptr), t2;
             operator op;
 
             while(child->sibling != NULL){
                 if(child->leftmost_child->sym.t == ID)
-                    printf("t1 corresponds to %s\n", child->leftmost_child->token.id.str);
+                    printf("t1 corresponds to %s at line_no %d\n", child->leftmost_child->token.id.str, child->leftmost_child->token.line_no);
                 op = get_operator(child->sibling);
                 if(child->sibling->sibling->leftmost_child->sym.t == ID)
-                    printf("t2 corresponds to %s\n", child->sibling->sibling->leftmost_child->token.id.str);
-                t2 = get_expr_type(child->sibling->sibling);
+                    printf("t2 corresponds to %s at line_no %d\n", child->sibling->sibling->leftmost_child->token.id.str, child->sibling->sibling->leftmost_child->token.line_no);
+                t2 = get_expr_type(child->sibling->sibling, sym_tab_ptr);
 
                 t1 = get_EopE_type(t1, op, t2);
 
@@ -582,7 +583,7 @@ void arrindex_type_n_bounds_check(tree_node *index_node, int lb, int ub)
 void verify_assignment_semantics(tree_node *assign_node){    
     if(assign_node == NULL)
         return;
-    type rhs_type = get_expr_type(assign_node->rightmost_child);
+    type rhs_type = get_expr_type(assign_node->rightmost_child, curr_sym_tab_ptr);
     type lhs_type;
     tree_node *id_node = assign_node->leftmost_child;
 
@@ -665,6 +666,11 @@ void verify_assignment_semantics(tree_node *assign_node){
             if(is_outp_param){
                 printf("Markjing %s as assigned******************************\n", id_node->token.id.str);
                 mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
+            }
+            tree_node *while_node = create_tree_node();
+            if(is_id_part_of_while_loop(id_node, &while_node)){
+                install_id_in_loop_args(while_node, id_node->token.id.str);
+                mark_while_loop_var_assigned(while_node, id_node->token.id.str);
             }
             
             
@@ -861,11 +867,22 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
         return;
     }
 
-    // Correct semantics of fn call, types match, mark each lhs param to be assigned
+    // Correct semantics of fn call, types match, mark each lhs param to be assigned if it's an output param for enclosing function
     if(encl_fun_type_ptr != NULL && parm_type == output){
         fncall_list_node = fncall_args_list->leftmost_child;
-        while(fncall_list_node){
-            mark_outp_param_assigned(fncall_list_node->token.id.str, encl_fun_type_ptr);
+        bool is_outp_node = false;
+        while(fncall_list_node){            
+            key_search_recursive(curr_sym_tab_ptr, fncall_list_node->token.id.str, encl_fun_type_ptr, &is_outp_node);
+            
+            if(is_outp_node)
+                mark_outp_param_assigned(fncall_list_node->token.id.str, encl_fun_type_ptr);
+            
+            tree_node *while_node = create_tree_node();
+            if(is_id_part_of_while_loop(fncall_list_node, &while_node)){
+                install_id_in_loop_args(while_node, fncall_list_node->token.id.str);
+                mark_while_loop_var_assigned(while_node, fncall_list_node->token.id.str);
+            }
+            
             fncall_list_node = fncall_list_node->sibling;
         }
     }
@@ -956,11 +973,137 @@ void verify_declarations_validity(tree_node *mainprog_node){
 
 }
 
+void mark_while_loop_var_assigned(tree_node *while_node, char *var_name){
+    printf("=================================Will be markingl oop variable %s as assigned\n", var_name);
+    int num_vars = 0;
+    void *loop_args = while_node->extra_args;
+    if(loop_args)
+    {
+        num_vars = *(int*)loop_args;    
+        loop_args = loop_args + sizeof(int);
+        
+        int id_size = sizeof(char)*MAX_LEXEME_LEN;
+        int entry_size = sizeof(bool) + id_size;
+        printf("NUM_VARS = %d\n", num_vars);
+        for(int i = 0; i < num_vars; i++)
+        {
+            printf("loop_args_str[%d] = %s\n", i, (char*)loop_args);
+            if(strcmp((char*)(loop_args), var_name) == 0){
+                *(bool*)(loop_args + id_size) = true;
+                printf("And yooooooooo, marked successfully\n");
+            }                
+            loop_args = loop_args + entry_size;
+        }
+    }
+    else{
+        printf("LoLoL!!!, loop_args dne\n");
+    }
+}
+
+bool is_id_part_of_while_loop(tree_node *id_node, tree_node **while_node){
+    printf("Checking is id part of while loop for id = %s\n", id_node->token.id.str);
+    while(id_node){
+        if(id_node->parent){
+            printf("id_node's parent exists and is %s\n", non_terminal_string[id_node->parent->sym.nt]);
+            if(id_node->parent->sym.nt == WHILELOOP){                
+                *while_node = id_node->parent;
+                printf("And yes it is\n");
+                return true;
+            }
+        }
+        id_node = id_node->parent;
+    }
+    return false;
+}
+
+void install_id_in_loop_args(tree_node *while_node, char *id_str)
+{
+    printf("Will be installing %s in while_loop\n", id_str);
+    void *loop_args = while_node->extra_args;
+    int id_size = sizeof(char) * MAX_LEXEME_LEN;
+    int entry_size = id_size + sizeof(bool);
+    int num_vars = 0;
+
+    if(loop_args == NULL){
+        printf("Initializing while_loop extra_args\n");
+        while_node->extra_args = malloc(entry_size + sizeof(int));
+
+        *(int *)while_node->extra_args = 1;        
+        loop_args = while_node->extra_args + sizeof(int);
+        printf("Initialization successful, num_vars = %d\n", *(int*)(while_node->extra_args));
+    }    
+    else{
+        loop_args = while_node->extra_args;
+
+        num_vars = *(int *)loop_args;
+
+        loop_args = loop_args + sizeof(int);
+        
+        printf("Num of vars already present = %d\n", num_vars);
+        // loop_args = loop_args + entry_size*num_vars;
+        for(int i = 0; i < num_vars; i++)
+        {
+            if(strcmp((char*)(loop_args), id_str) == 0)
+                return;
+            loop_args = loop_args + entry_size;
+        }
+        printf("Reallocating while_loop extra_args\n");
+        while_node->extra_args = realloc(while_node->extra_args, sizeof(int) + ((num_vars + 1) * entry_size));
+        printf("After reallcoation, num_vars = %d\n", *(int*)(while_node->extra_args));
+        
+        (*(int*)(while_node->extra_args))++;
+        
+        loop_args = while_node->extra_args + sizeof(int);
+
+        printf("After reallcoation and updation, num_vars = %d\n", *(int*)(while_node->extra_args));
+    }
+
+    loop_args = loop_args + (entry_size*num_vars);
+
+    strcpy((char*)loop_args, id_str);
+    printf("installed %s???\n", (char*)loop_args);
+    loop_args = loop_args + id_size;
+    *(bool*)loop_args = false;
+    printf("Mark assigned? %d\n", *(bool*)loop_args);
+}
+
 void verify_whileloop_semantics(tree_node *while_node){
-    type expr_type = get_expr_type(while_node->leftmost_child);
-    if(expr_type.name != BOOLEAN){
-        int line_num = while_node->leftmost_child->leftmost_child->leftmost_child->token.line_no;
+    printf("Verifying while_loop semantics\n\n");
+
+    type expr_type = get_expr_type(while_node->leftmost_child, curr_sym_tab_ptr);
+    int line_num = while_node->leftmost_child->leftmost_child->leftmost_child->token.line_no;
+    if(expr_type.name != BOOLEAN){        
         printf("##################Invalid expression type for while expression at line %d#############\n", line_num);
+    }
+
+    void *loop_vars = while_node->extra_args;
+    int num_vars = 0;
+    if(loop_vars != NULL){
+        printf("Loop vars aren't NULL\n");
+        num_vars = *(int *)loop_vars;
+        loop_vars = loop_vars + sizeof(int);
+        bool is_any1_assigned = false;
+        printf("Num of loop variables here are %d\n", num_vars);
+        for(int i =0; i < num_vars; i++){
+            printf("Checking for %s\n", (char *)loop_vars);
+            loop_vars = loop_vars + sizeof(char)*MAX_LEXEME_LEN;
+            is_any1_assigned = *(bool *)loop_vars;
+            if(is_any1_assigned)
+                break;
+            loop_vars = loop_vars + sizeof(bool);
+        }
+        if(is_any1_assigned == false){
+            char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+            sprintf(err_type, "%d) SEMANTIC ERROR", line_num);
+
+            print_error(err_type, "While loop, no variable involved in expression is changing...\n");
+        }
+    }
+    else{
+        char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+        sprintf(err_type, "%d) SEMANTIC ERROR", line_num);
+
+        print_error(err_type, "While loop, no variable involved in expression is changing...\n");
     }
 }
 
@@ -992,7 +1135,15 @@ void verify_construct_semantics(tree_node *node){
                 id_node = node->rightmost_child;
                 bool is_outp_node = false;
                 key_search_recursive(curr_sym_tab_ptr, id_node->token.id.str, id_node->encl_fun_type_ptr, &is_outp_node);
-                mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
+                
+                if(is_outp_node)
+                    mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
+                
+                tree_node *while_node = create_tree_node();
+                if(is_id_part_of_while_loop(id_node, &while_node)){
+                    install_id_in_loop_args(while_node, id_node->token.id.str);
+                    mark_while_loop_var_assigned(while_node, id_node->token.id.str);
+                }
             }
         }
         break;
@@ -1067,6 +1218,7 @@ void construct_symtable(tree_node *ast_root) {
     if(node == NULL)
         return;
   do{        
+      print_symbol(node->sym);
         if(node->visited == false) {
             num_ast_nodes++;
             node->visited = true;
@@ -1210,7 +1362,7 @@ void construct_symtable(tree_node *ast_root) {
                 if(is_new_scope_openable(node->sym.nt) == true){    
                     if(curr_sym_tab_ptr)                            
                         curr_sym_tab_ptr = curr_sym_tab_ptr->parent_table;
-                    printf("\n\t A scope closed \n");
+                    printf("\n\t A scope closed for nt : %s\n", non_terminal_string[node->sym.nt]);
                 }   
             }    // if non-terminal
             /**

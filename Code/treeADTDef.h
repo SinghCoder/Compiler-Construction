@@ -36,6 +36,7 @@ typedef struct TREENODE
   TOKEN token;
   int num_child;
   bool visited;
+  void *extra_args;
 } tree_node;
 
 #endif

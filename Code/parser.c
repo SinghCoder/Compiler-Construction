@@ -513,7 +513,7 @@ void print_node_for_tool(tree_node *node) {
   } else {    
 	fprintf(parse_tree_file_ptr, "[%s(%d)", non_terminal_string[(node->sym).nt], node->num_child);
 	if(is_expr_node(node->sym.nt)){ //it's a node corresponding to RHS of an expression
-		fprintf(parse_tree_file_ptr, "{%s} ",terminal_string[get_expr_type(node).name]);
+		fprintf(parse_tree_file_ptr, "{%s} ",terminal_string[get_expr_type(node, node->scope_sym_tab).name]);
 	} 
   }
 }

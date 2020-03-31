@@ -6,7 +6,7 @@
 #include <limits.h>
 
 #define OBTAIN_DYNAMICALLY 0x3f3f3f3f
-
+#define MAX_VARSNUM_IN_EXPR 100
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 extern int num_ast_nodes;

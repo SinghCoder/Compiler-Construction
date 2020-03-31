@@ -319,7 +319,7 @@ int main(int argc, char *argv[]) {
 			tree_node *ast_tree = construct_ast(ptr);
 			construct_symtable(ast_tree);
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
-			// print_parse_tree_for_tool(ast_tree);
+			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
 			print_symbol_table(ast_tree->scope_sym_tab);
 			printf("\t\t\t\tNUMBER OF AST NODES: %d", num_ast_nodes);

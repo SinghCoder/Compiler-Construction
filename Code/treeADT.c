@@ -33,7 +33,9 @@ tree_node *create_tree_node() {
   node->node_inh = NULL;
   node->node_syn = NULL;
   node->num_child = 0;
-  strcpy(node->token.str, "");
+  node->scope_sym_tab = NULL;
+  strcpy(node->token.id.str, "");
+  node->encl_fun_type_ptr = NULL;
   return node;
 }
 

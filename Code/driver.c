@@ -275,7 +275,7 @@ int main(int argc, char *argv[]) {
 			populate_follow_sets();
 
 			create_parse_table();
-			print_parse_table();
+			// print_parse_table();
 
 			tree_node *ptr = parse_input_source_code(source);
 
@@ -286,7 +286,7 @@ int main(int argc, char *argv[]) {
 			tree_node *ast_tree = construct_ast(ptr);
 			construct_symtable(ast_tree);
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
-			// print_parse_tree_for_tool(ptr);
+			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
 
 			free_grammar();
@@ -321,7 +321,7 @@ int main(int argc, char *argv[]) {
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
 			// print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
-			print_symbol_table(root_sym_tab_ptr);
+			print_symbol_table(ast_tree->scope_sym_tab);
 			printf("\t\t\t\tNUMBER OF AST NODES: %d", num_ast_nodes);
 			free_grammar();
 			fclose(fptr);

@@ -21,7 +21,9 @@ typedef enum {
 typedef struct token {
   token_name name;
   union {
-    char str[MAX_LEXEME_LEN];
+    struct{
+      char str[MAX_LEXEME_LEN];
+    }id;
     int num;
     double rnum;
   };

@@ -11,6 +11,7 @@
 
 //#include "lexerDef.h"
 #include<stdbool.h>
+// #include "semantic_analyzerDef.h"
 
 #define PRIME 119
 #define HASH_SIZE 67

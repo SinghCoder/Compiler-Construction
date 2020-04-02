@@ -285,6 +285,9 @@ int main(int argc, char *argv[]) {
 
 			tree_node *ast_tree = construct_ast(ptr);
 			construct_symtable(ast_tree);
+			printf("----------------First pass ended----------------\n");
+			printf("----------------Checking second pass------------\n");
+			second_ast_pass(ast_tree);
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
 			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);

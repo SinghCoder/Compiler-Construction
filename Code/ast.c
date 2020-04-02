@@ -125,7 +125,6 @@ void extend_inh_node(tree_node *node1, tree_node *node2) {
       NULL) { // list doesn't exist already, create a node with label
     node1->node_inh = copy_node(node1->parent);
   }
-
   add_child(node1->node_inh, node2); // append element to list
   return;
 }
@@ -134,18 +133,22 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
   tree_node *temp = parse_tree_root;
 
   do {
-    // printf("temp is: ");
-    // // print_symbol(temp->sym);
     tree_node *lchild = temp->leftmost_child;
     tree_node *rchild = temp->rightmost_child;
-
+    /**
+     * @brief Visiting the node first time
+     * 
+     */
     if (temp->visited == false) {
 
       temp->visited = true;
 
       tree_node *prev_child = NULL;
       tree_node *curr_child = lchild;
-
+      /**
+       * @brief Remove unnecessary children of current node
+       * 
+       */
       while (curr_child != NULL) {
 
         if (is_important(curr_child) == true) {
@@ -159,6 +162,12 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
 
       lchild = temp->leftmost_child;
       rchild = temp->rightmost_child;
+      
+      /**
+       * @brief Node is derived from recursive rule
+       * assign node_inh values by taking from parent and appeding all it's left neighbors
+       * i.e. creating linked list
+       */
 
       if ((is_recursion(temp) == true) &&
           (temp->parent->sym.nt == temp->sym.nt ||
@@ -167,7 +176,10 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
         temp->node_inh = temp->parent->node_inh;
 
         tree_node *sibling = temp->parent->leftmost_child;
-
+        /**
+         * @brief Append left neighbors' node_syns
+         * 
+         */
         while (sibling != temp) {
           if (sibling->sym.is_terminal == false) {
             extend_inh_node(temp, sibling->node_syn);
@@ -180,7 +192,8 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
         if (is_base_case(temp) == true) {
           tree_node *child = lchild;
 
-          while (child != NULL) {
+          // }
+          while (child != NULL) {            
             if (child->sym.is_terminal == false) {
               extend_inh_node(temp, child->node_syn);
             } else {
@@ -197,9 +210,16 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
         temp = lchild;
       }
     } // end of if temp->visited = false
-
+    /**
+     * @brief Visiting node again
+     * i.e. all children have been visited
+     */
     else {
       if (is_recursion(temp) == false) {
+        /**
+         * @brief Chain of non-terminals
+         * 
+         */
         if (lchild != NULL && (lchild == rchild)) {
 
           if (lchild->sym.is_terminal ==
@@ -217,8 +237,8 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
           temp->node_syn = copy_node(temp); // label create kardo
           tree_node *child = lchild;
 
-          while (child != NULL) { // sare imp walo ke node-syn ko append kardo
-
+          while (child != NULL) { // sare imp walo ke node-syn ko append kardo            
+            // printf("\n");
             if (child->sym.is_terminal == false) {
               add_child(temp->node_syn, child->node_syn);
             }
@@ -250,18 +270,17 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
             child); // free all children, no parse tree node is preserved to
                     // avoid nullifying parents/siblings fields
       }
-
-		tree_node *ast_node = temp->node_syn;
+    tree_node *ast_node = temp->node_syn;
 	  if( (ast_node != NULL) && 
 	  		(ast_node->leftmost_child == ast_node->rightmost_child) &&
 			  (ast_node->leftmost_child != NULL) &&
 			  	(ast_node->leftmost_child->sym.is_terminal == false) ){// It's a chain of non-terminals in AST, remove it
 
 			tree_node *ast_child = ast_node->leftmost_child;
-			ast_child->parent = ast_node->parent;
-			ast_child->sibling = ast_node->parent;
-			*ast_node = *ast_child;
-			free(ast_child);
+        ast_child->parent = ast_node->parent;
+        ast_child->sibling = ast_node->sibling;
+        temp->node_syn = ast_child;
+        free(ast_node);
 
 		}
 

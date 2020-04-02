@@ -6,7 +6,6 @@ end
 <<module empty>>
 takes input[a:boolean];
 start
-      declare A:array[1..15] of real;
       declare index:integer;
 	declare t:boolean;
 	index:=5;

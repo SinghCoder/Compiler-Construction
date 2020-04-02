@@ -11,6 +11,7 @@
 
 //#include "lexerDef.h"
 #include<stdbool.h>
+// #include "semantic_analyzerDef.h"
 
 #define PRIME 119
 #define HASH_SIZE 67
@@ -44,6 +45,9 @@ bool key_present_in_table(hash_table table, char *lexeme);
 typedef struct symbol_table_wrapper{
 	hash_table table;
 	struct symbol_table_wrapper *parent_table;
+	struct symbol_table_wrapper *leftmost_child_table;
+	struct symbol_table_wrapper *rightmost_child_table;
+	struct symbol_table_wrapper *sibling_table;
 }st_wrapper;
 
 #endif

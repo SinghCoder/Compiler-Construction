@@ -36,6 +36,7 @@ void print_menu() {
 	printf("5. Print first sets\n");
 	printf("6. Print follow sets\n");
 	printf("7. Construct Symbol table\n");
+	printf("8. Print all the symbolt tables\n");
 	printf(" Press any other to exit \n");
 	printf("-----------------------------------------------------------------\n");
 	printf("Enter your choice:  ");
@@ -274,7 +275,7 @@ int main(int argc, char *argv[]) {
 			populate_follow_sets();
 
 			create_parse_table();
-			print_parse_table();
+			// print_parse_table();
 
 			tree_node *ptr = parse_input_source_code(source);
 
@@ -284,14 +285,52 @@ int main(int argc, char *argv[]) {
 
 			tree_node *ast_tree = construct_ast(ptr);
 			construct_symtable(ast_tree);
+			printf("----------------First pass ended----------------\n");
+			printf("----------------Checking second pass------------\n");
+			second_ast_pass(ast_tree);
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
-			// print_parse_tree_for_tool(ptr);
+			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
 
 			free_grammar();
 			fclose(fptr);
+		}
+		break;
+		case 8: {
+			lexer_init(source);
+			parser_init();
 
-		} break;
+			FILE *fptr = fopen("grammar.txt", "r");
+			if (fptr == NULL) {
+				perror("fopen");
+			}
+			grammar_fill(fptr);
+
+			populate_first_sets();
+
+			populate_follow_sets();
+
+			create_parse_table();
+			// print_parse_table();
+
+			tree_node *ptr = parse_input_source_code(source);
+
+			if (ptr == NULL) {
+				printf("Empty parse tree\n");
+			}
+			num_ast_nodes = 0;
+			tree_node *ast_tree = construct_ast(ptr);
+			construct_symtable(ast_tree);
+			parse_tree_file_ptr = fopen(parse_tree_file, "w");
+			print_parse_tree_for_tool(ast_tree);
+			fclose(parse_tree_file_ptr);
+			print_symbol_table(ast_tree->scope_sym_tab);
+			printf("\t\t\t\tNUMBER OF AST NODES: %d", num_ast_nodes);
+			free_grammar();
+			fclose(fptr);
+
+		}
+		break;
 		default: {
 			exit(0);
 		} break;

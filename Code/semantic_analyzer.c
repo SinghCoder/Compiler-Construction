@@ -295,7 +295,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
     return t;
 }
 
-type *retreive_type(tree_node *node){
+type *retrieve_type(tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );
     if(node->sym.is_terminal == false)   //primitive type
     {
@@ -385,7 +385,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         char *id_str = inp_par_node_list->token.id.str;
         tree_node *inp_param_node = inp_par_node_list->sibling;  // It will always exist bcz atleast one input if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
         while(inp_param_node != NULL){
-            type_ptr = retreive_type(inp_param_node);
+            type_ptr = retrieve_type(inp_param_node);
             switch(type_ptr->name)
             {
                 case INTEGER:
@@ -407,20 +407,14 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
                     if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
                     {
                         type_ptr->width = WIDTH_BOOLEAN;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }
                     if(type_ptr->typeinfo.array.primitive_type == INTEGER)
                     {
                         type_ptr->width = WIDTH_INTEGER;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }
                     if(type_ptr->typeinfo.array.primitive_type == REAL)
                     {
                         type_ptr->width = WIDTH_REAL;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }  
 
                     if(type_ptr->typeinfo.array.is_dynamic == false){
@@ -448,7 +442,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         char *id_str = outp_par_node_list->token.id.str;
         tree_node *outp_param_node = outp_par_node_list->sibling;  // It will always exist bcz atleast one output if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
         while(outp_param_node != NULL){
-            type_ptr = retreive_type(outp_param_node);
+            type_ptr = retrieve_type(outp_param_node);
             switch(type_ptr->name)
             {
                 case INTEGER:
@@ -470,20 +464,14 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
                     if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
                     {
                         type_ptr->width = WIDTH_BOOLEAN;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }
                     if(type_ptr->typeinfo.array.primitive_type == INTEGER)
                     {
                         type_ptr->width = WIDTH_INTEGER;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }
                     if(type_ptr->typeinfo.array.primitive_type == REAL)
                     {
                         type_ptr->width = WIDTH_REAL;
-                        type_ptr->offset = offset;
-                        offset+=type_ptr->width;
                     }  
 
                     if(type_ptr->typeinfo.array.is_dynamic == false){
@@ -556,13 +544,13 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
         
         // case INPUT_PLIST:
         // case OUTPUT_PLIST:
-        //     type_ptr = retreive_type(node->sibling);
+        //     type_ptr = retrieve_type(node->sibling);
         //     break;
         
         case IDLIST:
             if(node->parent && node->parent->parent && node->parent->parent->sym.nt == DECLARESTMT){
                 free(type_ptr);
-                type_ptr = retreive_type(node->parent->sibling);
+                type_ptr = retrieve_type(node->parent->sibling);
             }
             else{
                 return;
@@ -601,20 +589,14 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
         if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
         {
             type_ptr->width = WIDTH_BOOLEAN;
-            type_ptr->offset = offset;
-            offset+=type_ptr->width;
         }
         if(type_ptr->typeinfo.array.primitive_type == INTEGER)
         {
             type_ptr->width = WIDTH_INTEGER;
-            type_ptr->offset = offset;
-            offset+=type_ptr->width;
         }
         if(type_ptr->typeinfo.array.primitive_type == REAL)
         {
             type_ptr->width = WIDTH_REAL;
-            type_ptr->offset = offset;
-            offset+=type_ptr->width;
         }  
     
         if(type_ptr->typeinfo.array.is_dynamic == false){
@@ -628,7 +610,6 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             type_ptr->offset = offset;
             offset+=type_ptr->width;
         }
-        // Note: array of array is not allowed
     }
     sym_table->curr_offset=offset;
 

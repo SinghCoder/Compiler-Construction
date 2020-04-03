@@ -48,6 +48,8 @@ typedef struct symbol_table_wrapper{
 	struct symbol_table_wrapper *leftmost_child_table;
 	struct symbol_table_wrapper *rightmost_child_table;
 	struct symbol_table_wrapper *sibling_table;
+	int base;
+	int curr_offset;
 }st_wrapper;
 
 #endif

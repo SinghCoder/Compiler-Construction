@@ -4,13 +4,15 @@
 #include "treeADT.h"
 #include <stdlib.h>
 #include <string.h>
-
+//sensure that curr_sym_table_ptr and root_sym_table_ptr is NULL
 st_wrapper *symbol_table_init(){
     st_wrapper *sym_tab = (st_wrapper*) malloc( sizeof( st_wrapper ));
     sym_tab->parent_table = curr_sym_tab_ptr;
     sym_tab->leftmost_child_table = NULL;
     sym_tab->rightmost_child_table = NULL;
     sym_tab->sibling_table = NULL;
+    sym_tab->base=0;
+    sym_tab->curr_offset=0;
     init_hash_table(sym_tab->table);
 
     if(root_sym_tab_ptr == NULL)
@@ -375,12 +377,66 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
     t->typeinfo.module.output_params->first = NULL;
     t->typeinfo.module.output_params->last = NULL;
     t->typeinfo.module.output_params->length = 0;
-
+    int offset=0;
+    t->offset=0;
+    t->width=0;
+    type* type_ptr=NULL;
     if(inp_par_node_list != NULL){      // It will be NULL if function does not accepts any input, bcz then input_plist will be epsilon node and it's leftmost child = NULL
         char *id_str = inp_par_node_list->token.id.str;
         tree_node *inp_param_node = inp_par_node_list->sibling;  // It will always exist bcz atleast one input if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
         while(inp_param_node != NULL){
-            insert_param_in_list(t->typeinfo.module.input_params, retreive_type(inp_param_node), id_str);
+            type_ptr = retreive_type(inp_param_node);
+            switch(type_ptr->name)
+            {
+                case INTEGER:
+                    type_ptr->width = WIDTH_INTEGER;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case REAL:
+                    type_ptr->width = WIDTH_REAL;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case BOOLEAN:
+                    type_ptr->width = WIDTH_BOOLEAN;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case ARRAY:
+                    if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
+                    {
+                        type_ptr->width = WIDTH_BOOLEAN;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    if(type_ptr->typeinfo.array.primitive_type == INTEGER)
+                    {
+                        type_ptr->width = WIDTH_INTEGER;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    if(type_ptr->typeinfo.array.primitive_type == REAL)
+                    {
+                        type_ptr->width = WIDTH_REAL;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }  
+
+                    if(type_ptr->typeinfo.array.is_dynamic == false){
+                        type_ptr->width = type_ptr->width * (type_ptr->typeinfo.array.range_high - type_ptr->typeinfo.array.range_low + 1);
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    else
+                    {
+                        type_ptr->width = POINTER_SIZE;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    break;
+            }
+            insert_param_in_list(t->typeinfo.module.input_params, type_ptr, id_str);
             inp_param_node = inp_param_node->sibling;     // rn at node labelled ID
             id_str = inp_param_node->token.id.str;
             if(inp_param_node)
@@ -392,7 +448,58 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         char *id_str = outp_par_node_list->token.id.str;
         tree_node *outp_param_node = outp_par_node_list->sibling;  // It will always exist bcz atleast one output if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
         while(outp_param_node != NULL){
-            insert_param_in_list(t->typeinfo.module.output_params, retreive_type(outp_param_node), id_str);
+            type_ptr = retreive_type(outp_param_node);
+            switch(type_ptr->name)
+            {
+                case INTEGER:
+                    type_ptr->width = WIDTH_INTEGER;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case REAL:
+                    type_ptr->width = WIDTH_REAL;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case BOOLEAN:
+                    type_ptr->width = WIDTH_BOOLEAN;
+                    type_ptr->offset = offset;
+                    offset+=type_ptr->width;
+                    break;
+                case ARRAY:
+                    if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
+                    {
+                        type_ptr->width = WIDTH_BOOLEAN;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    if(type_ptr->typeinfo.array.primitive_type == INTEGER)
+                    {
+                        type_ptr->width = WIDTH_INTEGER;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    if(type_ptr->typeinfo.array.primitive_type == REAL)
+                    {
+                        type_ptr->width = WIDTH_REAL;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }  
+
+                    if(type_ptr->typeinfo.array.is_dynamic == false){
+                        type_ptr->width = type_ptr->width * (type_ptr->typeinfo.array.range_high - type_ptr->typeinfo.array.range_low + 1);
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    else
+                    {
+                        type_ptr->width = POINTER_SIZE;
+                        type_ptr->offset = offset;
+                        offset+=type_ptr->width;
+                    }
+                    break;
+            }
+            insert_param_in_list(t->typeinfo.module.output_params, type_ptr, id_str);
             outp_param_node = outp_param_node->sibling;     // rn at node labelled ID
             id_str = outp_param_node->token.id.str;
             if(outp_param_node)
@@ -431,11 +538,13 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
     type *type_ptr = (type*) malloc( sizeof(type) );    
     if(node == NULL || node->parent == NULL)
         return;
-    
+    int offset = sym_table->curr_offset;
     switch(node->parent->sym.nt){
         case MODULEDECLARATIONS:      
             printf("Was inside moddecs\n");
             type_ptr->name = MODULE;
+            type_ptr->offset=0;
+            type_ptr->width=0;
             type_ptr->typeinfo.module.is_declared = true;
             type_ptr->typeinfo.module.is_defined = false;
             type_ptr->typeinfo.module.is_declrn_valid = false;
@@ -466,35 +575,62 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
     type_ptr->is_assigned = false;
 
     if(type_ptr->name == BOOLEAN)
+    {
         type_ptr->width = WIDTH_BOOLEAN;
+        type_ptr->offset = offset;
+        offset+=type_ptr->width;
+    }
 
     else if(type_ptr->name == INTEGER)
+    {
         type_ptr->width = WIDTH_INTEGER;
-
+        type_ptr->offset = offset;
+        offset+=type_ptr->width;
+    }
     else if(type_ptr->name == REAL)
+    {
         type_ptr->width = WIDTH_REAL;
+        type_ptr->offset = offset;
+        offset+=type_ptr->width;
+    }  
     else
     {
         // type is array type
         // actually width of array is size*width(type) - But for synamic array it is size of pointer i.e. 8
 
         if(type_ptr->typeinfo.array.primitive_type == BOOLEAN)
-            type_ptr->width = WIDTH_BOOLEAN; 
-
+        {
+            type_ptr->width = WIDTH_BOOLEAN;
+            type_ptr->offset = offset;
+            offset+=type_ptr->width;
+        }
         if(type_ptr->typeinfo.array.primitive_type == INTEGER)
-            type_ptr->width = WIDTH_INTEGER; 
-
+        {
+            type_ptr->width = WIDTH_INTEGER;
+            type_ptr->offset = offset;
+            offset+=type_ptr->width;
+        }
         if(type_ptr->typeinfo.array.primitive_type == REAL)
+        {
             type_ptr->width = WIDTH_REAL;
-
-        if(type_ptr->typeinfo.array.is_dynamic == false)
+            type_ptr->offset = offset;
+            offset+=type_ptr->width;
+        }  
+    
+        if(type_ptr->typeinfo.array.is_dynamic == false){
             type_ptr->width = type_ptr->width * (type_ptr->typeinfo.array.range_high - type_ptr->typeinfo.array.range_low + 1);
+            type_ptr->offset = offset;
+            offset+=type_ptr->width;
+        }
         else
+        {
             type_ptr->width = POINTER_SIZE;
-
+            type_ptr->offset = offset;
+            offset+=type_ptr->width;
+        }
         // Note: array of array is not allowed
     }
-
+    sym_table->curr_offset=offset;
 
     hash_insert_ptr_val(sym_table->table, node->token.id.str, type_ptr);
 }
@@ -512,7 +648,9 @@ void print_params_list(params_list *list){
             if(type_tmp->t->typeinfo.array.is_dynamic == true){
                 printf(" Dynamic indexes ");
             }
-            printf("[%d...%d] of %s", type_tmp->t->typeinfo.array.range_low, type_tmp->t->typeinfo.array.range_high, terminal_string[type_tmp->t->typeinfo.array.primitive_type]);
+            printf("[%d...%d] of %s at offset %d", type_tmp->t->typeinfo.array.range_low, type_tmp->t->typeinfo.array.range_high, terminal_string[type_tmp->t->typeinfo.array.primitive_type],type_tmp->t->offset);
+        }else{
+            printf(" at offset %d",type_tmp->t->offset);
         }
         printf(" | ");
         type_tmp = type_tmp->next;
@@ -531,6 +669,8 @@ void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
         {
             printf("%s ",sym_tab_ptr->table[i].lexeme);
             printf("Type : %s ",terminal_string[ type_ptr->name] );
+            printf("Width : %d ",type_ptr->width);
+            printf("Offset : %d ",type_ptr->offset);
             
             if(type_ptr->name == ARRAY){
                 printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );
@@ -1323,7 +1463,7 @@ void construct_symtable(tree_node *ast_root) {
     if(node == NULL)
         return;
   do{        
-    //   print_symbol(node->sym);
+      print_symbol(node->sym);
         if(node->visited == false) {
             num_ast_nodes++;
             node->visited = true;
@@ -1333,6 +1473,7 @@ void construct_symtable(tree_node *ast_root) {
              */
             if(node->sym.is_terminal == false){
                 if(node->sym.nt == NTMODULE){
+                    curr_sym_tab_ptr->base=0;
                     insert_function_definition(curr_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
                     // encl fun ptr stores ptr to module's type entry
                     node->encl_fun_type_ptr = search_hash_table_ptr_val(curr_sym_tab_ptr->table,node->leftmost_child->token.id.str);
@@ -1342,8 +1483,11 @@ void construct_symtable(tree_node *ast_root) {
                      * @brief Any non-terminal except NTMODULE and DRIVERMODULE inherits encl_fun_type_ptr value from it's parent
                      */
                     if(node->sym.nt == DRIVERMODULE){
+
                         type *driver_encl_ptr = (type *)malloc(sizeof(type));
                         driver_encl_ptr->name = MODULE;
+                        driver_encl_ptr->width=0;
+                        driver_encl_ptr->offset=0;
                         driver_encl_ptr->is_assigned = false;
                         driver_encl_ptr->typeinfo.module.input_params = NULL;
                         driver_encl_ptr->typeinfo.module.is_declared = false;
@@ -1367,12 +1511,14 @@ void construct_symtable(tree_node *ast_root) {
                     if(curr_sym_tab_ptr){
                         printf("Insert new symbol table in parent's children list\n");
                         if(curr_sym_tab_ptr->leftmost_child_table==NULL) {
-                            // printf("as leftmost child\n");
+                            new_sym_tab_ptr->base = new_sym_tab_ptr->curr_offset = curr_sym_tab_ptr->curr_offset;
+                            printf("as leftmost child\n");
                             curr_sym_tab_ptr->leftmost_child_table = new_sym_tab_ptr;
                             curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr; 
                         }
                         else{
-                            // printf("as rightmost child\n");
+                            printf("as rightmost child\n");
+                            new_sym_tab_ptr->base = new_sym_tab_ptr->curr_offset = curr_sym_tab_ptr->curr_offset;
                             curr_sym_tab_ptr->rightmost_child_table->sibling_table = new_sym_tab_ptr;
                             curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr;
                         }
@@ -1481,7 +1627,7 @@ void construct_symtable(tree_node *ast_root) {
             if(node->leftmost_child != NULL){
                 node = node->leftmost_child;
             }
-    } 
+        } 
         /**
          * @brief Have already visited the node, returning after visiting all children
          * 
@@ -1499,8 +1645,11 @@ void construct_symtable(tree_node *ast_root) {
                  * @brief If it opened up a new scope, close it          
                  */
                 if(is_new_scope_openable(node->sym.nt) == true){    
-                    if(curr_sym_tab_ptr)                            
+                    if(curr_sym_tab_ptr) {
+                        if(curr_sym_tab_ptr->parent_table!=NULL) 
+                        curr_sym_tab_ptr->parent_table->curr_offset = curr_sym_tab_ptr->curr_offset;                           
                         curr_sym_tab_ptr = curr_sym_tab_ptr->parent_table;
+                    }
                     printf("\n\t A scope closed for nt : %s\n", non_terminal_string[node->sym.nt]);
                 }   
             }    // if non-terminal
@@ -1557,10 +1706,13 @@ void construct_symtable(tree_node *ast_root) {
             }            
             // mark the node unvisited again to enable second ast pass
             node->visited = false;
-            if (node->sibling != NULL)
+            if (node->sibling != NULL){
                 node = node->sibling;
-            else 
-                node = node->parent;
+            }
+            else
+            {
+                node = node->parent; //is there a chance of double visit to the parent ????
+            }
         } 
     }while (node != NULL);
 }

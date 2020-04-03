@@ -6,9 +6,15 @@
 #include <limits.h>
 
 #define OBTAIN_DYNAMICALLY 0x3f3f3f3f
+#define WIDTH_BOOLEAN 1
+#define WIDTH_INTEGER 2	
+#define WIDTH_REAL 4	
+#define WIDTH_POINTER 8
 #define MAX_VARSNUM_IN_EXPR 100
 #define WHILE_LHS 0
 #define WHILE_RHS 1
+#define DONT_CARE 0
+
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 extern int num_ast_nodes;
@@ -34,9 +40,18 @@ struct type{
     union{
         struct{
             token_name primitive_type;
-            int range_low;
-            int range_high;
-            bool is_dynamic;
+            union{
+                int value;
+                char lexeme[MAX_LEXEME_LEN];
+            } range_low;
+            union{
+                int value;
+                char lexeme[MAX_LEXEME_LEN];
+            } range_high;            
+            struct{
+                bool range_low;
+                bool range_high;
+            }is_dynamic;
         }array;
 
         struct{
@@ -46,10 +61,14 @@ struct type{
             bool is_declared;
             bool is_defined;
             bool is_declrn_valid;
+            int curr_offset;
+            int base_addr;
         }module;
             
     } typeinfo;
     bool is_assigned;
+    int width;
+    int offset;
 };
 
 st_wrapper *curr_sym_tab_ptr;

@@ -295,37 +295,69 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
 
 type *retreive_type(tree_node *node){
     type *type_ptr = (type*) malloc( sizeof(type) );
-    if(node->sym.is_terminal == false)   //primitive type
+    
+    token_name prim_type_name;
+    bool basic_type = true;     // is this type a basic type (int/real/bool)
+    bool is_dynamic_arr = false;
+    int num_elems = 1;
+
+    if(node->sym.is_terminal == false)   //non-terminal, i.e. NT_ARRAY
     {
+        basic_type = false;
         type_ptr->name = ARRAY; // types include only real, bool, int, Array
         type_ptr->typeinfo.array.primitive_type = node->rightmost_child->sym.t;        
-        
-        if( node->leftmost_child->leftmost_child->sym.t == NUM ){
-            type_ptr->typeinfo.array.range_low = node->leftmost_child->leftmost_child->token.num;
-            type_ptr->typeinfo.array.is_dynamic = false;
+        prim_type_name = type_ptr->typeinfo.array.primitive_type;
+
+        tree_node *range_node = node->leftmost_child;
+        tree_node *low_range_node = range_node->leftmost_child;
+        tree_node *high_range_node = range_node->rightmost_child;
+
+        if( low_range_node->sym.t == NUM ){
+            type_ptr->typeinfo.array.range_low.value = low_range_node->token.num;
+            type_ptr->typeinfo.array.is_dynamic.range_low = false;
         }
         else{
-            type_ptr->typeinfo.array.range_low = OBTAIN_DYNAMICALLY;
-            type_ptr->typeinfo.array.is_dynamic = true;
-            
+            strcpy(type_ptr->typeinfo.array.range_low.lexeme, low_range_node->token.id.str);
+            type_ptr->typeinfo.array.is_dynamic.range_low = true;
+            is_dynamic_arr = true;        
         }
 
-        if( node->leftmost_child->rightmost_child->sym.t == NUM ){
-            type_ptr->typeinfo.array.range_high = node->leftmost_child->rightmost_child->token.num;
-            type_ptr->typeinfo.array.is_dynamic = false;
+        if( high_range_node->sym.t == NUM ){
+            type_ptr->typeinfo.array.range_high.value = high_range_node->token.num;
+            type_ptr->typeinfo.array.is_dynamic.range_high= false;
         }
         else{
-            type_ptr->typeinfo.array.range_high = OBTAIN_DYNAMICALLY;
-            type_ptr->typeinfo.array.is_dynamic = true;
-            
-        }
-        
-        type_ptr->typeinfo.array.range_high = ( node->leftmost_child->rightmost_child->sym.t == NUM) ? node->leftmost_child->rightmost_child->token.num : OBTAIN_DYNAMICALLY;
-         
+            strcpy(type_ptr->typeinfo.array.range_high.lexeme, high_range_node->token.id.str);
+            type_ptr->typeinfo.array.is_dynamic.range_high= true;            
+            is_dynamic_arr = true;
+        }         
+
+        if(!is_dynamic_arr)
+            num_elems = type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1;            
+
     }
     else{
-        type_ptr->name = node->sym.t;
+        type_ptr->name = node->sym.t;        
+        prim_type_name = type_ptr->name;
     }
+
+    if(basic_type || (is_dynamic_arr == false) ){
+        switch(prim_type_name){
+            case INTEGER:
+                type_ptr->width = WIDTH_INTEGER * num_elems;
+                break;
+            case REAL:
+                type_ptr->width = WIDTH_REAL * num_elems;
+                break;
+            case BOOLEAN:
+                type_ptr->width = WIDTH_BOOLEAN * num_elems;
+                break;
+        }
+    }
+    else{
+        type_ptr->width = WIDTH_POINTER;
+    }
+
     type_ptr->is_assigned = false;
     return type_ptr;
 }
@@ -375,12 +407,18 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
     t->typeinfo.module.output_params->first = NULL;
     t->typeinfo.module.output_params->last = NULL;
     t->typeinfo.module.output_params->length = 0;
-
+    t->typeinfo.module.base_addr = 0;
+    t->typeinfo.module.curr_offset = 0;
+    t->width = DONT_CARE;
+    t->offset = DONT_CARE;
+    
     if(inp_par_node_list != NULL){      // It will be NULL if function does not accepts any input, bcz then input_plist will be epsilon node and it's leftmost child = NULL
         char *id_str = inp_par_node_list->token.id.str;
         tree_node *inp_param_node = inp_par_node_list->sibling;  // It will always exist bcz atleast one input if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
+        type *inp_param_type_ptr = NULL;
         while(inp_param_node != NULL){
-            insert_param_in_list(t->typeinfo.module.input_params, retreive_type(inp_param_node), id_str);
+            inp_param_type_ptr = retreive_type(inp_param_node);
+            insert_param_in_list(t->typeinfo.module.input_params, inp_param_type_ptr, id_str);
             inp_param_node = inp_param_node->sibling;     // rn at node labelled ID
             id_str = inp_param_node->token.id.str;
             if(inp_param_node)
@@ -391,8 +429,10 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
     if(outp_par_node_list != NULL){      // It will be NULL if function does not returns any output, bcz then output_plist will be epsilon node and it's leftmost child = NULL
         char *id_str = outp_par_node_list->token.id.str;
         tree_node *outp_param_node = outp_par_node_list->sibling;  // It will always exist bcz atleast one output if above is not NULL and this list contain even #elems ID->TYPE->ID->TYPE...
+        type *outp_param_type_ptr = NULL;
         while(outp_param_node != NULL){
-            insert_param_in_list(t->typeinfo.module.output_params, retreive_type(outp_param_node), id_str);
+            outp_param_type_ptr = retreive_type(outp_param_node);
+            insert_param_in_list(t->typeinfo.module.output_params, outp_param_type_ptr, id_str);
             outp_param_node = outp_param_node->sibling;     // rn at node labelled ID
             id_str = outp_param_node->token.id.str;
             if(outp_param_node)
@@ -443,6 +483,9 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             strcpy(type_ptr->typeinfo.module.module_name, node->token.id.str);
             type_ptr->typeinfo.module.input_params = NULL;
             type_ptr->typeinfo.module.output_params = NULL;
+            type_ptr->typeinfo.module.curr_offset = 0;
+            type_ptr->offset = DONT_CARE;
+            type_ptr->width = DONT_CARE;
             break;
         
         // case INPUT_PLIST:
@@ -454,6 +497,8 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             if(node->parent && node->parent->parent && node->parent->parent->sym.nt == DECLARESTMT){
                 free(type_ptr);
                 type_ptr = retreive_type(node->parent->sibling);
+                type_ptr->offset = node->encl_fun_type_ptr->typeinfo.module.curr_offset;
+                node->encl_fun_type_ptr->typeinfo.module.curr_offset += type_ptr->width;
             }
             else{
                 return;
@@ -476,11 +521,20 @@ void print_params_list(params_list *list){
     printf("[%d] - ", list->length);
     while(type_tmp != NULL){
         printf("{%s}%s",type_tmp->param_name, terminal_string[type_tmp->t->name]);
-        if(type_tmp->t->name == ARRAY){
-            if(type_tmp->t->typeinfo.array.is_dynamic == true){
-                printf(" Dynamic indexes ");
+        if(type_tmp->t->name == ARRAY){            
+            if(type_tmp->t->typeinfo.array.is_dynamic.range_low){
+                printf(" Dynamic left range | [%s .. ", type_tmp->t->typeinfo.array.range_low.lexeme);
             }
-            printf("[%d...%d] of %s", type_tmp->t->typeinfo.array.range_low, type_tmp->t->typeinfo.array.range_high, terminal_string[type_tmp->t->typeinfo.array.primitive_type]);
+            else{
+                printf(" Static left range | [%d .. ", type_tmp->t->typeinfo.array.range_low.value);
+            }
+            if(type_tmp->t->typeinfo.array.is_dynamic.range_high){
+                printf("%s] Dynamic right range | ", type_tmp->t->typeinfo.array.range_high.lexeme);
+            }
+            else{
+                printf("%d] Static right range | ", type_tmp->t->typeinfo.array.range_high.value);
+            }
+            printf("Prim Type : %s",  terminal_string[type_tmp->t->typeinfo.array.primitive_type]);
         }
         printf(" | ");
         type_tmp = type_tmp->next;
@@ -497,14 +551,26 @@ void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
         type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
         if(type_ptr != NULL)
         {
-            printf("%s ",sym_tab_ptr->table[i].lexeme);
-            printf("Type : %s ",terminal_string[ type_ptr->name] );
+            printf("%s | ",sym_tab_ptr->table[i].lexeme);
+            printf("Width : %d | ", type_ptr->width);
+            printf("Offset : %d | ", type_ptr->offset);
+            printf("Type : %s | ",terminal_string[ type_ptr->name] );
             
             if(type_ptr->name == ARRAY){
                 printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );
-                printf("Range high : %d ",type_ptr->typeinfo.array.range_high);
-                printf("Range low : %d ",type_ptr->typeinfo.array.range_low);
-                printf("is_dynamic : %d\n",type_ptr->typeinfo.array.is_dynamic);
+                if(type_ptr->typeinfo.array.is_dynamic.range_low){
+                    printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);
+                }
+                else{
+                    printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);
+                }
+                if(type_ptr->typeinfo.array.is_dynamic.range_high){
+                    printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);
+                }
+                else{
+                    printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);
+                }
+                printf("\n");
             }
 
             else if(type_ptr->name == MODULE){
@@ -669,10 +735,10 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
              * @brief It's a static array, do type checking
              * 
              */
-            if(id_type_ptr->typeinfo.array.is_dynamic == false){
+            if(id_type_ptr->typeinfo.array.is_dynamic.range_high == false && id_type_ptr->typeinfo.array.is_dynamic.range_low == false){
                 tree_node *index_node = id_node->sibling;
-                int lb = id_type_ptr->typeinfo.array.range_low;
-                int ub = id_type_ptr->typeinfo.array.range_high;
+                int lb = id_type_ptr->typeinfo.array.range_low.value;
+                int ub = id_type_ptr->typeinfo.array.range_high.value;
                 arrindex_type_n_bounds_check(index_node, lb, ub, curr_sym_tab_ptr);
             }
         }
@@ -834,14 +900,14 @@ bool is_types_matching(type *t1, type *t2){
         return false;   // prim types don't match
     }
     
-    if(t1->typeinfo.array.is_dynamic || t2->typeinfo.array.is_dynamic){
+    if(t1->typeinfo.array.is_dynamic.range_low || t2->typeinfo.array.is_dynamic.range_low || t1->typeinfo.array.is_dynamic.range_high || t2->typeinfo.array.is_dynamic.range_high){
         printf("One of array is dynamic\n");
         return true;    // if either is dynamic, say true bcz runtime checking required
     }
 
     // range checking if not dynamic
     
-    if((t1->typeinfo.array.range_low != t2->typeinfo.array.range_low) || (t1->typeinfo.array.range_high != t2->typeinfo.array.range_high)){
+    if((t1->typeinfo.array.range_low.value != t2->typeinfo.array.range_low.value) || (t1->typeinfo.array.range_high.value != t2->typeinfo.array.range_high.value)){
         printf("Both statia but ranges don't match\n");
         return false;   // either low or high range values don't match
     }
@@ -1235,6 +1301,38 @@ void verify_construct_semantics(tree_node *node){
             verify_declarations_validity(node);
         }
         break;
+        case NT_ARRAY:
+        {
+            tree_node *range_node = node->leftmost_child;
+            tree_node *low_range_node = range_node->leftmost_child;
+            tree_node *high_range_node = range_node->rightmost_child;
+            if(low_range_node->sym.t == ID){
+                type *low_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, low_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
+                if(low_range_type->name != INTEGER){
+                    char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    sprintf(msg, "Range %s must be integer type", low_range_node->token.id.str);
+                    
+                    char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    sprintf(err_type, "%d) SEMANTIC ERROR", low_range_node->token.line_no);
+
+                    print_error(err_type, msg);
+                }
+            }
+
+            if(high_range_node->sym.t == ID){
+                type *high_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, high_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
+                if(high_range_type->name != INTEGER){
+                    char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    sprintf(msg, "Range %s must be integer type", high_range_node->token.id.str);
+                    
+                    char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    sprintf(err_type, "%d) SEMANTIC ERROR", high_range_node->token.line_no);
+
+                    print_error(err_type, msg);
+                }
+            }
+        }
+        break;
     }
 }
 
@@ -1301,9 +1399,9 @@ void construct_symtable(tree_node *ast_root) {
              */
             if(node->sym.is_terminal == false){
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(curr_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
+                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
                     // encl fun ptr stores ptr to module's type entry
-                    node->encl_fun_type_ptr = search_hash_table_ptr_val(curr_sym_tab_ptr->table,node->leftmost_child->token.id.str);
+                    node->encl_fun_type_ptr = search_hash_table_ptr_val(root_sym_tab_ptr->table,node->leftmost_child->token.id.str);
                 }
                 else{
                     /**
@@ -1316,7 +1414,8 @@ void construct_symtable(tree_node *ast_root) {
                         driver_encl_ptr->typeinfo.module.input_params = NULL;
                         driver_encl_ptr->typeinfo.module.is_declared = false;
                         driver_encl_ptr->typeinfo.module.is_declrn_valid = false;
-                        driver_encl_ptr->typeinfo.module.is_defined = true;                        
+                        driver_encl_ptr->typeinfo.module.is_defined = true;
+                        driver_encl_ptr->typeinfo.module.curr_offset = 0;
                         strcpy(driver_encl_ptr->typeinfo.module.module_name, "driver");
                         driver_encl_ptr->typeinfo.module.output_params = NULL;
                         node->encl_fun_type_ptr = driver_encl_ptr;
@@ -1489,10 +1588,19 @@ void construct_symtable(tree_node *ast_root) {
                     if(type_ptr){
                         printf("Received entry for %s, type_name = %s\n", node->token.id.str, terminal_string[type_ptr->name] );
                         if(type_ptr->name == ARRAY){
-                            if(type_ptr->typeinfo.array.is_dynamic){
-                                printf(" Dynamically indexed ");
+                            if(type_ptr->typeinfo.array.is_dynamic.range_low){
+                                printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);
                             }
-                            printf("Range: [%d..%d] Primitive type : %s\n", type_ptr->typeinfo.array.range_low, type_ptr->typeinfo.array.range_high, terminal_string[type_ptr->typeinfo.array.primitive_type]);
+                            else{
+                                printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);
+                            }
+                            if(type_ptr->typeinfo.array.is_dynamic.range_high){
+                                printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);
+                            }
+                            else{
+                                printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);
+                            }
+                            printf("Prim Type : %s\n",  terminal_string[type_ptr->typeinfo.array.primitive_type]);                            
                         }
                         else if(type_ptr->name == MODULE){
                             printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);

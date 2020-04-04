@@ -1,0 +1,128 @@
+
+
+<<module newfunc1>>
+takes input [a78: integer, b23: real, c45: boolean, arr1:array[1..15] of boolean,k:integer];
+returns [q32: boolean, p12:integer, uy: integer, jh:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;
+	x_1:= u2+u3;							
+	while(i<=k)
+	start
+		declare u2, x_1:integer; 		
+		x_1:= u2+u3;				
+		for(x_1 in 1..8)
+		start
+			declare u3:integer;
+			x_1:=u2+u3;
+		end
+		arr1[i]:=tempvar;				 
+		i:=i+1;
+	end
+	declare x_1, x_2, x_3: boolean;				 
+end
+<<module newfunc3>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;									 
+end
+<<module newfunc4>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        [i, tempvar]:= use module newfunc3 with parameters i, i;   														 
+end
+<<module arraySum>>
+takes input[list:array[1..15] of real, n:integer];		    
+returns  [sum:real];						    
+start
+	declare index, x,a, b:integer;				    
+	declare c,d: real;	
+	declare t:boolean;					    
+	declare q,r: array[1..15] of real;		    	    
+        declare p: array[1..100] of real;
+	declare u,v: boolean;				   	    
+        switch(t)
+        start
+            case true:  c:= 20.9; break;
+            case false:  d:= 23.8; break;
+        end 							    				
+	for(a in 1..20)
+        start
+		b := a-1;
+                q[b] := r[a] -1.9;                                   
+		[b,d, t, a]:= use module newfunc1 with parameters a,c,t, q, b;  
+		print(b);
+        end
+	sum:=0.0;						    
+	[t, a, b, d]:= use module newfunc1 with parameters a,c,t;  
+	while(sum>=12.8)					    
+        start
+		index:= 34-20*index+x-12;			    
+		r[b] := p[index]+q[a];			            
+		r[index]:= p[index] + list[a];		            
+                [t, a]:= use module newfunc1 with parameters a,c,t, q, b;  
+                list[b]:=list[a]+ 22.3; 			    
+		c:= a+c-d+23.89;						
+		t:= list[a]+34.5<=40.0;      	    	            
+	end
+	[t, a, b, d]:= use module newfunc1 with parameters a,c,t, q, b;  
+	declare u, v, w, z: integer;			            
+	w:= index*10+sum-list[a];				    
+	print(x_2); 						    
+        switch(t)
+        start
+            case 17:  c:= 20.9; break;
+            case false:  d:= 23.8 ;break;
+        end 							    
+end
+
+<<<driver program>>>
+start
+	declare A789:array[1..25] of real;                            
+	declare k456:integer;					   
+	declare s123:real;						   
+	get_value(k);
+	u1:= 23.9+s123;						   
+	[k456, s123]:= use module newfunc2 with parameters k456, s123;    
+        switch(k456)
+        start
+            case 10:  s123:= 20.9; break;
+            case 12:  s123:= 23.8; break;
+        end           						   
+	k456 := 10+12-3.9;					   
+	s:=k;							   
+end
+<<module newfunc2>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	uy12:= 5;
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;									 
+end
+
+<<module newfunc5>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare a,b:integer;
+	[uy12, j23]:= use module newfunc5 with parameters a,b;						 
+end
+
+
+

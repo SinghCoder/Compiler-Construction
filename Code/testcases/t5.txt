@@ -3,6 +3,7 @@ declare module compute;
 takes input[list:array[1..15] of    real, n:integer];
 returns  [sum:real];
 start
+	sum := 1.1;
 end
 <<<driver program>>>
 start
@@ -11,14 +12,11 @@ start
 	declare c : boolean;
 	declare d : array[1..2] of real;
 
-	a := 2.1 + 3.1 * 4.1 / 5.1 - 7.1;
-	b := 1 + (2 - 3) * 4 / (5 + 1);
-	c := 2 >= 3 AND true;
-	c := true AND false;
-	d[1] := 1.1;
-	e := 1;
-	a := 1;
-	d[1.1] := 1.1;
-	d[2] := a;
-	d[3] := a;
+	for(b in 1..2)
+	start
+		declare a : real;	
+		declare c : boolean;
+		declare d : array[1..2] of real;
+	end
+	
 end

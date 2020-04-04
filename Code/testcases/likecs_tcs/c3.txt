@@ -1,0 +1,28 @@
+** Test case c3.txt: Handles iterative statements**
+<<module compute>>
+takes input [a : integer];
+returns [b : integer];
+start
+    b := 1;
+end
+<<<driver program>>>
+start
+	declare x:integer; 
+	get_value(x);
+	declare sum, k:integer;
+	sum:=100;
+	for(k in 1..10)
+	start
+		sum:= sum + k*x;
+		print(sum);
+        get_value(k);
+        k := 1;
+        [k] := use module compute with parameters k;
+	end	
+    while(k <= 10)
+    start
+        [k] := use module compute with parameters k;
+    end
+	print(sum);
+end
+

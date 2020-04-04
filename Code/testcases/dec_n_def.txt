@@ -1,0 +1,22 @@
+declare module f1;
+<<module f2>>
+takes input[n:integer];
+returns  [sum:real];
+start
+    declare a:integer;
+    declare b:integer;
+    use f1 with parameters a,b;
+end
+<<module f1>>
+takes input[a:integer, b:integer];
+start    
+end
+<<module f3>>
+takes input[a:integer];
+start    
+declare b:integer
+use f1 with parameters a,b;
+end
+<<<driver program>>>
+start	
+end

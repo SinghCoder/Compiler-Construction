@@ -5,6 +5,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+void free_recursive_sym_tab(st_wrapper *sym_tab)
+{
+    if(sym_tab == NULL)
+        return;
+    
+    free_recursive_sym_tab(sym_tab->leftmost_child_table);
+    st_wrapper *tmp = sym_tab->sibling_table;
+    free(sym_tab);
+    free_recursive_sym_tab(tmp);
+}
+
+void semantic_analyzer_init(){
+    if(root_sym_tab_ptr)
+    {
+        free_recursive_sym_tab(root_sym_tab_ptr);
+    }
+    root_sym_tab_ptr = NULL;
+    curr_sym_tab_ptr = NULL;
+}
+
 st_wrapper *symbol_table_init(){
     st_wrapper *sym_tab = (st_wrapper*) malloc( sizeof( st_wrapper ));
     sym_tab->parent_table = curr_sym_tab_ptr;
@@ -250,8 +270,18 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
             }
             else{   // unaryop expr with +/- id | id [smth]
                 t = get_expr_type(expr_node->rightmost_child, sym_tab_ptr);
+                int line_num = 0;
+                tree_node *tmp = expr_node->rightmost_child;
+                while(tmp){
+                    if(tmp->sym.is_terminal){
+                        line_num = tmp->token.line_no;
+                    }
+                    tmp = tmp->leftmost_child;
+                }
                 if(t.name != INTEGER && t.name != REAL){
-                    print_error("SEMANTIC ERROR", "Unary expression should have int/real on rhs of unaryop\n");
+                    char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    sprintf(err_type, "%d) SEMANTIC ERROR", line_num);
+                    print_error(err_type, "Unary expression should have int/real on rhs of unaryop\n");
                     t.name = TYPE_ERROR;
                 }
                 else{
@@ -756,21 +786,19 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
             print_error(err_type, msg);
         }
         
-        else{
-            if(is_outp_param){
-                printf("Markjing %s as assigned******************************\n", id_node->token.id.str);
-                mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
-            }
-            tree_node *while_node = create_tree_node();
-            int child_dir;
-            if(is_id_part_of_while_loop(id_node, &while_node, &child_dir)){
-                // install_id_in_loop_args(while_node, id_node->token.id.str);
-                mark_while_loop_var_assigned(while_node, id_node->token.id.str);
-            }
-            
-            
-            printf("=======Type matches=======\n");
+        if(is_outp_param){
+            printf("Markjing %s as assigned******************************\n", id_node->token.id.str);
+            mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
         }
+        tree_node *while_node = create_tree_node();
+        int child_dir;
+        if(is_id_part_of_while_loop(id_node, &while_node, &child_dir)){
+            // install_id_in_loop_args(while_node, id_node->token.id.str);
+            mark_while_loop_var_assigned(while_node, id_node->token.id.str);
+        }
+        
+        
+        printf("=======Type matches=======\n");        
     }
 }
 
@@ -1025,6 +1053,40 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
                 mark_while_loop_var_assigned(while_node, fncall_list_node->token.id.str);
             }
             
+            /**
+             * @brief Check if this id is part of any enclosing for loop
+             */
+            tree_node *forloop_node = NULL, *parent_node = fncall_list_node;    
+    
+            while(parent_node->sym.nt != MAINPROGRAM){
+
+                if(parent_node->sym.nt == FORLOOP){
+                    /**
+                     * @brief Also check that this variable is not local to current scope
+                     * Not required, bcz the semantic rule = for loop variable mustn't be declared
+                     * inside loop prevents this situation to occur
+                     */
+                    forloop_node = parent_node;
+                    /**
+                     * @brief Assignment is a part of forloop
+                     */
+                    tree_node *iter_var_node = forloop_node->leftmost_child;
+                    if(strcmp(iter_var_node->token.id.str, fncall_list_node->token.id.str) == 0){   // assigning to iterating variable
+                        char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                        sprintf(msg, "Assignment to loop variable is not allowed");
+                        
+                        char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                        sprintf(err_type, "%d) SEMANTIC ERROR", fncall_list_node->token.line_no);
+
+                        print_error(err_type, msg);
+                        
+                        return;
+                    }
+                }
+                parent_node = parent_node->parent;
+            }
+
+
             fncall_list_node = fncall_list_node->sibling;
         }
     }
@@ -1046,7 +1108,7 @@ void verify_fndefn_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr){
             sprintf(msg, " Output parameter(%s) not assigned value for function defn of %s", outp_list_node->token.id.str, node->leftmost_child->token.id.str);
             
             char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-            sprintf(err_type, "SEMANTIC ERROR");
+            sprintf(err_type, "%d) SEMANTIC ERROR", outp_list_node->token.line_no);
 
             print_error(err_type, msg);
         }
@@ -1067,7 +1129,7 @@ void verify_declarations_validity(tree_node *mainprog_node){
         printf("inside verify_declrns_validity, searching sym tab for %s\n", mod_dec_id_node->token.id.str);
         mod_id_sym_tab_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, mod_dec_id_node->token.id.str);
 
-        if(mod_id_sym_tab_entry && mod_id_sym_tab_entry->typeinfo.module.is_declrn_valid == false){
+        if(mod_id_sym_tab_entry && mod_id_sym_tab_entry->typeinfo.module.is_declrn_valid == false && mod_id_sym_tab_entry->typeinfo.module.is_defined == true){
             printf("||||||||||||||||||||||||Checking declrn validity for %s||||||||||||||||||||||\n", mod_dec_id_node->token.id.str);
             char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
             sprintf(err_type, "%d) SEMANTIC ERROR", mod_dec_id_node->token.line_no);
@@ -1190,7 +1252,16 @@ void verify_whileloop_semantics(tree_node *while_node, st_wrapper *curr_sym_tab_
 
     type expr_type = get_expr_type(while_node->leftmost_child, curr_sym_tab_ptr);
     int line_num = 1;
-    
+    tree_node *tmp = while_node->leftmost_child;
+    while(tmp){
+        if(tmp->sym.is_terminal){
+            if(tmp->sym.t == ID){
+                line_num = tmp->token.line_no;
+            }
+            break;
+        }
+        tmp = tmp->leftmost_child;
+    }
     if(expr_type.name != BOOLEAN){        
         printf("##################Invalid expression type for while expression at line %d#############\n", line_num);
     }
@@ -1268,6 +1339,39 @@ void verify_construct_semantics(tree_node *node){
                 if(is_id_part_of_while_loop(id_node, &while_node, &child_dir)){
                     // install_id_in_loop_args(while_node, id_node->token.id.str);
                     mark_while_loop_var_assigned(while_node, id_node->token.id.str);
+                }
+
+                /**
+                 * @brief Check if thhis id is part of any enclosing for loop
+                 */
+                tree_node *forloop_node = NULL, *parent_node = node;    
+        
+                while(parent_node->sym.nt != MAINPROGRAM){
+
+                    if(parent_node->sym.nt == FORLOOP){
+                        /**
+                         * @brief Also check that this variable is not local to current scope
+                         * Not required, bcz the semantic rule = for loop variable mustn't be declared
+                         * inside loop prevents this situation to occur
+                         */
+                        forloop_node = parent_node;
+                        /**
+                         * @brief Assignment is a part of forloop
+                         */
+                        tree_node *iter_var_node = forloop_node->leftmost_child;
+                        if(strcmp(iter_var_node->token.id.str, id_node->token.id.str) == 0){   // assigning to iterating variable
+                            char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                            sprintf(msg, "Assignment to loop variable is not allowed");
+                            
+                            char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                            sprintf(err_type, "%d) SEMANTIC ERROR", id_node->token.line_no);
+
+                            print_error(err_type, msg);
+                            
+                            return;
+                        }
+                    }
+                    parent_node = parent_node->parent;
                 }
             }
         }
@@ -1652,7 +1756,7 @@ void second_ast_pass(tree_node *ast_root){
             if(ast_node->sym.is_terminal == false){
                 switch(ast_node->sym.nt){
                     case FUNCTIONCALLSTMT:
-                    {
+                    {                        
                         verify_fncall_semantics(ast_node, ast_node->scope_sym_tab);
                     }
                     break;

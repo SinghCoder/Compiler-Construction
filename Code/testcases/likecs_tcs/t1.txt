@@ -1,0 +1,34 @@
+** Test case t1.txt: Variable declarations, Nesting level 1 scope and type checking **
+** in arithmetic and boolean expressions and in assignment statements**
+
+<<module arraySum>>
+takes input[list:array[1..15] of real, n:integer];		    **scope: Nesting level 1; module: arraySum; lines: 7 to 24**
+returns  [sum:real];						    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+start
+	declare index, a, b:integer;				    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+	declare t:boolean;					    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+	declare q,r,p: array[1..10] of real;		    	    **scope: Nesting level 1; module: arraySum; lines: 7 to 24**
+	declare u,v: boolean;				   	    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+	sum:=0.0;						    **No type mismatch**
+	while(sum>=12.8)					    **No type mismatch**
+        start
+		index:= x;			    **ERROR_V: variable x not declared **
+		r[b] := p[index]+q[a];			            **No type mismatch**
+		r[index]:= p[index] + list[a];		            **ERROR_T: type mismatch of elements belonging to two different types of arrays**
+                list[b]:=list[a]+ 22.3; 			    **No type mismatch**
+		t:= list[a]+34.5<=40.0;       	    	            **No type mismatch**
+	end
+	declare u, v, w, z: integer;			            **ERROR_V: variables u and v are already declared **
+	w:= index*10+sum-list[a];				    **ERROR_T: type mismatch **
+	print(x_2); 						    **ERROR_V: x_2 is not declared in the current scope**
+end
+<<<driver program>>>
+start
+	declare A:array[1..15] of real;                            **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	declare k:integer;					   **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	declare s:real;						   **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	get_value(k);
+	u1:= 23.9+s;						   **ERROR_V: variable u1 not declared**
+	k := 10+12;					           **No type mismatch**
+	s:=k;							   **ERROR_T: type mismatch **
+end

@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
 		case 8: {
 			lexer_init(source);
 			parser_init();
-
+			semantic_analyzer_init();
 			FILE *fptr = fopen("grammar.txt", "r");
 			if (fptr == NULL) {
 				perror("fopen");

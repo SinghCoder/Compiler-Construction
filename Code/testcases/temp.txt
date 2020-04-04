@@ -6,9 +6,6 @@ returns  [sum:real];
 start
 	declare index:integer;
 	declare t:boolean;
-	index := -(a+b+c+d+e+f);
-	list[1] := 1.1;
-	list[index] := 1.1;
 	sum:=0.0;
 	for(index in  1..15)
 	start
@@ -45,14 +42,15 @@ end
 
 <<module readArr>>
 takes input [arr1:array[1..15] of real,k:integer];
-returns [tempvar: real];
 start
+	declare tempvar:real;
 	declare i:integer;
 	i:=1;
 	while(i<=k)
 	start
 		get_value(tempvar);
 		arr1[i]:=tempvar;
+		i:=i+1;
 		** the semantics of while needs an increment and will be taken care of at the second phase**
 	end
 end

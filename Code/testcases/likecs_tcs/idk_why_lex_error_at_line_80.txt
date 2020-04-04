@@ -1,0 +1,128 @@
+
+
+<<module newfunc1>>
+takes input [a78: integer, b23: real, c45: boolean, arr1:array[1..15] of boolean,k:integer];
+returns [q32: boolean, p12:integer, uy: integer, jh:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;
+	x_1:= u2+u3;							
+	while(i<=k)
+	start
+		declare u2, x_1:integer; 		
+		x_1:= u2+u3;				
+		for(x_1 in 1..8)
+		start
+			declare u3:integer;
+			x_1:=u2+u3;
+		end
+		arr1[i]:=tempvar;				 
+		i:=i+1;
+	end
+	declare x_1, x_2, x_3: boolean;				 
+end
+<<module newfunc3>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;									 
+end
+<<module newfunc4>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        [i, tempvar]:= use module newfunc3 with parameters i, i;   **No recursion allowed**														 
+end
+<<module arraySum>>
+takes input[list:array[1..15] of real, n:integer];		    **scope: Nesting level 1; module: arraySum; lines: 7 to 24**
+returns  [sum:real];						    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+start
+	declare index, x,a, b:integer;				    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+	declare c,d: real;	
+	declare t:boolean;					    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+	declare q,r: array[1..15] of real;		    	    **scope: Nesting level 1; module: arraySum; lines: 7 to 24**
+        declare p: array[1..100] of real;
+	declare u,v: boolean;				   	    **scope: Nesting level 1; module: arraySum; lines: 7 to 24 **
+        switch(t)
+        start
+            case true:  c:= 20.9; break;
+            case false:  d:= 23.8; break;
+        end 							    ** with boolean there should be no default**				
+	for(a in 1..20)
+        start
+		b := a-1;
+                q[b] := r[a] -1.9;                                   ** No type mismatch**
+		[b,d, t, a]:= use module newfunc1 with parameters a,c,t, q, b;  ** types of output para do not mtch**
+		print(b);
+        end
+	sum:=0.0;						    **No type mismatch**
+	[t, a, b, d]:= use module newfunc1 with parameters a,c,t;  **number of input parameter do not match**
+	while(sum>=12.8)					    **No type mismatch**
+        start
+		index:= 34-20*index+x-12;			    **ERROR_V: variable x not declared **
+		r[b] := p[index]+q[a];			            **yes now type mismatch**
+		r[index]:= p[index] + list[a];		            **ERROR_T: type mismatch of elements belonging to two different types of arrays**
+                [t, a]:= use module newfunc1 with parameters a,c,t, q, b;  **number of output parameter do not match**
+                list[b]:=list[a]+ 22.3; 			    **No type mismatch**
+		c:= a+c-d+23.89;						**simple expren type error**
+		t:= list[a]+34.5<=40.0;      	    	            **No type mismatch**
+	end
+	[t, a, b, d] := use module newfunc1 with parameters a,c,t, q, b;  **Not an error**
+	declare u, v, w, z: integer;			            **ERROR_V: variables u and v are already declared **
+	w:= index*10+sum-list[a];				    **ERROR_T: type mismatch **
+	print(x_2); 						    **ERROR_V: x_2 is not declared in the current scope**
+        switch(t)
+        start
+            case 17:  c:= 20.9; break;
+            case false:  d:= 23.8 ;break;
+        end 							    **boolean argument must not have integerbased case choice AN error**
+end
+
+<<<driver program>>>
+start
+	declare A789:array[1..25] of real;                            **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	declare k456:integer;					   **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	declare s123:real;						   **scope: Nesting level 1; module: driver; lines: 26 to 34 **
+	get_value(k);
+	u1:= 23.9+s123;						   **ERROR_V: variables k and u1 not declared**
+	[k456, s123]:= use module newfunc2 with parameters k456, s123;    **module not known**
+        switch(k456)
+        start
+            case 10:  s123:= 20.9; break;
+            case 12:  s123:= 23.8; break;
+        end           						   **with integer no default an error**
+	k456 := 10+12-3.9;					   **yes now it is a type mismatch**
+	s:=k;							   **ERROR_T: type mismatch **
+end
+<<module newfunc2>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	uy12:= 5;
+	declare tempvar:real;			  		
+	declare i:integer; 					
+	i:=1;
+        x_1:= i + u1;  						
+        declare i:real;									 
+end
+
+<<module newfunc5>>
+takes input [a22: integer,k22:integer];
+returns [ uy12: integer, j23:real];		
+start
+	declare a,b:integer;
+	[uy12, j23]:= use module newfunc5 with parameters a,b;						 
+end
+
+
+

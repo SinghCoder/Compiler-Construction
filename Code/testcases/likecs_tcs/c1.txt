@@ -1,0 +1,15 @@
+** Test case c1.txt: Handles simple expressions**
+
+<<<driver program>>>
+start
+	declare x,y, z:integer; 
+	get_value(x);
+	get_value(y);
+	declare sum, value:integer;
+	z:= 19;
+	sum:= x*20-y*4+17-z;
+	value:= sum + z*2 - x*y;
+	print(sum);
+	print(value);					    
+end
+

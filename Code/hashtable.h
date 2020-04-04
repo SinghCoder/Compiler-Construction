@@ -9,23 +9,10 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
-//#include "lexerDef.h"
-#include<stdbool.h>
-// #include "semantic_analyzerDef.h"
-
-#define PRIME 119
-#define HASH_SIZE 67
-#define MAX_LEXEME_LEN 100
-#define KEY_NOT_FOUND -1
-typedef struct {
-		char lexeme[MAX_LEXEME_LEN];
-		void *value;
-		bool present;
-} hash_element;
+#include <stdbool.h>
+#include "hashtableDef.h"
 
 int fast_mod_exp(int a, int b, int m);
-
-typedef hash_element hash_table[HASH_SIZE];       // change to static allocation
 
 void init_hash_table(hash_table);
 
@@ -40,13 +27,5 @@ void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr);
 void* search_hash_table_ptr_val(hash_table table, char *lexeme);
 
 bool key_present_in_table(hash_table table, char *lexeme);
-
-typedef struct symbol_table_wrapper{
-	hash_table table;
-	struct symbol_table_wrapper *parent_table;
-	struct symbol_table_wrapper *leftmost_child_table;
-	struct symbol_table_wrapper *rightmost_child_table;
-	struct symbol_table_wrapper *sibling_table;
-}st_wrapper;
 
 #endif

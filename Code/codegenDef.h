@@ -7,7 +7,7 @@ int temp_count;
 int quad_count;
 
 char tac_op_str[NUM_TAC_OP][MAX_SYMBOL_LENGTH];
-
+char *to_be_attached_label;
 typedef enum{
     PLUS_OP,
     MINUS_OP,
@@ -18,7 +18,7 @@ typedef enum{
     LE_OP,
     LT_OP,
     EQ_OP,
-    NE_OP,
+    NE_OP,    
     AND_OP,
     OR_OP,
     UMINUS_OP,
@@ -32,7 +32,9 @@ typedef enum{
     PARAM_OP,
     PROC_CALL_OP,
     INDEXED_COPY_OP,
-    ARRAY_ACCESS_OP
+    ARRAY_ACCESS_OP,
+    RETURN_OP,
+    FN_DEFN_OP
 }tac_op;
 
 typedef struct{
@@ -40,10 +42,16 @@ typedef struct{
     char *arg1;
     char *arg2;
     char *result;
-    tree_node *node_arg1;
-    tree_node *node_arg2;
-    tree_node *node_res;
 }quad_node;
 
 quad_node quadruples[MAX_NUM_QUADRUPLES];
+
+char *switch_test_label;
+typedef struct{
+    char *label;
+    char *value;
+} switch_table_node;
+
+switch_table_node switch_table[MAX_SWITCH_CASES];
+int switch_tbl_entry_num;
 #endif

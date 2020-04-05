@@ -37,12 +37,13 @@ typedef struct TREENODE
   int num_child;
   bool visited;
   void *extra_args;
-  union{
+  struct{
     struct{
       char *true_label;
       char *false_label;
-    };
+    }boolean;
     char *next_label;
+    char *cnstrct_code_begin;
   }label;
   char *addr;
 } tree_node;

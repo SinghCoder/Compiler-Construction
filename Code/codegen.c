@@ -2,6 +2,24 @@
 #include <string.h>
 #include <stdlib.h>
 
+void assign_next_label(tree_node *ast_node)
+{
+    if(ast_node->sibling){
+        ast_node->label.next_label = newlabel();                            
+        // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+    }
+    else{
+        ast_node->label.next_label = ast_node->parent->label.next_label;        
+        if(ast_node->label.next_label == NULL)
+            ast_node->label.next_label = "function_end :";
+    }
+    printf("Next label is assigned as %s\n", ast_node->label.next_label);
+}
+
+void label(char *lbl){
+    to_be_attached_label = lbl;
+}
+
 void print_quadruples()
 {
     printf("%-15s | ","operator");
@@ -41,20 +59,22 @@ void codegen_init()
     label_count = 0;
     temp_count = 0;
     quad_count = 0;
+    switch_tbl_entry_num = 0;
     char *tac_op_str_tmp[NUM_TAC_OP] = {"+", "-", "*", "/", ">=", ">", "<=", "<", "==", "!=", "&&",
-                                         "||", "uminus", "label", "input", "output", "assign", "jmp",
-                                         "jmp_if_true", "jmp_if_false", "param" ,"call", "indexed_copy",
-                                         "array_access"};
+                                        "||", "uminus", "label","input", "output", "assign", "jmp", "jmp_if_true", "jmp_if_false",
+        "param" ,"call", "indexed_copy", "array_access", "return", "function"};
     for(int i=0; i<NUM_TAC_OP; i++){        
         strcpy(tac_op_str[i], tac_op_str_tmp[i]);
-        // printf("tac_op_str[%d] = %s\n", i, tac_op_str[i]);
     }
+
+    to_be_attached_label = NULL;
 }
 
 char *newlabel()
 {
     char *label = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
     sprintf(label, "label_%d :", label_count);
+    printf("Emitted label %s\n", label);
     label_count++;
     return label;
 }
@@ -190,26 +210,30 @@ tac_op get_tac_op(tree_node *node){
     return op;
 }
 
-void code_emit(tac_op op, char *arg1, char *arg2, char *result, tree_node *node_arg1, tree_node *node_arg2, tree_node *node_result)
+void code_emit(tac_op op, char *arg1, char *arg2, char *result)
 {
+    if(op == LABEL_OP && arg1 == NULL)
+        return;
     if(arg1){
-        // printf("inserting , arg1 : %s, ", arg1);
+        printf("inserting , arg1 : %s, ", arg1);
     }
     if(arg2){
-        // printf("inserting , arg2 : %s, ", arg2);
+        printf("inserting , arg2 : %s, ", arg2);
     }
     if(result){
-        // printf("inserting , result : %s\n", result);
+        printf("inserting , result : %s", result);
     }
-    
-
+    printf("\n");
+    if(to_be_attached_label != NULL){
+        printf("to_be_attached_label : %s\n", to_be_attached_label);
+        char *str = to_be_attached_label;
+        to_be_attached_label = NULL;
+        code_emit(LABEL_OP, str, NULL, NULL);        
+    }
     quadruples[quad_count].op = op;
     quadruples[quad_count].arg1 = arg1;
-    quadruples[quad_count].node_arg1 = node_arg1;
     quadruples[quad_count].arg2 = arg2;
-    quadruples[quad_count].node_arg2 = node_arg2;
     quadruples[quad_count].result = result;
-    quadruples[quad_count].node_res = node_result;
     quad_count++;
 }
 
@@ -227,13 +251,76 @@ void generate_ir(tree_node *ast_node)
                     case NTMODULE:
                     case DRIVERMODULE:
                     {                        
+                        // assign_next_label(ast_node);
                         char *fun_name;
                         fun_name = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
                         strcpy(fun_name, ast_node->encl_fun_type_ptr->typeinfo.module.module_name);
                         strcat(fun_name, " :");
-                        code_emit(LABEL_OP, fun_name, NULL, NULL, NULL, NULL, NULL);
+                        code_emit(FN_DEFN_OP, fun_name, NULL, NULL);                        
+                        // printf("Assigning module label : %s\n", fun_name);
+                        // label(fun_name);                        
                     }
-                    break;                    
+                    break;     
+                    case WHILELOOP:
+                    {
+                        char *begin = newlabel();
+                        tree_node *expr_node = ast_node->leftmost_child;
+                        tree_node *stmts_node = ast_node->rightmost_child;
+                        expr_node->label.boolean.true_label = newlabel();
+                        assign_next_label(ast_node);
+                        expr_node->label.boolean.false_label = ast_node->label.next_label;
+                        stmts_node->label.next_label = begin;
+                        ast_node->label.cnstrct_code_begin = begin;
+                        code_emit(LABEL_OP, begin, NULL, NULL);
+                    }   
+                    break;         
+                    case ASSIGNMENTSTMT:
+                    case IOSTMT:
+                    case FUNCTIONCALLSTMT:
+                    {
+                        assign_next_label(ast_node);
+                    }
+                    break;
+                    case FORLOOP:
+                    {
+                        assign_next_label(ast_node);
+                        tree_node *iter_var_node = get_nth_child(ast_node, 1);
+                        tree_node *range_low_node = get_nth_child(ast_node, 2);
+                        tree_node *range_high_node = get_nth_child(ast_node, 3);
+
+                        code_emit(ASSIGN_OP, to_string(iter_var_node), NULL,  to_string(range_low_node));
+                        tree_node *tmp_node = newtemp(iter_var_node, NO_MATCHING_OP, NULL);
+                        ast_node->label.cnstrct_code_begin = newlabel();
+                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL);
+                        code_emit(LT_OP, to_string(iter_var_node), to_string(range_high_node), tmp_node->addr);
+                        char *condn_true_lbl = newlabel();
+                        code_emit(IF_TRUE_GOTO_OP, to_string(tmp_node), NULL, condn_true_lbl);
+                        code_emit(GOTO_UNCOND_OP, ast_node->label.next_label, NULL, NULL);
+                        code_emit(LABEL_OP, condn_true_lbl, NULL, NULL);                        
+                    }
+                    break;
+                    case CONDITIONALSTMT:
+                    {
+                        assign_next_label(ast_node);
+                        if(switch_test_label)
+                            free(switch_test_label);
+                        switch_test_label = newlabel();
+                        code_emit(GOTO_UNCOND_OP, switch_test_label, NULL, NULL);
+                        switch_tbl_entry_num = 0;
+                    }
+                    break;
+                    case CASESTMT:
+                    {
+                        ast_node->label.cnstrct_code_begin = newlabel();
+                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL);
+                    }
+                    break;
+                    case DEFAULTSTMT:
+                    {
+                        ast_node->label.cnstrct_code_begin = newlabel();
+                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL);
+                    }
+                    break;
                 }
             }
 
@@ -247,8 +334,7 @@ void generate_ir(tree_node *ast_node)
             // print_symbol_(ast_node);
             if(ast_node->sym.is_terminal == false){
                 switch(ast_node->sym.nt){
-                    case TERM:
-                    case RELATIONALEXPR:
+                    case TERM:                    
                     {                        
                         // printf("Created new temp for term/relationalexpr\n");
                         int num_child = ast_node->num_child;
@@ -262,7 +348,30 @@ void generate_ir(tree_node *ast_node)
                             third_child = get_nth_child(ast_node, 3);
                             tree_node *addr_node = newtemp(first_child, get_operator(second_child), third_child);
                             ast_node->addr = addr_node->addr;
-                            code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, ast_node->addr, NULL, NULL, NULL);
+                            code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, ast_node->addr);
+                        }
+                        if(ast_node->parent->sym.nt == WHILELOOP){
+                            printf("leacving term and part of while\n");
+                            code_emit(IF_TRUE_GOTO_OP, ast_node->addr, ast_node->label.boolean.true_label, NULL);
+                            code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL);
+                            code_emit(LABEL_OP, ast_node->label.boolean.true_label, NULL, NULL);
+                        }
+                    }
+                    break;
+                    case RELATIONALEXPR:
+                    {                        
+                        tree_node *first_child, *second_child, *third_child;
+                        first_child = get_nth_child(ast_node, 1);
+                        second_child = get_nth_child(ast_node, 2);
+                        third_child = get_nth_child(ast_node, 3);
+                        tree_node *addr_node = newtemp(first_child, get_operator(second_child), third_child);
+                        ast_node->addr = addr_node->addr;
+                        code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, ast_node->addr);
+                        // code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL);
+                        if(ast_node->parent->sym.nt == WHILELOOP){
+                            code_emit(IF_TRUE_GOTO_OP, ast_node->addr, ast_node->label.boolean.true_label, NULL);
+                            code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL);
+                            code_emit(LABEL_OP, ast_node->label.boolean.true_label, NULL, NULL);
                         }
                     }
                     break;
@@ -287,10 +396,10 @@ void generate_ir(tree_node *ast_node)
                             temp = tmp_node->addr;                             
                             
                             if(i == 0){                                                               
-                                code_emit(get_tac_op(operator_node), operand1->addr, operand2->addr, temp, NULL, NULL, NULL);
+                                code_emit(get_tac_op(operator_node), operand1->addr, operand2->addr, temp);
                             }
                             else{
-                                code_emit(get_tac_op(operator_node), prev_temp, operand2->addr, temp, NULL, NULL, NULL);
+                                code_emit(get_tac_op(operator_node), prev_temp, operand2->addr, temp);
                             }
                             operand1 = operand2;
                             operator_node = operand2->sibling;
@@ -299,6 +408,12 @@ void generate_ir(tree_node *ast_node)
                             prev_temp = temp;
                         }
                         ast_node->addr = temp;
+                        if(ast_node->parent->sym.nt == WHILELOOP){
+                            printf("leacving expr & nonunary and part of while\n");
+                            code_emit(IF_TRUE_GOTO_OP, ast_node->addr, ast_node->label.boolean.true_label, NULL);
+                            code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL);
+                            code_emit(LABEL_OP, ast_node->label.boolean.true_label, NULL, NULL);
+                        }
                     }
                     break;
                     case UNARYARITHMETICEXPR:
@@ -310,7 +425,7 @@ void generate_ir(tree_node *ast_node)
                         /** 
                          * ToDo : it could be UPLUS also, correct it
                          */
-                        code_emit(UMINUS_OP, expr_node->addr,NULL, ast_node->addr, NULL, NULL, NULL);
+                        code_emit(UMINUS_OP, expr_node->addr,NULL, ast_node->addr);
                     }
                     break;
                     case VAR:
@@ -323,12 +438,12 @@ void generate_ir(tree_node *ast_node)
                             type *arr_type = (type*)key_search_recursive(id_node->scope_sym_tab, id_node->token.id.str, id_node->encl_fun_type_ptr, NULL);
                             char *width = (char*) malloc(sizeof(char) * MAX_LABEL_LEN);
                             snprintf(width, MAX_LABEL_LEN, "#%d", arr_type->width);
-                            code_emit(MUL_OP,id_node->sibling->addr, width, index, NULL, NULL, NULL);
+                            code_emit(MUL_OP,id_node->sibling->addr, width, index);
 
                             tree_node *tmp_node = newtemp(id_node, NO_MATCHING_OP, NULL);
                             ast_node->addr = tmp_node->addr;
 
-                            code_emit(ARRAY_ACCESS_OP, id_node->addr, index, ast_node->addr, NULL, NULL, NULL);
+                            code_emit(ARRAY_ACCESS_OP, id_node->addr, index, ast_node->addr);
                         }
                         else{
                             ast_node->addr = id_node->addr;
@@ -341,7 +456,17 @@ void generate_ir(tree_node *ast_node)
                         tree_node *lvalue_id_node = ast_node->leftmost_child;
                         tree_node *index_node = lvalue_id_node->sibling;
                         char *lvalue;
-                        code_emit(ASSIGN_OP, rvalue_node->addr, NULL, lvalue_id_node->addr, NULL ,NULL , lvalue_id_node);
+                        if(index_node->sym.t == EPSILON)
+                            code_emit(ASSIGN_OP, rvalue_node->addr, NULL, lvalue_id_node->addr);
+                        else
+                            code_emit(INDEXED_COPY_OP,index_node->addr, rvalue_node->addr, lvalue_id_node->addr);
+
+                        
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+                        
                     }
                     break;
                     case IOSTMT:
@@ -349,12 +474,17 @@ void generate_ir(tree_node *ast_node)
                         tree_node *action_node = ast_node->leftmost_child;                        
                         if(action_node->token.name == GET_VALUE){
                             tree_node *id_node = ast_node->rightmost_child;
-                            code_emit(INPUT_OP, id_node->token.id.str, NULL, NULL, NULL, NULL, NULL);
+                            code_emit(INPUT_OP, id_node->token.id.str, NULL, NULL);
                         }
                         else{   //print
                             tree_node *var_node = ast_node->rightmost_child;
-                            code_emit(OUTPUT_OP, var_node->addr, NULL, NULL, NULL, NULL, NULL);
+                            code_emit(OUTPUT_OP, var_node->addr, NULL, NULL);
                         }
+                        
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
                     }
                     break;
                     case FUNCTIONCALLSTMT:
@@ -363,26 +493,115 @@ void generate_ir(tree_node *ast_node)
                         int param_num = inp_params_node->num_child;
                         tree_node *param = inp_params_node->leftmost_child;
                         for(int i = 0; i < param_num; i++){
-                            code_emit(PARAM_OP, param->addr, NULL, NULL, NULL, NULL, NULL);
+                            code_emit(PARAM_OP, param->addr, NULL, NULL);
                             param = param->sibling;
                         }
                         char *param_num_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
                         snprintf(param_num_str, MAX_LABEL_LEN, "%d", param_num);
-                        code_emit(PROC_CALL_OP, get_nth_child(ast_node, 2)->addr, param_num_str, NULL, NULL, NULL, NULL);
+                        code_emit(PROC_CALL_OP, get_nth_child(ast_node, 2)->addr, param_num_str, NULL);
+                        
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+                        
+                    }
+                    break;
+                    case WHILELOOP:
+                    {
+                        code_emit(GOTO_UNCOND_OP, ast_node->label.cnstrct_code_begin, NULL, NULL);
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+                        printf("And whileloop second time visiting emits after jmp begin, label %s\n", ast_node->label.next_label);
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);                        
+                    }
+                    break;
+                    case FORLOOP:
+                    {
+                        /**
+                         * @brief Increment iterating variable
+                         */
+                        
+                        tree_node *iter_node = get_nth_child(ast_node, 1);
+                        code_emit(PLUS_OP, iter_node->addr, "#1", iter_node->addr);
+                        code_emit(GOTO_UNCOND_OP, ast_node->label.cnstrct_code_begin, NULL, NULL);
+
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                    }
+                    break;
+                    case CONDITIONALSTMT:
+                    {
+                        tree_node *switch_var_node = ast_node->leftmost_child;
+                        tree_node *tmp_var = newtemp(switch_var_node, NO_MATCHING_OP, NULL);
+                        int num_cases = get_nth_child(ast_node, 2)->num_child;
+
+                        /**
+                         * @brief Emit test label
+                         */
+
+                        code_emit(LABEL_OP, switch_test_label, NULL, NULL);
+
+                        for(int i=0; i<num_cases; i++){
+                            code_emit(EQ_OP, switch_table[i].value, switch_var_node->addr, tmp_var->addr);
+                            code_emit(IF_TRUE_GOTO_OP, tmp_var->addr, switch_table[i].label, NULL);
+                        }
+
+                        tree_node *default_node = ast_node->rightmost_child;
+                        if(default_node->sym.is_terminal == false){
+                            code_emit(GOTO_UNCOND_OP, switch_table[switch_tbl_entry_num-1].label, NULL, NULL);
+                        }
+
+                        if(strcmp(ast_node->label.next_label, "function_end :"))
+                            code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                    }
+                    break;
+                    case NTMODULE:
+                    case DRIVERMODULE:
+                    {
+                        // ast_node->label.next_label = newlabel();                            
+                        // label(ast_node->label.next_label);
+                        code_emit(LABEL_OP, "function_end :", NULL, NULL);                        
+                        code_emit(RETURN_OP, NULL, NULL, NULL);                        
+                    }
+                    break;
+                    case CASESTMT:
+                    {
+                        tree_node *switch_node = ast_node->parent->parent;
+                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL);
+                        
+                        switch_table[switch_tbl_entry_num].label = ast_node->label.cnstrct_code_begin;
+                        switch_table[switch_tbl_entry_num].value = ast_node->leftmost_child->addr;
+                        switch_tbl_entry_num++;
+                    }
+                    break;
+                    case DEFAULTSTMT:
+                    {
+                        tree_node *switch_node = ast_node->parent->parent;
+                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL);
+                        
+                        switch_table[switch_tbl_entry_num].label = ast_node->label.cnstrct_code_begin;
+                        switch_table[switch_tbl_entry_num].value = "default_case";
+                        switch_tbl_entry_num++;
                     }
                     break;
                 }
             }
             else{
                 switch(ast_node->sym.t){
-                    case ID:
+                    case ID:                    
+                    case RNUM:                        
                     case NUM:
-                    case RNUM:    
                     case TRUE:
                     case FALSE:    
                     {
                         ast_node->addr = to_string(ast_node);
-                    }
+                    }                    
                     break;
                 }
             }

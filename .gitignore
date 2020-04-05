@@ -6,3 +6,6 @@ Code/testcases/*
 Parse_trees
 *.pdf
 Group_09/*
+./Code/nasm*/*
+*copy*
+./Code/nasm_tutorial/*

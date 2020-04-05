@@ -9,6 +9,11 @@
 #define MAX_SYMBOL_LENGTH 50
 #define MAX_FILE_NAME_LEN 100
 #define COLUMN_SIZE 20
+#define NUM_TAC_OP 24
+
+#define MAX_LABEL_LEN 20
+#define MAX_TEMP_LEN 20
+#define MAX_NUM_QUADRUPLES 500
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"

@@ -5,11 +5,17 @@ takes input[list:array[1..15] of    real, n:integer];
 returns  [sum:real];
 start
 	declare index:integer;
+	declare list2 : array[1..2] of integer;
 	declare t:boolean;
-	index := -(a+b+c+d+e+f);
+	declare a,b,c,d,e,f:integer;	
 	list[1] := 1.1;
 	list[index] := 1.1;
 	sum:=0.0;
+	print(true);
+	index := -(a+b+c+d+e+f);
+	t := 1+2/4 <= (1+2*(2-1)) AND (1 <= 2 ) AND ( list2[1] <= (1+2*(1-3))) OR true;
+	a := 1 + 2/4 - 1;
+	t := 1+2/4 <= (1+2*(2-1));
 	for(index in  1..15)
 	start
 		t:= index<=n;
@@ -30,6 +36,7 @@ end
 <<<driver program>>>
 start
 	declare A:array[1..15] of real;
+	declare B : array[1..2] of integer;
 	declare k:integer;
 	declare s:real;
 	get_value(k);
@@ -51,6 +58,7 @@ start
 	i:=1;
 	while(i<=k)
 	start
+		i := 2;
 		get_value(tempvar);
 		arr1[i]:=tempvar;
 		** the semantics of while needs an increment and will be taken care of at the second phase**

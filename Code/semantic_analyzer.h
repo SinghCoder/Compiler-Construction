@@ -3,6 +3,7 @@
 
 #include "treeADTDef.h"
 #include "semantic_analyzerDef.h"
+#include "hashtable.h"
 
 typedef enum { ARITH_OP, REL_OP, LOGICAL_OP, NO_MATCHING_OP} operator;
 

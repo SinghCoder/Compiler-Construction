@@ -1,27 +1,15 @@
-<<module readArr>>
-takes input [arr1:array[1..15] of real,k:integer];
-start
-	declare i:integer;
-	i:=1;
-end
-
 <<<driver program>>>
 start
-	
-end
-
-<<module square>>
-takes input [x:integer];
-start
-	declare a:integer;
-	declare b : array[1..2] of integer;
-	declare t:boolean;
-	declare list2 : array[1..2] of integer;
-	a:=1;
-	get_value(t);
-	print(b[1]);
-	a := b[a];
-	t := true;
-	declare A : array[1..15] of real;
-	use module readArr with parameters A,a;
+	declare t : boolean;
+    switch(t)
+    start
+        case true :
+            print(t);
+        break;
+        case false :
+            declare b : integer;
+            b := t+t;
+            print(b);
+        break;
+    end
 end

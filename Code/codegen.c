@@ -1,5 +1,4 @@
 #include "codegen.h"
-#include "semantic_analyzer.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -60,12 +59,58 @@ char *newlabel()
     return label;
 }
 
-char *newtemp()
+tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node)
 {
-    char *temp = (char*)malloc(sizeof(char) * MAX_TEMP_LEN);
-    sprintf(temp, "temp_%d", temp_count);
+    // printf("Called newtemp()\n");
+    tree_node *tmp_node = create_tree_node();        
+    char *tmp_str = (char*)malloc(sizeof(char) * MAX_TEMP_LEN);
+    sprintf(tmp_str, "temp_%d", temp_count);
     temp_count++;
-    return temp;
+    
+    tmp_node->addr = tmp_str;
+    tmp_node->encl_fun_type_ptr = expr1_node->encl_fun_type_ptr;
+    tmp_node->scope_sym_tab = expr1_node->scope_sym_tab;
+    tmp_node->sym.is_terminal = true;
+    tmp_node->sym.t = ID;
+    strcpy( tmp_node->token.id.str, tmp_str);
+    tmp_node->token.name = ID;
+    
+    type *tmp_type, *e1_type, *e2_type, *e_type;
+    e1_type = create_type();
+    e2_type = create_type();
+    e_type = create_type();
+    *e1_type = get_expr_type(expr1_node, expr1_node->scope_sym_tab);
+    if(expr2_node != NULL){
+        *e2_type = get_expr_type(expr2_node, expr2_node->scope_sym_tab);
+        *e_type = get_EopE_type(*e1_type, op, *e2_type);
+        tmp_type = e_type;
+    }
+    else{
+        tmp_type = e1_type;
+    }
+    // printf("e1_type->name = %s\n", terminal_string[e1_type->name]);
+    switch(e1_type->name){
+        case BOOLEAN:
+            tmp_type->width = WIDTH_BOOLEAN;
+        break;
+        case INTEGER:
+            tmp_type->width = WIDTH_INTEGER;
+        break;
+        case REAL:
+            tmp_type->width = WIDTH_REAL;
+        break;        
+        default:
+            tmp_type->width = 0;
+        break;
+    }
+    // printf("width allocated to tmp : %d\n", tmp_type->width);
+    if(tmp_node->encl_fun_type_ptr == NULL){
+        printf("encl_fun_type_ptr for tmp is NULL\n\n");
+    }
+    tmp_type->offset = tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset;
+    tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset += tmp_type->width;
+    hash_insert_ptr_val(tmp_node->scope_sym_tab->table, tmp_node->token.id.str, tmp_type);
+    return tmp_node;
 }
 
 char *to_string(tree_node *node)
@@ -148,13 +193,13 @@ tac_op get_tac_op(tree_node *node){
 void code_emit(tac_op op, char *arg1, char *arg2, char *result, tree_node *node_arg1, tree_node *node_arg2, tree_node *node_result)
 {
     if(arg1){
-        printf("inserting , arg1 : %s, ", arg1);
+        // printf("inserting , arg1 : %s, ", arg1);
     }
     if(arg2){
-        printf("inserting , arg2 : %s, ", arg2);
+        // printf("inserting , arg2 : %s, ", arg2);
     }
     if(result){
-        printf("inserting , result : %s, ", result);
+        // printf("inserting , result : %s\n", result);
     }
     
 
@@ -173,8 +218,8 @@ void generate_ir(tree_node *ast_node)
     while(ast_node != NULL){
 
         if(ast_node->visited == false){
-            printf("Visiting first time: ");
-            print_symbol_(ast_node);
+            // printf("Visiting first time: ");
+            // print_symbol_(ast_node);
             ast_node->visited = true;
             
             if(ast_node->sym.is_terminal == false){
@@ -198,24 +243,25 @@ void generate_ir(tree_node *ast_node)
         }
         else{
             ast_node->visited = false;
-            printf("Visiting second time: ");
-            print_symbol_(ast_node);
+            // printf("Visiting second time: ");
+            // print_symbol_(ast_node);
             if(ast_node->sym.is_terminal == false){
                 switch(ast_node->sym.nt){
                     case TERM:
                     case RELATIONALEXPR:
                     {                        
-                        printf("Created new temp for term/relationalexpr\n");
+                        // printf("Created new temp for term/relationalexpr\n");
                         int num_child = ast_node->num_child;
                         if(num_child == 1){
                             ast_node->addr = ast_node->leftmost_child->addr;
                         }
-                        else if(num_child == 3){
-                            ast_node->addr = newtemp();
+                        else if(num_child == 3){                            
                             tree_node *first_child, *second_child, *third_child;
                             first_child = get_nth_child(ast_node, 1);
                             second_child = get_nth_child(ast_node, 2);
                             third_child = get_nth_child(ast_node, 3);
+                            tree_node *addr_node = newtemp(first_child, get_operator(second_child), third_child);
+                            ast_node->addr = addr_node->addr;
                             code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, ast_node->addr, NULL, NULL, NULL);
                         }
                     }
@@ -231,19 +277,22 @@ void generate_ir(tree_node *ast_node)
                         operand1 = child;
                         operator_node = child->sibling;
                         operand2 = operator_node->sibling;
+                        tree_node *tmp_node;
 
                         for(int i = 0; i < num_loop_iter && operator_node != NULL; i++)
-                        {
-                            temp = newtemp();
-                            printf("Created new temp for expression/nonunary\n");
+                        {                            
+                            // printf("Created new temp for expression/nonunary\n");
                             operator op = get_operator(operator_node);
-                            if(i == 0){                                
+                            tmp_node = newtemp(operand1, op, operand2);
+                            temp = tmp_node->addr;                             
+                            
+                            if(i == 0){                                                               
                                 code_emit(get_tac_op(operator_node), operand1->addr, operand2->addr, temp, NULL, NULL, NULL);
                             }
                             else{
                                 code_emit(get_tac_op(operator_node), prev_temp, operand2->addr, temp, NULL, NULL, NULL);
                             }
-                            
+                            operand1 = operand2;
                             operator_node = operand2->sibling;
                             if(operator_node)
                                 operand2 = operator_node->sibling;
@@ -253,27 +302,33 @@ void generate_ir(tree_node *ast_node)
                     }
                     break;
                     case UNARYARITHMETICEXPR:
-                    {
-                        ast_node->addr = newtemp();
-                        printf("Created new temp for unaryarithmetic\n");
+                    {                           
+                        // printf("Created new temp for unaryarithmetic\n");
                         tree_node *expr_node = ast_node->rightmost_child;
+                        tree_node *tmp_node = newtemp(expr_node, NO_MATCHING_OP, NULL);
+                        ast_node->addr = tmp_node->addr;
+                        /** 
+                         * ToDo : it could be UPLUS also, correct it
+                         */
                         code_emit(UMINUS_OP, expr_node->addr,NULL, ast_node->addr, NULL, NULL, NULL);
                     }
                     break;
                     case VAR:
                     {                        
                         tree_node *id_node = ast_node->leftmost_child;
-                        if(id_node->sibling){
-                            char *index = newtemp();
-                            printf("Created new temp for var\n");
+                        if(id_node->sibling->sym.t != EPSILON){
+                            tree_node *index_node = newtemp(id_node->sibling, NO_MATCHING_OP, NULL);
+                            char *index = index_node->addr;
+                            // printf("Created new temp for var\n");
                             type *arr_type = (type*)key_search_recursive(id_node->scope_sym_tab, id_node->token.id.str, id_node->encl_fun_type_ptr, NULL);
                             char *width = (char*) malloc(sizeof(char) * MAX_LABEL_LEN);
                             snprintf(width, MAX_LABEL_LEN, "#%d", arr_type->width);
                             code_emit(MUL_OP,id_node->sibling->addr, width, index, NULL, NULL, NULL);
 
-                            ast_node->addr = newtemp();
+                            tree_node *tmp_node = newtemp(id_node, NO_MATCHING_OP, NULL);
+                            ast_node->addr = tmp_node->addr;
 
-                            code_emit(ARRAY_ACCESS_OP, ast_node->leftmost_child->addr, index, ast_node->addr, NULL, NULL, NULL);
+                            code_emit(ARRAY_ACCESS_OP, id_node->addr, index, ast_node->addr, NULL, NULL, NULL);
                         }
                         else{
                             ast_node->addr = id_node->addr;

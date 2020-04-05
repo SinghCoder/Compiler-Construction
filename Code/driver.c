@@ -328,6 +328,16 @@ int main(int argc, char *argv[]) {
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
 			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
+			printf("----------------First pass ended----------------\n");
+			printf("----------------Checking second pass------------\n");
+			second_ast_pass(ast_tree);
+			codegen_init();
+			generate_ir(ast_tree);
+			parse_tree_file_ptr = fopen(parse_tree_file, "w");
+			print_parse_tree_for_tool(ast_tree);
+			fclose(parse_tree_file_ptr);
+			printf("\n\n=====================Generated IR=======================\n\n");
+			print_quadruples();
 			print_symbol_table(ast_tree->scope_sym_tab);
 			printf("\t\t\t\tNUMBER OF AST NODES: %d", num_ast_nodes);
 			free_grammar();

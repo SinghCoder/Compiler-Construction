@@ -44,7 +44,7 @@ void codegen_init()
     char *tac_op_str_tmp[NUM_TAC_OP] = {"+", "-", "*", "/", ">=", ">", "<=", "<", "==", "!=", "&&",
                                          "||", "uminus", "label", "input", "output", "assign", "jmp",
                                          "jmp_if_true", "jmp_if_false", "param" ,"call", "indexed_copy",
-                                         "array_access"};
+                                         "array_access", "switch_op", "goto_case", "default"};
     for(int i=0; i<NUM_TAC_OP; i++){        
         strcpy(tac_op_str[i], tac_op_str_tmp[i]);
         // printf("tac_op_str[%d] = %s\n", i, tac_op_str[i]);
@@ -201,7 +201,6 @@ void code_emit(tac_op op, char *arg1, char *arg2, char *result, tree_node *node_
     if(result){
         // printf("inserting , result : %s\n", result);
     }
-    
 
     quadruples[quad_count].op = op;
     quadruples[quad_count].arg1 = arg1;
@@ -371,6 +370,35 @@ void generate_ir(tree_node *ast_node)
                         code_emit(PROC_CALL_OP, get_nth_child(ast_node, 2)->addr, param_num_str, NULL, NULL, NULL, NULL);
                     }
                     break;
+                    case CONDITIONALSTMT:
+                    {
+                        code_emit(SWITCH_OP, ast_node->leftmost_child->addr, NULL, NULL, ast_node->leftmost_child, NULL, NULL);
+                        tree_node *casestmts = ast_node->leftmost_child->sibling;
+
+                        if(ast_node->rightmost_child->sym.t == EPSILON)    // if-else statement with choice as boolean
+                        {
+                            code_emit(IF_TRUE_GOTO_OP, casestmts->leftmost_child->leftmost_child->addr, NULL, NULL, casestmts->leftmost_child->leftmost_child, NULL, casestmts->leftmost_child->rightmost_child);
+                            code_emit(IF_FALSE_GOTO_OP, casestmts->rightmost_child->leftmost_child->addr, NULL, NULL, casestmts->rightmost_child->leftmost_child, NULL, casestmts->rightmost_child->rightmost_child);
+                        }
+                        else    // normal switch statement with choice as integer
+                        {
+                            tree_node *casestmt = casestmts->leftmost_child;
+                            
+                            while(casestmt != NULL)
+                            {
+                                // char *case_match = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
+                                // snprintf(case_match, MAX_LABEL_LEN, "%d", casestmt->leftmost_child->token.num);
+                                code_emit(GOTO_IF_MATCHES, casestmt->leftmost_child->addr, NULL, NULL, casestmt->leftmost_child, NULL, casestmt->rightmost_child);
+                                casestmt = casestmt->sibling;
+                            }
+
+                            //default_stmt
+                            char *default_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
+                            snprintf(default_str, MAX_LABEL_LEN, "%s", "default");
+                            code_emit(DEFAULT_OP, default_str, NULL, NULL, ast_node->rightmost_child->leftmost_child, NULL, ast_node->rightmost_child->rightmost_child);
+                        }
+                    }
+                    break;
                 }
             }
             else{
@@ -394,6 +422,5 @@ void generate_ir(tree_node *ast_node)
                 ast_node = ast_node->parent;
             }
         }
-
     }
 }

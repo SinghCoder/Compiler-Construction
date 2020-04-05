@@ -9,7 +9,7 @@
 #define MAX_SYMBOL_LENGTH 50
 #define MAX_FILE_NAME_LEN 100
 #define COLUMN_SIZE 20
-#define NUM_TAC_OP 24
+#define NUM_TAC_OP 27
 
 #define MAX_LABEL_LEN 20
 #define MAX_TEMP_LEN 20

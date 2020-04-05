@@ -2,6 +2,7 @@
 #define CODE_GEN_DEF_H
 #include "driver.h"
 #include "treeADTDef.h"
+
 int label_count;
 int temp_count;
 int quad_count;
@@ -32,7 +33,10 @@ typedef enum{
     PARAM_OP,
     PROC_CALL_OP,
     INDEXED_COPY_OP,
-    ARRAY_ACCESS_OP
+    ARRAY_ACCESS_OP,
+    SWITCH_OP,
+    GOTO_IF_MATCHES,
+    DEFAULT_OP
 }tac_op;
 
 typedef struct{
@@ -46,4 +50,5 @@ typedef struct{
 }quad_node;
 
 quad_node quadruples[MAX_NUM_QUADRUPLES];
+
 #endif

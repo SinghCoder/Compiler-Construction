@@ -12,7 +12,7 @@
 #include "hashtable.h"
 #include "driver.h"
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 10000
 
 typedef enum {
 #include "tokens.txt"

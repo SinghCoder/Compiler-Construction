@@ -35,6 +35,8 @@ tree_node *create_tree_node() {
   node->num_child = 0;
   node->scope_sym_tab = NULL;
   node->extra_args = NULL;
+  // strcpy(node->addr, "");
+  node->addr = NULL;
   strcpy(node->token.id.str, "");
   node->encl_fun_type_ptr = NULL;
   return node;

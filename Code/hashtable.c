@@ -96,7 +96,7 @@ void hash_insert(hash_table table, char *lexeme, int value) {
 }
 
 void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr){
-	printf("Inserting in hash table %s\n", lexeme);
+	// printf("Inserting in hash table %s\n", lexeme);
 	int hashValue;
 	hashValue = hash(lexeme);
 	int probe_num = 1;

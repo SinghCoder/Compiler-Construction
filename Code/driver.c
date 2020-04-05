@@ -12,6 +12,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "treeADT.h"
+#include "codegen.h"
 #include "semantic_analyzer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -288,10 +289,13 @@ int main(int argc, char *argv[]) {
 			printf("----------------First pass ended----------------\n");
 			printf("----------------Checking second pass------------\n");
 			second_ast_pass(ast_tree);
+			codegen_init();
+			generate_ir(ast_tree);
 			parse_tree_file_ptr = fopen(parse_tree_file, "w");
 			print_parse_tree_for_tool(ast_tree);
 			fclose(parse_tree_file_ptr);
-
+			printf("\n\n=====================Generated IR=======================\n\n");
+			print_quadruples();
 			free_grammar();
 			fclose(fptr);
 		}

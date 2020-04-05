@@ -9,6 +9,8 @@ typedef enum { ARITH_OP, REL_OP, LOGICAL_OP, NO_MATCHING_OP} operator;
 void construct_symtable(tree_node *ast_root);
 void semantic_analyzer_init();
 st_wrapper *symbol_table_init();
+void print_a_type(type *type_ptr);
+type *create_type();
 void *key_search_recursive(st_wrapper *sym_table,char *lexeme, type *encl_fun_type_ptr, bool *is_outp_param);
 void insert_in_sym_table(st_wrapper *sym_table,tree_node *node);
 void insert_function_definition(st_wrapper *sym_table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list);

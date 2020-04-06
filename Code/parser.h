@@ -43,7 +43,7 @@ void print_parse_table();
 
 void print_parse_tree(tree_node *root);
 
-void print_parse_tree_for_tool(tree_node *root);
+void print_parse_tree_for_tool(tree_node *root, tree_type typ);
 
 void print_rule(int rule_no);
 

@@ -35,7 +35,8 @@ typedef enum{
     INDEXED_COPY_OP,
     ARRAY_ACCESS_OP,
     RETURN_OP,
-    FN_DEFN_OP
+    FN_DEFN_OP,
+    EXIT_PROGRAM_IF_TRUE_OP
 }tac_op;
 
 typedef struct{

@@ -17,7 +17,6 @@
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
-extern int num_ast_nodes;
 typedef struct params_list_node params_list_node;
 typedef struct type type;
 

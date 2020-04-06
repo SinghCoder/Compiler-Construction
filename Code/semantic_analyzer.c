@@ -1546,7 +1546,6 @@ void construct_symtable(tree_node *ast_root) {
   do{        
     //   print_symbol(node->sym);
         if(node->visited == false) {
-            num_ast_nodes++;
             node->visited = true;
             /**
              * @brief It's a nt, check if it opens up a new scope, if it does create a new symbol table

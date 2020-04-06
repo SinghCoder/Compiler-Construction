@@ -54,6 +54,7 @@ void parser_init() {
 	}
   }
 
+	num_tree_nodes = 0;
 }
 
 /**
@@ -480,7 +481,9 @@ bool is_expr_node(nonterminal nt){
  *
  * @param node
  */
-void print_node_for_tool(tree_node *node) {
+void print_node_for_tool(tree_node *node, tree_type typ) {
+
+	num_tree_nodes++;
   if (node == NULL)
 	return;
   bool is_terminal = (node->sym).is_terminal;
@@ -512,7 +515,8 @@ void print_node_for_tool(tree_node *node) {
 	}
   } else {    
 	fprintf(parse_tree_file_ptr, "[%s(%d)", non_terminal_string[(node->sym).nt], node->num_child);
-	if(is_expr_node(node->sym.nt)){ //it's a node corresponding to RHS of an expression
+	
+	if(is_expr_node(node->sym.nt) && typ == ast){ //it's a node corresponding to RHS of an expression and printing ast
 		fprintf(parse_tree_file_ptr, "{%s} ",terminal_string[get_expr_type(node, node->scope_sym_tab).name]);
 	} 
   }
@@ -523,20 +527,20 @@ void print_node_for_tool(tree_node *node) {
  *
  * @param root root node of the tree
  */
-void print_parse_tree_for_tool(tree_node *root) {
+void print_parse_tree_for_tool(tree_node *root, tree_type typ) {
   if (root == NULL)
 	return;
-  print_node_for_tool(root);
+  print_node_for_tool(root, typ);
 
   if (root->leftmost_child)
-	print_parse_tree_for_tool(root->leftmost_child);
+	print_parse_tree_for_tool(root->leftmost_child, typ);
   //   else
   // 	fprintf(parse_tree_file_ptr,"]");
 
   if (root->leftmost_child) {
 	tree_node *temp = root->leftmost_child->sibling;
 	while (temp != NULL) {
-	  print_parse_tree_for_tool(temp);
+	  print_parse_tree_for_tool(temp, typ);
 	  temp = temp->sibling;
 	}
   }

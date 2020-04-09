@@ -34,6 +34,7 @@ typedef enum{
     PROC_CALL_OP,
     INDEXED_COPY_OP,
     ARRAY_ACCESS_OP,
+    DECLARE_DYN_ARR_OP,
     RETURN_OP,
     FN_DEFN_OP,
     EXIT_PROGRAM_IF_TRUE_OP
@@ -44,6 +45,8 @@ typedef struct{
     char *arg1;
     char *arg2;
     char *result;
+    st_wrapper *curr_scope_table_ptr;
+    type *encl_fun_type_ptr;
 }quad_node;
 
 quad_node quadruples[MAX_NUM_QUADRUPLES];

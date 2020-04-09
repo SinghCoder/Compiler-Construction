@@ -464,6 +464,8 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         type *inp_param_type_ptr = NULL;
         while(inp_param_node != NULL){
             inp_param_type_ptr = retreive_type(inp_param_node);
+            inp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
+            t->typeinfo.module.curr_offset += inp_param_type_ptr->width;
             insert_param_in_list(t->typeinfo.module.input_params, inp_param_type_ptr, id_str);
             inp_param_node = inp_param_node->sibling;     // rn at node labelled ID
             id_str = inp_param_node->token.id.str;
@@ -478,6 +480,10 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         type *outp_param_type_ptr = NULL;
         while(outp_param_node != NULL){
             outp_param_type_ptr = retreive_type(outp_param_node);
+            
+            outp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
+            t->typeinfo.module.curr_offset += outp_param_type_ptr->width;
+
             insert_param_in_list(t->typeinfo.module.output_params, outp_param_type_ptr, id_str);
             outp_param_node = outp_param_node->sibling;     // rn at node labelled ID
             id_str = outp_param_node->token.id.str;
@@ -609,7 +615,7 @@ void print_a_type(type *type_ptr){
         else{
               printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value); 
         }
-          printf("\n"); 
+        //   printf("\n"); 
     }
 
     else if(type_ptr->name == MODULE){
@@ -826,7 +832,27 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
 
          printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]); 
         
-        if(lhs_type.name != rhs_type.name){
+        bool type_err = false;
+        if(lhs_type.name != rhs_type.name)
+            type_err = true;
+        else{
+            if(lhs_type.name == ARRAY){
+                if(lhs_type.typeinfo.array.primitive_type != rhs_type.typeinfo.array.primitive_type){
+                    type_err = true;
+                }
+                else{
+                    if(!lhs_type.typeinfo.array.is_dynamic.range_low && !rhs_type.typeinfo.array.is_dynamic.range_low){
+                        if(lhs_type.typeinfo.array.range_low.value != rhs_type.typeinfo.array.range_low.value)
+                            type_err = true;
+                    }
+                    if(!lhs_type.typeinfo.array.is_dynamic.range_high && !rhs_type.typeinfo.array.is_dynamic.range_high){
+                        if(lhs_type.typeinfo.array.range_high.value != rhs_type.typeinfo.array.range_high.value)
+                            type_err = true;
+                    }
+                }
+            }
+        }
+        if(type_err){
             
             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
             sprintf(msg, "LHS and RHS type do not match");
@@ -1501,7 +1527,7 @@ type* check_encl_fun_params(type *fun_type, char *lexeme, bool *is_outp_param)
         inp_param = fun_type->typeinfo.module.input_params->first;
     while(inp_param != NULL){
         if(strcmp(inp_param->param_name, lexeme) == 0){
-             printf("%s is a input param\n", lexeme); 
+            //  printf("%s is a input param\n", lexeme); 
             return inp_param->t;
         }
         inp_param = inp_param->next;
@@ -1513,7 +1539,7 @@ type* check_encl_fun_params(type *fun_type, char *lexeme, bool *is_outp_param)
     
     while(outp_param != NULL){
         if(strcmp(outp_param->param_name, lexeme) == 0){
-             printf("%s is a output param\n", lexeme); 
+            //  printf("%s is a output param\n", lexeme); 
             if(is_outp_param != NULL)
                 *is_outp_param = true;
             return outp_param->t;

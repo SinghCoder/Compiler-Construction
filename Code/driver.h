@@ -9,7 +9,7 @@
 #define MAX_SYMBOL_LENGTH 50
 #define MAX_FILE_NAME_LEN 100
 #define COLUMN_SIZE 20
-#define NUM_TAC_OP 28
+#define NUM_TAC_OP 29
 #define MAX_SWITCH_CASES 200
 
 #define MAX_LABEL_LEN 20
@@ -30,6 +30,7 @@ char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 typedef enum {ast, pt} tree_type;
 
 char parse_tree_file[MAX_FILE_NAME_LEN];
+char assembly_file[MAX_FILE_NAME_LEN];
 FILE *parse_tree_file_ptr;
 FILE *ast_file_ptr;
 

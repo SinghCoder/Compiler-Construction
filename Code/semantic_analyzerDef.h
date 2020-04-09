@@ -13,7 +13,7 @@
 #define MAX_VARSNUM_IN_EXPR 100
 #define WHILE_LHS 0
 #define WHILE_RHS 1
-#define DONT_CARE 0
+#define DONT_CARE -1
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];

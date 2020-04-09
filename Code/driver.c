@@ -12,7 +12,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "treeADT.h"
-#include "codegen.h"
+#include "intermed_codegen.h"
 #include "semantic_analyzer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -114,8 +114,8 @@ void populate_non_terminal_string() {
 
 int main(int argc, char *argv[]) {
 
-	if (argc < 3) {
-		print_error("SYNTAX ERORR", "Run as ./a.out file=<test_case_file> parse_tree_file=<output_file>");
+	if (argc < 4) {
+		print_error("SYNTAX ERORR", "Run as ./a.out test_case_file output_file asm_file");
 		exit(1);
 	}
 
@@ -128,6 +128,7 @@ int main(int argc, char *argv[]) {
 	char source_file[100];
 	strcpy(source_file, argv[1]);
 	strcpy(parse_tree_file, argv[2]);
+	strcpy(assembly_file, argv[3]);
 
 	FILE *source = fopen(source_file, "r");
 	if (source == NULL) {
@@ -350,7 +351,7 @@ int main(int argc, char *argv[]) {
 		case 9: {
 			lexer_init(source);
 			parser_init();
-			codegen_init();
+			intermed_codegen_init();
 			semantic_analyzer_init();
 
 			FILE *fptr = fopen("grammar.txt", "r");

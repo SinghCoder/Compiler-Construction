@@ -32,7 +32,7 @@ typedef enum {ast, pt} tree_type;
 char parse_tree_file[MAX_FILE_NAME_LEN];
 char assembly_file[MAX_FILE_NAME_LEN];
 FILE *parse_tree_file_ptr;
-FILE *ast_file_ptr;
+FILE *assembly_file_ptr;
 
 void print_error(char *type, char *message);
 

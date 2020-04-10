@@ -14,6 +14,7 @@
 #include "treeADT.h"
 #include "intermed_codegen.h"
 #include "semantic_analyzer.h"
+#include "codegen.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -385,6 +386,13 @@ int main(int argc, char *argv[]) {
 
 			printf("\n\n=====================Generated IR=======================\n\n");
 			print_quadruples();			
+
+			assembly_file_ptr = fopen(assembly_file, "w");
+
+			generate_code();
+
+			fclose(assembly_file_ptr);
+
 			free_grammar();
 			fclose(fptr);
 		}

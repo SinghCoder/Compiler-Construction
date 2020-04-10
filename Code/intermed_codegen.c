@@ -71,8 +71,8 @@ void intermed_codegen_init()
     quad_count = 0;
     switch_tbl_entry_num = 0;
     char *tac_op_str_tmp[NUM_TAC_OP] = {"+", "-", "*", "/", ">=", ">", "<=", "<", "==", "!=", "&&",
-                                        "||", "uminus", "label","input", "output", "assign", "jmp", "jmp_if_true", "jmp_if_false",
-        "inp_param" ,"outp_param", "call", "indexed_copy", "array_access", "dyn_arr_declare", "return", "function", "exit_prog_if_true"};
+                                        "||","u_plus", "u_minus", "label","input", "output", "assign", "jmp", "jmp_if_true",
+        "inp_param" ,"outp_param", "call", "indexed_copy", "array_access", "dyn_arr_declare", "ret", "function", "exit_prog_if_true"};
     for(int i=0; i<NUM_TAC_OP; i++){        
         strcpy(tac_op_str[i], tac_op_str_tmp[i]);
     }
@@ -167,8 +167,10 @@ char *node2_tkn_str_val(tree_node *node)
             sprintf(str_val, "#%lf", node->token.rnum);
         break;
         case TRUE:
+            sprintf(str_val,"#1");
+        break;
         case FALSE:
-            sprintf(str_val,"#%s", node->token.id.str);
+            sprintf(str_val,"#0");
         break;
         default:
             strcpy(str_val, "");
@@ -388,10 +390,12 @@ void uexpr_second_time(tree_node *uexpr_node){
     tree_node *expr_node = uexpr_node->rightmost_child;
     tree_node *tmp_node = newtemp(expr_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
     uexpr_node->addr = tmp_node->addr;
+    tree_node *op_node = uexpr_node->leftmost_child;
+    tac_op op = (op_node->token.name == PLUS) ? UPLUS_OP : UMINUS_OP;
     /** 
      * ToDo : it could be UPLUS also, correct it
      */
-    code_emit(UMINUS_OP, expr_node->addr,NULL, uexpr_node->addr, uexpr_node->scope_sym_tab,  uexpr_node->encl_fun_type_ptr);
+    code_emit(op, expr_node->addr,NULL, uexpr_node->addr, uexpr_node->scope_sym_tab,  uexpr_node->encl_fun_type_ptr);
 }
 
 void var_node_second_time(tree_node *var_node){

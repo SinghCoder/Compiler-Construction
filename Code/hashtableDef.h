@@ -25,6 +25,7 @@ typedef hash_element hash_table[HASH_SIZE];
 
 typedef struct symbol_table_wrapper{
 	hash_table table;
+	int level_num;
 	struct symbol_table_wrapper *parent_table;
 	struct symbol_table_wrapper *leftmost_child_table;
 	struct symbol_table_wrapper *rightmost_child_table;

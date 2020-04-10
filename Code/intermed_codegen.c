@@ -11,55 +11,64 @@ void assign_next_label(tree_node *ast_node)
     }
     else{
         ast_node->label.next_label = ast_node->parent->label.next_label;        
-        if(ast_node->label.next_label == NULL)
-            ast_node->label.next_label = "function_end :";
+        if(ast_node->label.next_label == NULL){
+            char *fun_name = ast_node->encl_fun_type_ptr->typeinfo.module.module_name;
+            char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
+            strcpy(fn_end_str, fun_name);
+            strcat(fn_end_str, "_end");
+            ast_node->label.next_label = fn_end_str;
+        }
+            
     }
     // printf("Next label is assigned as %s\n", ast_node->label.next_label);
 }
 
 void print_quadruples()
 {
-    printf("%-20s | ","operator");
-    printf("%-20s | ","arg1");
-    printf("%-20s | ","arg2");
-    printf("%-20s | ","result");
+    printf("%-12s | ","operator");
+    printf("%-12s | ","arg1");
+    printf("%-12s | ","arg2");
+    printf("%-12s | ","result");
+    printf("%-12s | ","level_no");
     printf("%-50s | ","Result type");
     printf("\n");
-    printf("%-20s | ","---------------");
-    printf("%-20s | ","---------------");
-    printf("%-20s | ","---------------");
-    printf("%-20s | ","---------------");
-    printf("%-50s | ","---------------");
+    printf("%-12s | ","-----------");
+    printf("%-12s | ","-----------");
+    printf("%-12s | ","-----------");
+    printf("%-12s | ","-----------");
+    printf("%-12s | ","-----------");
+    printf("%-50s | ","-----------");
     printf("\n\n");
 
     for(int i = 0; i < quad_count; i++){
-        printf("%-20s | ", tac_op_str[quadruples[i].op] );
+        printf("%-12s | ", tac_op_str[quadruples[i].op] );
         if(quadruples[i].arg1){
-            printf("%-20s | ", quadruples[i].arg1);
+            printf("%-12s | ", quadruples[i].arg1);
         }
         else
-            printf("%-20s | ","(empty)");
+            printf("%-12s | ","(empty)");
         
         if(quadruples[i].arg2){
-            printf("%-20s | ", quadruples[i].arg2);
+            printf("%-12s | ", quadruples[i].arg2);
         }
         else
-            printf("%-20s | ","(empty)");
+            printf("%-12s | ","(empty)");
         
         if(quadruples[i].result){
-            printf("%-20s | ", quadruples[i].result);
+            printf("%-12s | ", quadruples[i].result);
         }
         else
-            printf("%-20s | ","(empty)");
+            printf("%-12s | ","(empty)");
         
         if(quadruples[i].curr_scope_table_ptr){
+            printf("%-12d | ",quadruples[i].curr_scope_table_ptr->level_num);
             if(quadruples[i].result){
                 type *res_type = (type *)key_search_recursive(quadruples[i].curr_scope_table_ptr, quadruples[i].result, quadruples[i].encl_fun_type_ptr, NULL);
                 print_a_type(res_type);
             }
         }            
         else
-            printf("%-20s | ", "Sym tab NULL");
+            printf("%-12s | ", "Sym tab NULL");
         printf("\n");
     }
 }
@@ -72,7 +81,7 @@ void intermed_codegen_init()
     switch_tbl_entry_num = 0;
     char *tac_op_str_tmp[NUM_TAC_OP] = {"+", "-", "*", "/", ">=", ">", "<=", "<", "==", "!=", "&&",
                                         "||","u_plus", "u_minus", "label","input", "output", "assign", "jmp", "jmp_if_true",
-        "inp_param" ,"outp_param", "call", "indexed_copy", "array_access", "dyn_arr_declare", "ret", "function", "exit_prog_if_true"};
+        "inp_param" ,"outp_param", "call", "indexed_copy", "array_access", "dyn_arr_dec","stat_arr_dec", "ret", "function", "exit_if_true"};
     for(int i=0; i<NUM_TAC_OP; i++){        
         strcpy(tac_op_str[i], tac_op_str_tmp[i]);
     }
@@ -83,7 +92,7 @@ void intermed_codegen_init()
 char *newlabel()
 {
     char *label = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
-    sprintf(label, "label_%d :", label_count);
+    sprintf(label, "label_%d", label_count);
     // printf("Emitted label %s\n", label);
     label_count++;
     return label;
@@ -233,7 +242,8 @@ tac_op get_tac_op(tree_node *node){
 void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr_scope_table_ptr, type *encl_fun_type_ptr)
 {
     if(op == LABEL_OP && arg1 == NULL)
-        return;
+            return;
+        
     if(arg1){
         // printf("inserting , arg1 : %s, ", arg1);
     }
@@ -258,9 +268,11 @@ void module_first_time(tree_node *module_node){
     char *fun_name;
     fun_name = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
     strcpy(fun_name, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
-    strcat(fun_name, " :");
     code_emit(FN_DEFN_OP, fun_name, NULL, NULL, module_node->scope_sym_tab,  module_node->encl_fun_type_ptr);                        
-    module_node->label.next_label = "function_end :";
+    char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
+    strcpy(fn_end_str, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
+    strcat(fn_end_str, "_end");
+    module_node->label.next_label = fn_end_str;
     // printf("Assigning module label : %s\n", fun_name);
 }
 
@@ -747,12 +759,19 @@ void conditional_node_second_time(tree_node *conditional_node){
 
 void declare_node_second_time(tree_node *declare_node){
     tree_node *id_node = declare_node->leftmost_child->leftmost_child;
-
+    bool is_dynamic = false;
     type *id_type_ptr;
     while(id_node != NULL){
         id_type_ptr = (type *)key_search_recursive(id_node->scope_sym_tab, id_node->token.id.str, id_node->encl_fun_type_ptr, NULL);
         if(id_type_ptr && id_type_ptr->name == ARRAY){
-            code_emit(DECLARE_DYN_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr);
+            if(id_type_ptr->typeinfo.array.is_dynamic.range_low)
+                is_dynamic = true;
+            if(id_type_ptr->typeinfo.array.is_dynamic.range_high)
+                is_dynamic = true;
+            if(is_dynamic)
+                code_emit(DECLARE_DYN_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr);
+            else
+                code_emit(DECLARE_STATIC_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr);
         }
         id_node = id_node->sibling;
     }

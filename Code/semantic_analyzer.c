@@ -34,6 +34,10 @@ void semantic_analyzer_init(){
 st_wrapper *symbol_table_init(){
     st_wrapper *sym_tab = (st_wrapper*) malloc( sizeof( st_wrapper ));
     sym_tab->parent_table = curr_sym_tab_ptr;
+    if(sym_tab->parent_table)
+        sym_tab->level_num = sym_tab->parent_table->level_num + 1;
+    else
+        sym_tab->level_num = 0;
     sym_tab->leftmost_child_table = NULL;
     sym_tab->rightmost_child_table = NULL;
     sym_tab->sibling_table = NULL;
@@ -399,6 +403,8 @@ type *retreive_type(tree_node *node){
                 type_ptr->width = WIDTH_BOOLEAN * num_elems;
                 break;
         }
+        if(!is_dynamic_arr && !basic_type)
+            type_ptr->width += WIDTH_POINTER;   // An array name will also have to store the base address of first array element
     }
     else{
         type_ptr->width = WIDTH_POINTER;
@@ -1087,7 +1093,7 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
      printf("My fun name is %s\n", encl_fun_name); 
     char *called_fun_name = fn_id_node->token.id.str;
 
-    if(strcmp(encl_fun_name, called_fun_name) == 0 && strcmp(encl_fun_name, "driver") != 0){
+    if(strcmp(encl_fun_name, called_fun_name) == 0 && strcmp(encl_fun_name, "main") != 0){
         
         char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
         sprintf(err_type, "%d) SEMANTIC ERROR", fn_id_node->token.line_no);
@@ -1596,7 +1602,7 @@ void construct_symtable(tree_node *ast_root) {
                         driver_encl_ptr->typeinfo.module.is_declrn_valid = false;
                         driver_encl_ptr->typeinfo.module.is_defined = true;
                         driver_encl_ptr->typeinfo.module.curr_offset = 0;
-                        strcpy(driver_encl_ptr->typeinfo.module.module_name, "driver");
+                        strcpy(driver_encl_ptr->typeinfo.module.module_name, "main");
                         driver_encl_ptr->typeinfo.module.output_params = NULL;
                         node->encl_fun_type_ptr = driver_encl_ptr;
                     }

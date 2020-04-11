@@ -1,7 +1,11 @@
-extern printf
+extern printf, scanf
 section .data
-		fmt1: db "RAX = %ld, RBX = %ld, RCX = %ld, RDX = %ld", 10, 0
-		fmt2: db "RSP = %ld, RBP = %ld, RSI = %ld, RDI = %ld", 10, 0
+		ffour_reg_fmt: db `RAX = %ld, RBX = %ld, RCX = %ld, RDX = %ld`, 10, 0
+		lfour_reg_fmt: db `RSP = %ld, RBP = %ld, RSI = %ld, RDI = %ld\n`, 10, 0
+		int_fmt: db "%d", 0
+		real_fmt: db "%lf", 0
+		bool_fmt: db "%s", 0
+		str_fmt: db "%s", 0
 section .text
 				%macro push_all 0 
                     push RAX 
@@ -31,7 +35,7 @@ section .text
                     push RCX 
                     push RBX 
                     push RAX 
-                    mov RDI, fmt1		; first arg, format 
+                    mov RDI, ffour_reg_fmt		; first arg, format 
                     pop RSI 
                     pop RDX 
                     pop RCX 
@@ -47,8 +51,9 @@ section .text
                     push RSI 
                     push RBP 
                     push RSP 
-                    mov RDI, fmt2		; first arg, format 
+                    mov RDI, lfour_reg_fmt		; first arg, format 
                     pop RSI 
+                    add RSI, 88 ; 88 because RSP has pushed additional 11 registers, so original value is 88 more than current
                     pop RDX 
                     pop RCX 
                     pop R8 
@@ -59,15 +64,65 @@ section .text
 
 				global main
 main:
-				PUSH RBP
-				MOV RBP, RSP
-				SUB RSP, 30
+				SUB RSP, 8     ; align RSP to 16 boundary to enable calls to scanf, etc
+				ENTER 24, 0
 				print_first_four
 				print_last_four
-	label_0:
-	label_1:
-	label_2:
-	main_end:
-				ADD RSP, 30
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 0     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call scanf 
+                pop_all
+label_0:
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 0     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call printf 
+                pop_all
+label_1:
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 8     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call scanf 
+                pop_all
+label_2:
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 8     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call printf 
+                pop_all
+label_3:
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 16     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call scanf 
+                pop_all
+label_4:
+				push_all
+				mov RDI, bool_fmt		;first arg, format "%s" 
+				mov RDX, RBP
+                sub RDX, 16     ; make RDX to point at location of variable on the stack
+                mov RSI, RDX 
+                mov RAX, 0 
+                call printf 
+                pop_all
+main_end:
+				LEAVE
+				ADD RSP, 8     ; align RSP back to intial position
 				ret
 

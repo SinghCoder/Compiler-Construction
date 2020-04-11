@@ -1,0 +1,104 @@
+** Test case 10: Testing execution flow statements - switch and for 
+This Includes 
+1. Switch variable type and case values plus the presence of default statement
+2. Whether the loop variable is not assigned a value in for loop **
+
+**Independent test case for switch case and for loop semantics**
+
+<<module switch_var_demo1>>
+takes input [x: integer, y: real, z:boolean];
+returns [u: integer];
+start
+
+	declare m,n,k: integer;
+	declare h:boolean;
+	declare p: real;
+	get_value(n);
+	switch(k)
+	start
+		case 10: declare A:real;
+			 declare Q: integer;
+			 declare B: array[10..30] of integer;
+			 declare E: array[4..10] of integer;
+			 B[12]:= k*20; 	                  	
+			 break;
+		case 20: A:= 12.90 + p;       
+			 get_value(Q);
+			 for(m in 10..15)
+			 start
+				n:= n+m;
+			 end
+			 E[7]:= k+12 - Q*10;       
+			 break;
+		case true: m:=m-n;			**ERROR: Case value is incorrect as condiiton variable type is integer**
+			 break;
+		default: E[9]:= B[15]+Q;	       
+			 break;			 	
+	end
+
+	u:= u+ x*m-n;
+
+	switch(p)				**ERROR: switch variable cannot be of type real**
+	start
+		case 1: p:=p+1;
+			break;
+		default:h:=false;
+			break;
+	end
+
+	switch(h)
+	start
+		case false: declare A:real;
+			 declare Q: integer;
+			 declare B: array[10..30] of integer;
+			 declare E: array[4..10] of integer;
+			 B[12]:= k*20; 	                  	
+			 break;
+		case 20: A:= 12.90 + p;       		**ERROR: Case value is incorrect as condiiton variable type is boolean**
+			 get_value(Q);
+			 for(m in 10..15)
+			 start
+				n:= n+m;
+			 end
+			 E[7]:= k+12 - Q*10;       
+			 break;
+		case true: m:=m-n;
+			 print(m);			
+			 break;
+		default: E[9]:= B[15]+Q;	      **ERROR: presence of default statement is incorrect as condiiton variable type is boolean** 
+			 break;			 	
+	end
+	
+end
+
+<<module for_loop_demo>>
+takes input [x: integer, y: real, z:boolean];
+returns [u: integer];
+start
+
+	declare k: integer;
+	for(k in 12..70)
+	start
+		u:= x+k;
+		k:= k+2;                            **ERROR: for loop variable k cannot be assigned a value** 
+	end 
+end
+
+<<<driver program>>>
+start
+	declare a, b: integer;
+	declare c: real;
+	declare d: boolean;
+	[a]:=use module for_loop_demo with parameters b, c, d;
+	switch(a)
+	start
+		case 1: a:=a+b;
+			break;
+		case 2: a:=a-b;
+			break;
+		case 3: a:= a*b;
+			break;
+		case 4: a:= a/b;
+			break;
+	end					**ERROR: default statement is missing- the type of switch variable is integer**
+end

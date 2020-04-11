@@ -1,0 +1,180 @@
+** Test case 7: Testing function precedence, function declaration and its redundancy and assignment of output parameters 
+This Includes 
+1. precedence of function definitions before their use
+2. Assignment of output parameters 
+3. Number and types of input and output parameters (extension of test case 6)
+4. static bound checking and static type checking in expressions - arithmetic and boolean (extension of test case 5) **
+
+** Multiple level nesting using integer, real, boolean data types including static array data type**
+**Variant of test case 6**
+
+declare module function1;
+declare module function2;
+declare module function4;
+
+<<module var_demo_array>>
+takes input [x:integer, m:array [2..20] of integer, p:real];
+returns [ n:integer, k: boolean];
+start
+	declare a,b,h:integer;	
+	get_value(b);
+	declare b4: array[100..150] of boolean;
+	declare p: array[2..20] of integer;	
+	a:= m[5]+3;				   **Not an error: array index within bounds**
+	use module function2 with parameters a,b;  **not an error as module function2 is declared before this call**
+	p:= m;					   **Not an error: type expressions of array variables p and m are same and assignment is a valid operation**
+	k:=true;	
+	p:= m + p;                                 **ERROR: array variables m and p cannot be added**
+	declare v1, v2:real;	
+	p[10]:= a*b-20*h;                          **Not an error: array index within bounds**
+	declare b7: array[35..50] of real;			 
+	while(k AND x<=m[11] OR false)
+	start
+		declare p, u:integer;
+		declare b: array[2..20] of integer;
+		declare b5, b6: array[35..50] of real;
+		b:= m;
+		[v1, u, k, p]:=use module function1 with parameters b4, v2, p, b5, u;	**not an error**			
+		b[2]:= u+m[25];			   **ERROR: element of array m is out of bound** 
+		p:= b[18]*18.56E+2;		   **ERROR: type mismatch **
+		declare v3:integer;
+		[v1, u, k, v3]:=use module function1 with parameters b4, v2, p, v3, u;	**ERROR: input parameter type mismatch **			
+	end
+        a:= a - p*b;				   **ERROR: types of p and b are different**
+	b:= b+3;
+	k:= a>b OR b>100;
+	[v1, a, k, h]:=use module function1 with parameters b7, v2, p, b7, b;	**ERROR: input parameter type mismatch **			
+	print(k);	
+end						 ** ERROR: Output parameter n is not assigned any value **
+
+<<module function2>>
+takes input [ x:integer, y:integer];
+start
+	declare temp: integer;
+	temp:= x+y;
+end
+
+
+<<module f1>>
+takes input[a: array[10..30] of integer, b:array[10..30] of integer, c:real];
+returns [m:boolean, n:integer];
+start
+	declare x,y, p: real;
+	declare k, y1: integer;
+	declare E: array[2..20] of integer;
+	declare Var3, var4: array[100..150] of boolean;
+	get_value(y);
+	get_value(x);
+	declare A,B: array[4..10] of integer;
+	declare Var1, Var2: array[35..50] of real;
+	get_value(B);
+	use module function2 with parameters k, y1;  **Do not report this as an error because of redundant declaration of function2. This declaration has been genuinely needed in function var_demo_array**
+	declare D,C: array[10..30] of integer;
+	A:=B;
+	[ y1, m]:=use module var_demo_array with parameters k,E,x;	 **not an error**					 
+	C:=a;
+	[x, y1, m, k]:=use module function1 with parameters Var3, c, k, Var2, k;	**no error**			
+	D:=C;	
+
+ 
+	[ k, m]:=use module var_demo_array with parameters k,B,p;       **ERROR: Input parameter type of B does not match with formal parameter type**						 
+	for (k in 15..40)
+	start
+		x:=x+k*y;				    **ERROR: Type mismatch error**
+		declare u, v:real;
+		declare int1: integer;
+		u := y+c*34.2;
+		v:= u-c*p-20.5E+2;
+		[x, int1, m, k]:=use module function1 with parameters Var3, c, k, Var4, k; **ERROR: Input parameter type of Var4 does not match with formal parameter type**		
+		switch(k)
+		start
+			case 10: declare A:real;
+				 declare Q: integer;
+				 declare B: array[10..30] of integer;
+				 declare E: array[4..10] of integer;
+				 B[9]:= k*20; 	              **ERROR: element of array B is out of bound**         	
+				 B:=C;           	      **not an error**
+				 E:= Q;                       **ERROR: variables E and Q are of different types	**	 
+				 break;
+			case 20: A:= 12.90 + u*y - c; 
+				 [A, Q, u, y1]:=use module function1 with parameters Var3, c, k, Var1, int1; **ERROR: Output parameter type of u does not match with formal parameter type**      
+				 get_value(Q);
+				 E[7]:= k+12 - Q*10+u;        **ERROR: Type mismatch error**    
+				 break;
+			default: E[9]:= B[15]+Q;	      **not an error**	
+				 [A, Q]:=use module function1 with parameters Var3, c, k, Var1, int1; **ERROR: Number of output parametters does not match with that of formal parameters**       
+				 break;			 	
+		end
+		x:=x + u*v- u<=v;                             **ERROR: Type mismatch error**
+	end
+	x:=c+y;	
+	[p]:= use module function3 with parameters x,y;       **ERROR: module function3 is not defined**
+	C[18]:= a[18]+ b[18];
+	A[5]:= B[6]- 10;
+	m:= A[5]< C[18] + A[11];			      **ERROR: element of array A is out of bound** 
+	y1:= 20*8-5;	
+end							      ** ERROR: Output parameter n is not assigned any value **
+
+
+
+<<module function3>>
+takes input [a: real, b:real];
+returns [c:real];
+start
+	c:= a+b;
+end
+
+<<module function4>>			    **ERROR: function4 definition and its declaration both appear before its call**
+takes input [a: boolean, b:boolean];
+returns [c:boolean];
+start
+	c:= a AND b;
+end
+
+<<<driver program>>>
+start
+	declare v_1_2_3, A:integer;
+	declare u1, u2, k:boolean;
+        A:=12;
+	declare p: real;
+	[k]:= use module function4 with parameters u1, u2;     
+	p:= 23.56;
+	get_value(v_1_2_3);							 		
+	declare B, C: array [2..20] of integer;
+	[ v_1_2_3, u1]:=use module var_demo_array with parameters A,B,p;		
+	[ v_1_2_3, k]:=use module var_demo_array with parameters A,B,p;	
+	declare a,b:integer;
+	a:= 5.89e-2;			        **ERROR: type mismatch error**
+	get_value(b);
+	declare value, q, r: real;
+	get_value(q);
+	r:= 23.67e+2;
+	value:= p+q*r-a*value; 			**ERROR: type mismatch error**
+	k:= true AND false OR q;		**ERROR: type mismatch error**
+	u1:= a<=b;
+	declare w: integer;			 
+	w:= 23+B[6];                                  
+	b:= a*25+100*C[1];		        **ERROR:element of array C is out of bound** 
+	declare D: array[20..40] of integer;			 
+	D:= value-q+r;				**ERROR: type mismatch error**
+	w:= w + 5;		 
+	B:= C;
+	C:= D;				        **ERROR: type mismatch error**        
+end
+
+<<module function1>>
+takes input [data: array[100..150] of boolean, weight: real, length: integer, b:array[35..50] of real, q:integer];
+returns [R1: real, R2: integer, R3: boolean, R4: integer];
+start
+	declare e,f: integer;
+	declare g,h: array[100..150] of boolean;
+	get_value(g);
+	h:=data;
+	h[120]:= g[120] OR length<=q AND h[140];
+	declare a: real;
+	R2:= q+1;
+	get_value(a);
+	R1:= a+weight/20.50;
+	R4:=f + 100;
+end								** ERROR: Output parameter R3 is not assigned any value **
+

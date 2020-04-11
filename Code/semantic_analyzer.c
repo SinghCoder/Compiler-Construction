@@ -120,7 +120,7 @@ operator get_operator(tree_node *node){
 }
 
 type get_EopE_type(type t1, operator op, type t2){
-     printf("t1 : %s, t2 : %s\n", terminal_string[t1.name], terminal_string[t2.name]); 
+    /**  printf("t1 : %s, t2 : %s\n", terminal_string[t1.name], terminal_string[t2.name]);  */
     type e_type;
 
     switch(op){
@@ -133,12 +133,12 @@ type get_EopE_type(type t1, operator op, type t2){
                     e_type.name = REAL;
                 }
                 else{
-                     printf("ARITHOP, both same but not int/real\n"); 
+                    /**  printf("ARITHOP, both same but not int/real\n");  */
                     e_type.name = TYPE_ERROR;
                 }
             }
             else{
-                 printf("ARITHOP, both not same\n"); 
+                /**  printf("ARITHOP, both not same\n");  */
                 e_type.name = TYPE_ERROR;
             }
         break;
@@ -153,13 +153,13 @@ type get_EopE_type(type t1, operator op, type t2){
                     e_type.name = BOOLEAN;
                 }
                 else{
-                     printf("RELOP, both same but not int/real\n"); 
+                    /**  printf("RELOP, both same but not int/real\n");  */
                     e_type.name = TYPE_ERROR;
                 }
             }
             else{
-                 printf("First : %s, second %s", terminal_string[t1.name], terminal_string[t2.name]); 
-                 printf("RELOP, both not same\n"); 
+                /**  printf("First : %s, second %s", terminal_string[t1.name], terminal_string[t2.name]);  */
+                /**  printf("RELOP, both not same\n");  */
                 e_type.name = TYPE_ERROR;
             }
 
@@ -192,19 +192,19 @@ type get_EopE_type(type t1, operator op, type t2){
 type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
     int num_child = expr_node->num_child;
     type t;
-    // printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^inside get expr type^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-    //  printf("    left : "); 
+    ///**  printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^inside get expr type^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"); */
+    // /**  printf("    left : ");  */
     // print_symbol_(expr_node->leftmost_child);
-    //  printf("    top : "); 
+    // /**  printf("    top : ");  */
     // print_symbol_(expr_node);    
-    //  printf("    right : "); 
+    // /**  printf("    right : ");  */
     // print_symbol_(expr_node->rightmost_child);
-    //  printf("\n"); 
-    // printf("num_child : %d\n", num_child);
+    // /**  printf("\n");  */
+    ///**  printf("num_child : %d\n", num_child); */
     switch(num_child){
         case 0:
         {
-            // printf("the term is %s\n", terminal_string[expr_node->sym.t]);
+            ///**  printf("the term is %s\n", terminal_string[expr_node->sym.t]); */
             switch(expr_node->sym.t){
                 case NUM:
                     t.name = INTEGER;
@@ -235,7 +235,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
         break;
         case 1: // expr -> num | rnum | true | false
         {
-            // printf("the term is %s\n", terminal_string[expr_node->leftmost_child->sym.t]);
+            ///**  printf("the term is %s\n", terminal_string[expr_node->leftmost_child->sym.t]); */
             switch(expr_node->leftmost_child->sym.t){
                 case NUM:
                     t.name = INTEGER;
@@ -267,7 +267,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
                      * @brief It might be that here is num/rnum
                      */
                     tree_node *var_node = expr_node->rightmost_child;
-                     printf("var_ndoe->token.name = %s\n", terminal_string[var_node->token.name]); 
+                    /**  printf("var_ndoe->token.name = %s\n", terminal_string[var_node->token.name]);  */
                     if(var_node->token.name == NUM || var_node->token.name == RNUM){
                         t = get_expr_type(var_node, sym_tab_ptr);
                     }
@@ -305,7 +305,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
                     t.name = TYPE_ERROR;
                 }
                 else{
-                     printf("The expression is unary arithmetic one, and type name is %s\n", terminal_string[t.name]); 
+                    /**  printf("The expression is unary arithmetic one, and type name is %s\n", terminal_string[t.name]);  */
                 }                
             }
         }
@@ -313,7 +313,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
         
         default:
         {
-            //  printf(">2 nodes\n"); 
+            // /**  printf(">2 nodes\n");  */
             tree_node *operand1 = expr_node->leftmost_child;
             tree_node *operand2 = NULL, *operator_node = NULL;
             type t1 = get_expr_type(operand1, sym_tab_ptr), t2;
@@ -321,13 +321,15 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
 
             while(operand1->sibling != NULL){
                 operator_node = operand1->sibling;
-                if(operand1->leftmost_child && operand1->leftmost_child->sym.t == ID && operand1 != operand2)
-                     printf("t1 corresponds to %s at line_no %d\n", operand1->leftmost_child->token.id.str, operand1->leftmost_child->token.line_no); 
+                if(operand1->leftmost_child && operand1->leftmost_child->sym.t == ID && operand1 != operand2){
+                    /**  printf("t1 corresponds to %s at line_no %d\n", operand1->leftmost_child->token.id.str, operand1->leftmost_child->token.line_no);  */
+                }
                 op = get_operator(operator_node);
                 operand2 = operator_node->sibling;
                 
-                if(operand2->leftmost_child && operand2->leftmost_child->sym.t == ID)
-                     printf("t2 corresponds to %s at line_no %d\n", operand2->leftmost_child->token.id.str, operand2->leftmost_child->token.line_no); 
+                if(operand2->leftmost_child && operand2->leftmost_child->sym.t == ID){
+                    /**  printf("t2 corresponds to %s at line_no %d\n", operand2->leftmost_child->token.id.str, operand2->leftmost_child->token.line_no);  */
+                }
                 
                 t2 = get_expr_type(operand2, sym_tab_ptr);
 
@@ -339,7 +341,7 @@ type get_expr_type(tree_node *expr_node, st_wrapper *sym_tab_ptr){
         }
         break;
     }
-    //  printf("get_expr_type returns : %s\n", terminal_string[t.name]); 
+    // /**  printf("get_expr_type returns : %s\n", terminal_string[t.name]);  */
     return t;
 }
 
@@ -432,8 +434,8 @@ void insert_param_in_list(params_list *list, type *t, char *param_name){
     list->length++;
 }
 
-void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list){
-    //  printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"); 
+void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list, int def_line_num){
+    // /**  printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");  */
     type *existing_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, lexeme);    
     type *t = (type*) malloc( sizeof(type) );
     t->name = MODULE;
@@ -442,11 +444,21 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         t->typeinfo.module.is_declrn_valid = false;        
     }
     else{
+        if(existing_entry->typeinfo.module.is_defined){
+            char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+            sprintf(msg, "Function %s being overloaded", existing_entry->typeinfo.module.module_name);
+            
+            char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+            sprintf(err_type, "%d) SEMANTIC ERROR", def_line_num);
+
+            print_error(err_type, msg);
+            return;
+        }
         t->typeinfo.module.is_declared = true;
         t->typeinfo.module.is_declrn_valid = existing_entry->typeinfo.module.is_declrn_valid;
     }
 
-     printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", lexeme); 
+    /**  printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", lexeme);  */
     
     t->typeinfo.module.is_defined = true;
     strcpy(t->typeinfo.module.module_name, lexeme);
@@ -502,7 +514,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
 }
 
 bool is_declaring_node(tree_node *node){
-    //  printf("is decring node fn called for %s\n", non_terminal_string[node->sym.nt]); 
+    // /**  printf("is decring node fn called for %s\n", non_terminal_string[node->sym.nt]);  */
     if(node == NULL)
         return false;
     
@@ -532,12 +544,12 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
     
     switch(node->parent->sym.nt){
         case MODULEDECLARATIONS:      
-             printf("Was inside moddecs\n"); 
+            /**  printf("Was inside moddecs\n");  */
             type_ptr->name = MODULE;
             type_ptr->typeinfo.module.is_declared = true;
             type_ptr->typeinfo.module.is_defined = false;
             type_ptr->typeinfo.module.is_declrn_valid = false;
-             printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", node->token.id.str); 
+            /**  printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", node->token.id.str);  */
             strcpy(type_ptr->typeinfo.module.module_name, node->token.id.str);
             type_ptr->typeinfo.module.input_params = NULL;
             type_ptr->typeinfo.module.output_params = NULL;
@@ -572,29 +584,29 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
 
 void print_params_list(params_list *list){
     if(list == NULL){
-         printf("[0]"); 
+        /**  printf("[0]");  */
         return;
     }
     params_list_node *type_tmp = list->first;
-     printf("[%d] - ", list->length); 
+    /**  printf("[%d] - ", list->length);  */
     while(type_tmp != NULL){
-         printf("{%s}%s",type_tmp->param_name, terminal_string[type_tmp->t->name]); 
+        /**  printf("{%s}%s",type_tmp->param_name, terminal_string[type_tmp->t->name]);  */
         if(type_tmp->t->name == ARRAY){            
             if(type_tmp->t->typeinfo.array.is_dynamic.range_low){
-                 printf(" Dynamic left range | [%s .. ", type_tmp->t->typeinfo.array.range_low.lexeme); 
+                /**  printf(" Dynamic left range | [%s .. ", type_tmp->t->typeinfo.array.range_low.lexeme);  */
             }
             else{
-                 printf(" Static left range | [%d .. ", type_tmp->t->typeinfo.array.range_low.value); 
+                /**  printf(" Static left range | [%d .. ", type_tmp->t->typeinfo.array.range_low.value);  */
             }
             if(type_tmp->t->typeinfo.array.is_dynamic.range_high){
-                 printf("%s] Dynamic right range | ", type_tmp->t->typeinfo.array.range_high.lexeme); 
+                /**  printf("%s] Dynamic right range | ", type_tmp->t->typeinfo.array.range_high.lexeme);  */
             }
             else{
-                 printf("%d] Static right range | ", type_tmp->t->typeinfo.array.range_high.value); 
+                /**  printf("%d] Static right range | ", type_tmp->t->typeinfo.array.range_high.value);  */
             }
-             printf("Prim Type : %s",  terminal_string[type_tmp->t->typeinfo.array.primitive_type]); 
+            /**  printf("Prim Type : %s",  terminal_string[type_tmp->t->typeinfo.array.primitive_type]);  */
         }
-         printf(" | "); 
+        /**  printf(" | ");  */
         type_tmp = type_tmp->next;
     }
 
@@ -603,87 +615,87 @@ void print_params_list(params_list *list){
 void print_a_type(type *type_ptr){
     if(type_ptr == NULL)
         return;
-    printf("Width : %d | ", type_ptr->width); 
-    printf("Offset : %d | ", type_ptr->offset); 
-    printf("Type : %s | ",terminal_string[ type_ptr->name] ); 
+   /**  printf("Width : %d | ", type_ptr->width);  */
+   /**  printf("Offset : %d | ", type_ptr->offset);  */
+   /**  printf("Type : %s | ",terminal_string[ type_ptr->name] );  */
     
     if(type_ptr->name == ARRAY){
-          printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] ); 
+         /**  printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );  */
         if(type_ptr->typeinfo.array.is_dynamic.range_low){
-              printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme); 
+             /**  printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);  */
         }
         else{
-              printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value); 
+             /**  printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);  */
         }
         if(type_ptr->typeinfo.array.is_dynamic.range_high){
-              printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme); 
+             /**  printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);  */
         }
         else{
-              printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value); 
+             /**  printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);  */
         }
-        //   printf("\n"); 
+        //  /**  printf("\n");  */
     }
 
     else if(type_ptr->name == MODULE){
-          printf("\n"); 
-          printf("Module name : %s\n", type_ptr->typeinfo.module.module_name); 
+         /**  printf("\n");  */
+         /**  printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);  */
         print_params_list(type_ptr->typeinfo.module.input_params);
         print_params_list(type_ptr->typeinfo.module.output_params);
-          printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);             
-          printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);             
+         /**  printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);              */
+         /**  printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);              */
     }
 }
 
 void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
     if(sym_tab_ptr == NULL){
-        printf("Empty Symbol table\n");    
+       /**  printf("Empty Symbol table\n");     */
         return;
     }
-     printf("************************Printing Symbol table for a new scope**********************\n"); 
+    /**  printf("************************Printing Symbol table for a new scope**********************\n");  */
     for(int i=0; i < HASH_SIZE; i++){
         type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
         if(type_ptr != NULL)
         {
-             printf("%s | ",sym_tab_ptr->table[i].lexeme); 
-             printf("Width : %d | ", type_ptr->width); 
-             printf("Offset : %d | ", type_ptr->offset); 
-             printf("Type : %s | ",terminal_string[ type_ptr->name] ); 
+            /**  printf("%s | ",sym_tab_ptr->table[i].lexeme);  */
+            /**  printf("Width : %d | ", type_ptr->width);  */
+            /**  printf("Offset : %d | ", type_ptr->offset);  */
+            /**  printf("Type : %s | ",terminal_string[ type_ptr->name] );  */
             
             if(type_ptr->name == ARRAY){
-                 printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] ); 
+                /**  printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );  */
                 if(type_ptr->typeinfo.array.is_dynamic.range_low){
-                     printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme); 
+                    /**  printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);  */
                 }
                 else{
-                     printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value); 
+                    /**  printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);  */
                 }
                 if(type_ptr->typeinfo.array.is_dynamic.range_high){
-                     printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme); 
+                    /**  printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);  */
                 }
                 else{
-                     printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value); 
+                    /**  printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);  */
                 }
-                 printf("\n"); 
+                /**  printf("\n");  */
             }
 
             else if(type_ptr->name == MODULE){
-                 printf("\n"); 
-                 printf("Module name : %s\n", type_ptr->typeinfo.module.module_name); 
+                /**  printf("\n");  */
+                /**  printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);  */
                 print_params_list(type_ptr->typeinfo.module.input_params);
                 print_params_list(type_ptr->typeinfo.module.output_params);
-                 printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);             
-                 printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);             
+                /**  printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);              */
+                /**  printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);              */
             }
-             printf("\n------------------------------------------------\n"); 
+            /**  printf("\n------------------------------------------------\n");  */
         }
     }
     if(sym_tab_ptr->leftmost_child_table){
-         printf("\t\t\t\t Leftmost child\n"); 
+        /**  printf("\t\t\t\t Leftmost child\n");  */
         print_symbol_table(sym_tab_ptr->leftmost_child_table);
     }
-     printf("************************Printing Symbol table for this scope ends**********************\n"); 
+    /**  printf("************************Printing Symbol table for this scope ends**********************\n");  */
     if(sym_tab_ptr->sibling_table){
-         printf("\t\t\t\t Sibling\n"); 
+        /**  printf("\t\t\t\t Sibling\n");  */
         print_symbol_table(sym_tab_ptr->sibling_table);
     }
     
@@ -693,9 +705,9 @@ void print_symbol_(tree_node *temp) {
     if(!temp)
         return;
   if (temp->sym.is_terminal == true) {	
-    printf("%s\n", terminal_string[temp->sym.t]);	
+   /**  printf("%s\n", terminal_string[temp->sym.t]);	 */
   } else {	
-   printf("%s\n", non_terminal_string[temp->sym.nt]);	
+  /**  printf("%s\n", non_terminal_string[temp->sym.nt]);	 */
   }	
 }
 
@@ -802,7 +814,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
         parent_node = parent_node->parent;
     }
 
-     printf("%s = .. type checking\n", id_node->token.id.str); 
+    /**  printf("%s = .. type checking\n", id_node->token.id.str);  */
     /**
      * @brief Id is leftmost child for an assignment stmt
      * Find it's type by recursively searching symbol table
@@ -836,7 +848,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
             }
         }
 
-         printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]); 
+        /**  printf("LHS_TYPE : %s, RHS_TYPE : %s\n", terminal_string[lhs_type.name], terminal_string[rhs_type.name]); */
         
         bool type_err = false;
         if(lhs_type.name != rhs_type.name)
@@ -870,7 +882,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
         }
         
         if(is_outp_param){
-             printf("Markjing %s as assigned******************************\n", id_node->token.id.str); 
+            /**  printf("Markjing %s as assigned******************************\n", id_node->token.id.str);  */
             mark_outp_param_assigned(id_node->token.id.str, id_node->encl_fun_type_ptr);
         }
         tree_node *while_node = create_tree_node();
@@ -881,7 +893,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
         }
         
         
-         printf("=======Type matches=======\n");         
+        /**  printf("=======Type matches=======\n");          */
     }
 }
 
@@ -903,10 +915,10 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
             {
                 tree_node *case_node = cases_head;
                 while(case_node != NULL && case_node->sym.nt != DEFAULTSTMT){
-                    //  printf("Checking case value's type, got : "); 
+                    // /**  printf("Checking case value's type, got : ");  */
                     if(case_node->leftmost_child->token.name != NUM){
-                        //  printf("%s", terminal_string[case_node->leftmost_child->sym.t]); 
-                        //  printf("\n"); 
+                        // /**  printf("%s", terminal_string[case_node->leftmost_child->sym.t]);  */
+                        // /**  printf("\n");  */
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                         sprintf(msg, "Here, case value must be of integer type");
                         
@@ -923,7 +935,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                 else
                     default_node = switch_node->rightmost_child;
                 
-                if(default_node->token.name == EPSILON){
+                if(default_node->sym.is_terminal && default_node->token.name == EPSILON){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                     sprintf(msg, "Switch must have a default statement here");
                     
@@ -938,11 +950,11 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
             {
                 tree_node *case_node = cases_head;
                 while(case_node != NULL && case_node->sym.nt != DEFAULTSTMT){
-                    //  printf("Checking case value's type, got : "); 
+                    // /**  printf("Checking case value's type, got : ");  */
                     if(case_node->leftmost_child->token.name != TRUE && 
                        case_node->leftmost_child->token.name != FALSE){
-                        //  printf("%s", terminal_string[case_node->leftmost_child->sym.t]); 
-                        //  printf("\n"); 
+                        // /**  printf("%s", terminal_string[case_node->leftmost_child->sym.t]);  */
+                        // /**  printf("\n");  */
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                         sprintf(msg, "Here, case value must be of boolean type");
                         
@@ -987,42 +999,44 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
 
 bool is_types_matching(type *t1, type *t2){
     if(t1 == NULL || t2 == NULL){
-         printf("One of types is null\n"); 
-        if(!t1)
-             printf("It's the first one\n"); 
-        if(!t2)
-             printf("It's the second one\n"); 
+        /**  printf("One of types is null\n");  */
+        if(!t1){
+            /**  printf("It's the first one\n");  */
+        }
+        if(!t2){
+            /**  printf("It's the second one\n");  */
+        }
         return false;
     }
     
     if(t1->name != t2->name){
-         printf("Both have diff names\n"); 
+        /**  printf("Both have diff names\n");  */
         return false;   // both diff type
     }
         
     if(t1->name != ARRAY){   //both primitive type
-         printf("Both are primitive types and same\n"); 
+        /**  printf("Both are primitive types and same\n");  */
         return true;
     }
     
     // both arrray type, do prim type checking
     if(t1->typeinfo.array.primitive_type != t2->typeinfo.array.primitive_type){
-         printf("Both array type and prim types don't match\n"); 
+        /**  printf("Both array type and prim types don't match\n");  */
         return false;   // prim types don't match
     }
     
     if(t1->typeinfo.array.is_dynamic.range_low || t2->typeinfo.array.is_dynamic.range_low || t1->typeinfo.array.is_dynamic.range_high || t2->typeinfo.array.is_dynamic.range_high){
-         printf("One of array is dynamic\n"); 
+        /**  printf("One of array is dynamic\n");  */
         return true;    // if either is dynamic, say true bcz runtime checking required
     }
 
     // range checking if not dynamic
     
     if((t1->typeinfo.array.range_low.value != t2->typeinfo.array.range_low.value) || (t1->typeinfo.array.range_high.value != t2->typeinfo.array.range_high.value)){
-         printf("Both statia but ranges don't match\n"); 
+        /**  printf("Both statia but ranges don't match\n");  */
         return false;   // either low or high range values don't match
     }
-     printf("Both static arrays and all matches\n"); 
+    /**  printf("Both static arrays and all matches\n");  */
     return true;    // static and everything matches
 }
 
@@ -1053,7 +1067,7 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
     int arg_cnt = 1;
     while(fncall_list_node && fndefn_list_node){
         type *fncall_list_node_type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, fncall_list_node->token.id.str, encl_fun_type_ptr, NULL);
-         printf("Checking types of %s and %s at line %d\n", fncall_list_node->token.id.str, fndefn_list_node->param_name, line_no); 
+        /**  printf("Checking types of %s and %s at line %d\n", fncall_list_node->token.id.str, fndefn_list_node->param_name, line_no);  */
         if(is_types_matching(fncall_list_node_type_ptr, fndefn_list_node->t) == false){
             sprintf(msg, "Parameters type mismatch at param number %d for %s params", arg_cnt, parameters_type);
             print_error(err_type, msg);
@@ -1061,7 +1075,7 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
 
         fncall_list_node = fncall_list_node->sibling;
         fndefn_list_node = fndefn_list_node->next;
-        //  printf("Stuck in loop?\n"); 
+        // /**  printf("Stuck in loop?\n");  */
         arg_cnt++;
     }
     
@@ -1077,7 +1091,7 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
         return;
     }
     
-     printf("Function called properly\n\n"); 
+    /**  printf("Function called properly\n\n");  */
 }
 
 void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_ptr){
@@ -1086,11 +1100,11 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
     
     tree_node *fn_id_node = get_nth_child(fn_call_node, 2);
 
-     printf("Verifying fn call semantics for %s at %d\n", fn_id_node->token.id.str, fn_id_node->token.line_no); 
+    /**  printf("Verifying fn call semantics for %s at %d\n", fn_id_node->token.id.str, fn_id_node->token.line_no);  */
     char *encl_fun_name;
     encl_fun_name = fn_call_node->encl_fun_type_ptr->typeinfo.module.module_name;
         
-     printf("My fun name is %s\n", encl_fun_name); 
+    /**  printf("My fun name is %s\n", encl_fun_name);  */
     char *called_fun_name = fn_id_node->token.id.str;
 
     if(strcmp(encl_fun_name, called_fun_name) == 0 && strcmp(encl_fun_name, "main") != 0){
@@ -1104,7 +1118,7 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
     //mark the declaration of this function valid if it is not already defined
     type *fn_sym_tab_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, called_fun_name);
     if(fn_sym_tab_entry && fn_sym_tab_entry->typeinfo.module.is_defined == false){
-         printf("||||||||||||||||||||||||Marked declrn valid for %s||||||||||||||||||||||\n", called_fun_name); 
+        /**  printf("||||||||||||||||||||||||Marked declrn valid for %s||||||||||||||||||||||\n", called_fun_name);  */
         fn_sym_tab_entry->typeinfo.module.is_declrn_valid = true;
     }
 
@@ -1176,9 +1190,9 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
 }
 
 void verify_fndefn_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr){
-     printf("Verifying fndefn semantics for node"); 
+    /**  printf("Verifying fndefn semantics for node");  */
     // print_symbol(node->sym);
-     printf("\n"); 
+    /**  printf("\n");  */
     
     tree_node *outp_list_node = get_nth_child(node, 3)->leftmost_child;
     type *outp_list_node_type_ptr = NULL;
@@ -1186,7 +1200,7 @@ void verify_fndefn_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr){
     while(outp_list_node != NULL){
         outp_list_node_type_ptr = (type*) key_search_recursive(curr_sym_tab_ptr, outp_list_node->token.id.str, node->encl_fun_type_ptr, NULL);
 
-        if(outp_list_node_type_ptr->is_assigned == false){
+        if(outp_list_node_type_ptr && outp_list_node_type_ptr->is_assigned == false){
             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
             sprintf(msg, " Output parameter(%s) not assigned value for function defn of %s", outp_list_node->token.id.str, node->leftmost_child->token.id.str);
             
@@ -1209,11 +1223,11 @@ void verify_declarations_validity(tree_node *mainprog_node){
     type *mod_id_sym_tab_entry = NULL;
 
     while(mod_dec_id_node != NULL){
-         printf("inside verify_declrns_validity, searching sym tab for %s\n", mod_dec_id_node->token.id.str); 
+        /**  printf("inside verify_declrns_validity, searching sym tab for %s\n", mod_dec_id_node->token.id.str);  */
         mod_id_sym_tab_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, mod_dec_id_node->token.id.str);
 
         if(mod_id_sym_tab_entry && mod_id_sym_tab_entry->typeinfo.module.is_declrn_valid == false && mod_id_sym_tab_entry->typeinfo.module.is_defined == true){
-             printf("||||||||||||||||||||||||Checking declrn validity for %s||||||||||||||||||||||\n", mod_dec_id_node->token.id.str); 
+            /**  printf("||||||||||||||||||||||||Checking declrn validity for %s||||||||||||||||||||||\n", mod_dec_id_node->token.id.str);  */
             char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
             sprintf(err_type, "%d) SEMANTIC ERROR", mod_dec_id_node->token.line_no);
 
@@ -1227,7 +1241,7 @@ void verify_declarations_validity(tree_node *mainprog_node){
 }
 
 void mark_while_loop_var_assigned(tree_node *while_node, char *var_name){
-     printf("Will be marking loop variable %s as assigned\n", var_name); 
+    /**  printf("Will be marking loop variable %s as assigned\n", var_name);  */
     int num_vars = 0;
     void *loop_args = while_node->extra_args;
     if(loop_args)
@@ -1237,27 +1251,27 @@ void mark_while_loop_var_assigned(tree_node *while_node, char *var_name){
         
         int id_size = sizeof(char)*MAX_LEXEME_LEN;
         int entry_size = sizeof(bool) + id_size;
-         printf("NUM_VARS = %d\n", num_vars); 
+        /**  printf("NUM_VARS = %d\n", num_vars);  */
         for(int i = 0; i < num_vars; i++)
         {
-             printf("loop_args_str[%d] = %s\n", i, (char*)loop_args); 
+            /**  printf("loop_args_str[%d] = %s\n", i, (char*)loop_args);  */
             if(strcmp((char*)(loop_args), var_name) == 0){
                 *(bool*)(loop_args + id_size) = true;
-                 printf("And yooooooooo, marked successfully\n"); 
+                /**  printf("And yooooooooo, marked successfully\n");  */
             }                
             loop_args = loop_args + entry_size;
         }
     }
     else{
-         printf("LoLoL!!!, loop_args dne\n"); 
+        /**  printf("LoLoL!!!, loop_args dne\n");  */
     }
 }
 
 bool is_id_part_of_while_loop(tree_node *id_node, tree_node **while_node, int *child_dir){
-     printf("Checking is id part of while loop for id = %s\n", id_node->token.id.str); 
+    /**  printf("Checking is id part of while loop for id = %s\n", id_node->token.id.str);  */
     while(id_node){
         if(id_node->parent){
-            //  printf("id_node's parent exists and is %s\n", non_terminal_string[id_node->parent->sym.nt]); 
+            // /**  printf("id_node's parent exists and is %s\n", non_terminal_string[id_node->parent->sym.nt]);  */
             if(id_node->parent->sym.nt == WHILELOOP){           
                 /**
                  * @brief Also, make sure that this id is not part of current scope's symbol table
@@ -1270,7 +1284,7 @@ bool is_id_part_of_while_loop(tree_node *id_node, tree_node **while_node, int *c
                 else
                     *child_dir = WHILE_RHS;
 
-                 printf("And yes it is\n"); 
+                /**  printf("And yes it is\n");  */
                 return true;
             }
         }
@@ -1281,19 +1295,19 @@ bool is_id_part_of_while_loop(tree_node *id_node, tree_node **while_node, int *c
 
 void install_id_in_loop_args(tree_node *while_node, char *id_str)
 {
-     printf("Will be installing %s in while_loop\n", id_str); 
+    /**  printf("Will be installing %s in while_loop\n", id_str);  */
     void *loop_args = while_node->extra_args;
     int id_size = sizeof(char) * MAX_LEXEME_LEN;
     int entry_size = id_size + sizeof(bool);
     int num_vars = 0;
 
     if(loop_args == NULL){
-         printf("Initializing while_loop extra_args\n"); 
+        /**  printf("Initializing while_loop extra_args\n");  */
         while_node->extra_args = malloc(entry_size + sizeof(int));
 
         *(int *)while_node->extra_args = 1;        
         loop_args = while_node->extra_args + sizeof(int);
-         printf("Initialization successful, num_vars = %d\n", *(int*)(while_node->extra_args)); 
+        /**  printf("Initialization successful, num_vars = %d\n", *(int*)(while_node->extra_args));  */
     }    
     else{
         loop_args = while_node->extra_args;
@@ -1302,7 +1316,7 @@ void install_id_in_loop_args(tree_node *while_node, char *id_str)
 
         loop_args = loop_args + sizeof(int);
         
-         printf("Num of vars already present = %d\n", num_vars); 
+        /**  printf("Num of vars already present = %d\n", num_vars);  */
         // loop_args = loop_args + entry_size*num_vars;
         for(int i = 0; i < num_vars; i++)
         {
@@ -1310,28 +1324,28 @@ void install_id_in_loop_args(tree_node *while_node, char *id_str)
                 return;
             loop_args = loop_args + entry_size;
         }
-         printf("Reallocating while_loop extra_args\n"); 
+        /**  printf("Reallocating while_loop extra_args\n");  */
         while_node->extra_args = realloc(while_node->extra_args, sizeof(int) + ((num_vars + 1) * entry_size));
-         printf("After reallcoation, num_vars = %d\n", *(int*)(while_node->extra_args)); 
+        /**  printf("After reallcoation, num_vars = %d\n", *(int*)(while_node->extra_args));  */
         
         (*(int*)(while_node->extra_args))++;
         
         loop_args = while_node->extra_args + sizeof(int);
 
-         printf("After reallcoation and updation, num_vars = %d\n", *(int*)(while_node->extra_args)); 
+        /**  printf("After reallcoation and updation, num_vars = %d\n", *(int*)(while_node->extra_args));  */
     }
 
     loop_args = loop_args + (entry_size*num_vars);
 
     strcpy((char*)loop_args, id_str);
-     printf("installed %s???\n", (char*)loop_args); 
+    /**  printf("installed %s???\n", (char*)loop_args);  */
     loop_args = loop_args + id_size;
     *(bool*)loop_args = false;
-     printf("Mark assigned? %d\n", *(bool*)loop_args); 
+    /**  printf("Mark assigned? %d\n", *(bool*)loop_args);  */
 }
 
 void verify_whileloop_semantics(tree_node *while_node, st_wrapper *curr_sym_tab_ptr){
-     printf("Verifying while_loop semantics\n\n"); 
+    /**  printf("Verifying while_loop semantics\n\n");  */
 
     type expr_type = get_expr_type(while_node->leftmost_child, curr_sym_tab_ptr);
     int line_num = 1;
@@ -1346,27 +1360,27 @@ void verify_whileloop_semantics(tree_node *while_node, st_wrapper *curr_sym_tab_
         tmp = tmp->leftmost_child;
     }
     if(expr_type.name != BOOLEAN){        
-         printf("##################Invalid expression type for while expression at line %d#############\n", line_num); 
+        /**  printf("##################Invalid expression type for while expression at line %d#############\n", line_num);  */
     }
 
     void *loop_vars = while_node->extra_args;
     int num_vars = 0;
     if(loop_vars != NULL){
-         printf("Loop vars aren't NULL\n"); 
+        /**  printf("Loop vars aren't NULL\n");  */
         num_vars = *(int *)loop_vars;
         loop_vars = loop_vars + sizeof(int);
         bool is_any1_assigned = false;
-         printf("Num of loop variables here are %d\n", num_vars); 
+        /**  printf("Num of loop variables here are %d\n", num_vars);  */
         for(int i =0; i < num_vars; i++){
-             printf("Checking for %s\n", (char *)loop_vars); 
+            /**  printf("Checking for %s\n", (char *)loop_vars);  */
             loop_vars = loop_vars + sizeof(char)*MAX_LEXEME_LEN;
             is_any1_assigned = *(bool *)loop_vars;
             if(is_any1_assigned){
-                 printf("And this one is assingned\n"); 
+                /**  printf("And this one is assingned\n");  */
                 break;
             }                
             else{
-                 printf("This one isn't assigned\n"); 
+                /**  printf("This one isn't assigned\n");  */
             }
             loop_vars = loop_vars + sizeof(bool);
         }
@@ -1520,6 +1534,23 @@ void verify_construct_semantics(tree_node *node){
             }
         }
         break;
+        case VAR:
+        {
+            tree_node *index_node = node->rightmost_child;
+            tree_node *id_node = node->leftmost_child;
+            if(index_node->sym.t != EPSILON){
+                type *id_type_ptr = key_search_recursive(id_node->scope_sym_tab, id_node->token.id.str, id_node->encl_fun_type_ptr, NULL);
+
+                if(id_type_ptr){                       
+                    if(id_type_ptr->typeinfo.array.is_dynamic.range_high == false && id_type_ptr->typeinfo.array.is_dynamic.range_low == false){
+                        tree_node *index_node = id_node->sibling;
+                        int lb = id_type_ptr->typeinfo.array.range_low.value;
+                        int ub = id_type_ptr->typeinfo.array.range_high.value;
+                        arrindex_type_n_bounds_check(index_node, lb, ub, curr_sym_tab_ptr);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1533,7 +1564,7 @@ type* check_encl_fun_params(type *fun_type, char *lexeme, bool *is_outp_param)
         inp_param = fun_type->typeinfo.module.input_params->first;
     while(inp_param != NULL){
         if(strcmp(inp_param->param_name, lexeme) == 0){
-            //  printf("%s is a input param\n", lexeme); 
+            // /**  printf("%s is a input param\n", lexeme);  */
             return inp_param->t;
         }
         inp_param = inp_param->next;
@@ -1545,7 +1576,7 @@ type* check_encl_fun_params(type *fun_type, char *lexeme, bool *is_outp_param)
     
     while(outp_param != NULL){
         if(strcmp(outp_param->param_name, lexeme) == 0){
-            //  printf("%s is a output param\n", lexeme); 
+            // /**  printf("%s is a output param\n", lexeme);  */
             if(is_outp_param != NULL)
                 *is_outp_param = true;
             return outp_param->t;
@@ -1585,7 +1616,7 @@ void construct_symtable(tree_node *ast_root) {
              */
             if(node->sym.is_terminal == false){
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child); //pass the list heads for input and output types
+                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child, node->leftmost_child->token.line_no); //pass the list heads for input and output types
                     // encl fun ptr stores ptr to module's type entry
                     node->encl_fun_type_ptr = search_hash_table_ptr_val(root_sym_tab_ptr->table,node->leftmost_child->token.id.str);
                 }
@@ -1618,20 +1649,20 @@ void construct_symtable(tree_node *ast_root) {
                      * 
                      */                    
                     if(curr_sym_tab_ptr){
-                         printf("Insert new symbol table in parent's children list\n"); 
+                        /**  printf("Insert new symbol table in parent's children list\n");  */
                         if(curr_sym_tab_ptr->leftmost_child_table==NULL) {
-                            //  printf("as leftmost child\n"); 
+                            // /**  printf("as leftmost child\n");  */
                             curr_sym_tab_ptr->leftmost_child_table = new_sym_tab_ptr;
                             curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr; 
                         }
                         else{
-                            //  printf("as rightmost child\n"); 
+                            // /**  printf("as rightmost child\n");  */
                             curr_sym_tab_ptr->rightmost_child_table->sibling_table = new_sym_tab_ptr;
                             curr_sym_tab_ptr->rightmost_child_table = new_sym_tab_ptr;
                         }
                     }
                     curr_sym_tab_ptr = new_sym_tab_ptr;
-                     printf("\n\n New Scope Opened at %s \n\n", non_terminal_string[node->sym.nt]); 
+                    /**  printf("\n\n New Scope Opened at %s \n\n", non_terminal_string[node->sym.nt]);  */
                 }
             }
             /**
@@ -1644,13 +1675,13 @@ void construct_symtable(tree_node *ast_root) {
                  */
                 node->encl_fun_type_ptr = node->parent->encl_fun_type_ptr;
                 if(node->sym.t == ID){                    
-                    //  printf("Node->parent->encl_fun_type_ptr exists? %d\n", node->parent->encl_fun_type_ptr != NULL); 
+                    // /**  printf("Node->parent->encl_fun_type_ptr exists? %d\n", node->parent->encl_fun_type_ptr != NULL);  */
                     int check_hash_table = search_hash_table(curr_sym_tab_ptr->table, node->token.id.str);
                     
                     if(is_declaring_node(node->parent)){
-                        //  printf("The node is declaring : %s !!!!!!!!!!!!!!!!!\n", non_terminal_string[node->parent->sym.nt]); 
+                        // /**  printf("The node is declaring : %s !!!!!!!!!!!!!!!!!\n", non_terminal_string[node->parent->sym.nt]);  */
                         if( check_hash_table == KEY_NOT_FOUND ){
-                            //  printf("Node->encl_fun_type_ptr exists? %d\n", node->encl_fun_type_ptr != NULL); 
+                            // /**  printf("Node->encl_fun_type_ptr exists? %d\n", node->encl_fun_type_ptr != NULL);  */
                             params_list_node *output_param = NULL;
                             
                             /**
@@ -1745,7 +1776,7 @@ void construct_symtable(tree_node *ast_root) {
              */
             node->scope_sym_tab = curr_sym_tab_ptr;
             if(node->sym.is_terminal == false){ 
-                //  printf("Before calling verify_construct_semantics, printing symbol table at node %s\n", non_terminal_string[node->sym.nt]); 
+                // /**  printf("Before calling verify_construct_semantics, printing symbol table at node %s\n", non_terminal_string[node->sym.nt]);  */
                 // print_symbol_table(curr_sym_tab_ptr);
                 verify_construct_semantics(node);                
                 /**
@@ -1754,7 +1785,7 @@ void construct_symtable(tree_node *ast_root) {
                 if(is_new_scope_openable(node->sym.nt) == true){    
                     if(curr_sym_tab_ptr)                            
                         curr_sym_tab_ptr = curr_sym_tab_ptr->parent_table;
-                     printf("\n\t A scope closed for nt : %s\n", non_terminal_string[node->sym.nt]); 
+                    /**  printf("\n\t A scope closed for nt : %s\n", non_terminal_string[node->sym.nt]);  */
                 }   
             }    // if non-terminal
             /**
@@ -1765,39 +1796,39 @@ void construct_symtable(tree_node *ast_root) {
                 /**
                  * @brief Id is being accessed              
                  */
-                    //  printf("Checking for %s\n", node->token.id.str);                    
+                    // /**  printf("Checking for %s\n", node->token.id.str);                     */
                     type *type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, node->token.id.str, node->encl_fun_type_ptr, NULL);
                                       
                     /**
                      * @brief The identifier exists in symbol table => it is declared
                      */
                     if(type_ptr){
-                         printf("Received entry for %s, type_name = %s\n", node->token.id.str, terminal_string[type_ptr->name] ); 
+                        /**  printf("Received entry for %s, type_name = %s\n", node->token.id.str, terminal_string[type_ptr->name] );  */
                         if(type_ptr->name == ARRAY){
                             if(type_ptr->typeinfo.array.is_dynamic.range_low){
-                                 printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme); 
+                                /**  printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);  */
                             }
                             else{
-                                 printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value); 
+                                /**  printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);  */
                             }
                             if(type_ptr->typeinfo.array.is_dynamic.range_high){
-                                 printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme); 
+                                /**  printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);  */
                             }
                             else{
-                                 printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value); 
+                                /**  printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);  */
                             }
-                             printf("Prim Type : %s\n",  terminal_string[type_ptr->typeinfo.array.primitive_type]);                             
+                            /**  printf("Prim Type : %s\n",  terminal_string[type_ptr->typeinfo.array.primitive_type]);                              */
                         }
                         else if(type_ptr->name == MODULE){
-                             printf("Module name : %s\n", type_ptr->typeinfo.module.module_name); 
-                             printf("is_declared : %d\n", type_ptr->typeinfo.module.is_declared); 
-                             printf("is_decfined : %d\n", type_ptr->typeinfo.module.is_defined); 
-                             printf("Input_params_list : "); 
+                            /**  printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);  */
+                            /**  printf("is_declared : %d\n", type_ptr->typeinfo.module.is_declared);  */
+                            /**  printf("is_decfined : %d\n", type_ptr->typeinfo.module.is_defined);  */
+                            /**  printf("Input_params_list : ");  */
                             print_params_list(type_ptr->typeinfo.module.input_params);
-                             printf("\n"); 
-                             printf("Output_params_list : "); 
+                            /**  printf("\n");  */
+                            /**  printf("Output_params_list : ");  */
                             print_params_list(type_ptr->typeinfo.module.output_params);
-                             printf("\n"); 
+                            /**  printf("\n");  */
                         }
                     }
                     else{

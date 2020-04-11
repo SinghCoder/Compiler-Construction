@@ -90,7 +90,7 @@ void retract(int num_of_char) {
   if (forward_ptr < 0) {
     forward_ptr += BUFFER_SIZE;
   }
-  just_retracted = true;
+  retract_count += num_of_char;
 }
 
 /**
@@ -144,9 +144,11 @@ void populate_buffer(FILE *fp) {
     forward_ptr = 0;
     num_of_rounds++;
   }
-  num = fread(&buffer[forward_ptr], 1, BUFFER_SIZE / 2, fp);
-  if (num != BUFFER_SIZE / 2)
-    buffer[num + forward_ptr] = EOF;
+  if (retract_count == 0) {
+    num = fread(&buffer[forward_ptr], 1, BUFFER_SIZE / 2, fp);
+    if (num != BUFFER_SIZE / 2)
+      buffer[num + forward_ptr] = EOF;
+  }
 }
 
 /**
@@ -167,7 +169,7 @@ void lexer_init(FILE *source) {
   state = 0;
   lexeme_begin = 0;
   forward_ptr = 0;
-  just_retracted = false;
+  retract_count = 0;
   line_no = 1;
   num_of_rounds = 0;
 
@@ -182,8 +184,7 @@ void lexer_init(FILE *source) {
  * @return char
  */
 char get_char(FILE *fp) {
-  if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2) &&
-      just_retracted == false) {
+  if ((forward_ptr == BUFFER_SIZE || forward_ptr == BUFFER_SIZE / 2)) {
     populate_buffer(fp);
   }
   char c = buffer[forward_ptr];
@@ -194,7 +195,8 @@ char get_char(FILE *fp) {
   if (lex_index < MAX_LEXEME_LEN)
     lexeme[lex_index] = c;
   forward_ptr++;
-  just_retracted = false;
+  if (retract_count > 0)
+    retract_count--;
   return c;
 }
 

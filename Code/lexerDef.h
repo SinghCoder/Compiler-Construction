@@ -31,7 +31,7 @@ typedef struct token {
 } TOKEN;
 
 int state;
-int just_retracted;
+int retract_count;
 
 hash_element lookup_table[HASH_SIZE];
 

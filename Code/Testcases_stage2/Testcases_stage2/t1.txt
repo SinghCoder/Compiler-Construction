@@ -1,0 +1,61 @@
+** Test case 1: Testing symbol table creation for variable declaration and redeclaration checks**
+** Single level nesting using primitive data types**
+
+
+<<module var_demo>>
+takes input [x:integer, w: boolean, p:real];
+returns [m:integer, n:integer, u: boolean];
+start
+	declare a,b:integer;
+	a:= 5;
+	get_value(b);
+	declare value, q, r: real;
+	get_value(q);
+	r:= 23.67e+2;
+	value:= p+q*r; 
+	m:=a + x;
+	u:= true AND false OR v;		**ERROR: variable v is not declared**
+	u:= a<=b;
+	declare w: integer;			**Not an error as a local variable can shadow the input parameter**
+	w:= 23;                                 **not an error as type of w is integer now**
+	n:= a*25+100;
+	declare b, c: real;			**ERROR: variable b is re-declared**
+	c:= value-q+r;
+	w:= w + 5;				**No type error as well as type of w is now taken as integer**
+end
+
+
+<<module compute>>
+takes input[a:integer, b:integer, s: real, c:integer];
+returns [res_1:boolean, res_2_a:integer, res_2__b:real];
+start
+	declare new:boolean;
+	declare abc_1, pqr_2: integer;
+	pqr_2:= abc_1 + 6;
+	declare abc_1: real;				**ERROR: variable abc_1 is re-declared**
+	res_2_a:= -(a*b-c/pqr_2);
+	declare s: integer;				**Not an error as a local variable can shadow the input parameter**
+	res_2__b:= res_2_b + p *12+22.34E-2;		**ERROR variable p is not declared**
+	declare m,n: boolean;
+	res_1 := a <=  b AND c >= a OR  s<=23.50 AND false;
+	m:= n AND (abc_1<=pqr_2);
+	m:= m OR (a <= b) AND (res_2_b >= 30.65);
+	res_1:= (true AND c==b)OR(b>s AND (a<=d));	**ERROR: variable d is not declared**
+	declare new: integer;				**ERROR: variable new is re-declared**
+	new:= a<b;
+	print(res_1);
+end
+
+
+<<<driver program>>>
+start
+	declare v_1_2_3:integer;
+	get_value(v_1_2_43);				**ERROR: variable v_1_2_43 is not declared**		
+	declare result_, v7, v9:integer;
+	declare u1:boolean;
+	[u1, result_, k]:=use module compute with parameters v_1_2_3, v7, v9;	**ERROR: variable k is not declared**
+	print(result_);
+	declare u1: real;				**ERROR: variable u1 is re-declared**
+end
+
+

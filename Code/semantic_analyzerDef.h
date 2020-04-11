@@ -6,9 +6,9 @@
 #include <limits.h>
 
 #define OBTAIN_DYNAMICALLY 0x3f3f3f3f
-#define WIDTH_BOOLEAN 1
-#define WIDTH_INTEGER 2	
-#define WIDTH_REAL 4	
+#define WIDTH_BOOLEAN 8
+#define WIDTH_INTEGER 4	
+#define WIDTH_REAL 8	
 #define WIDTH_POINTER 8
 #define MAX_VARSNUM_IN_EXPR 100
 #define WHILE_LHS 0

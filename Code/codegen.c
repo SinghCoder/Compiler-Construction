@@ -32,6 +32,52 @@ void input_code_gen(quad_node quad){
      * and if array, take multiple inputs
      * assign the results back to corresponding memory locations
      */
+    /**
+     * MOV RDI, fmt
+     * MOV RSI, val1
+     * MOV RDX, val2
+     * MOV RCX, val3..
+     * MOV RAX, 0
+     * call scanf
+     */
+    type *var_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    print_a_type(var_type_ptr);
+    int offset = var_type_ptr->offset;
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    switch(var_type_ptr->name){
+        case INTEGER:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+        }
+        break;
+        case REAL:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, real_fmt		;first arg, format \"%%lf\" \n");
+        }
+        break;
+        case BOOLEAN:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, bool_fmt		;first arg, format \"%%s\" \n");
+        }
+        break;
+        case ARRAY:
+        {
+
+        }
+        break;
+        default:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\t		;type error, cannot take input \"%%d\" \n");
+        }
+        break;
+    }
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\tmov RDX, RBP\n\
+                sub RDX, %d     ; make RDX to point at location of variable on the stack\n\
+                mov RSI, RDX \n\
+                mov RAX, 0 \n\
+                call scanf \n\
+                pop_all\n", offset);
 }
 
 void output_code_gen(quad_node quad){
@@ -41,6 +87,55 @@ void output_code_gen(quad_node quad){
      * If array, output all the values
      * If #true/#false, print true false strings
      */
+    type *var_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    print_a_type(var_type_ptr);
+    int offset = var_type_ptr->offset;
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    switch(var_type_ptr->name){
+        case INTEGER:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, RBP\n\
+                sub RDX, %d     ; make RDX to point at location of variable on the stack\n\
+                mov RSI, [RDX]  ; for integer, value stored at offset should be passed to printf\n\
+                mov RAX, 0 \n\
+                call printf \n\
+                pop_all\n", offset);
+        }
+        break;
+        case REAL:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, real_fmt		;first arg, format \"%%lf\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, RBP\n\
+                sub RDX, %d     ; make RDX to point at location of variable on the stack\n\
+                mov RSI, [RDX]  ; for real, value stored at offset should be passed to printf\n\
+                mov RAX, 1      ; for real, number of floating point regs passed here = 1\n\
+                call printf \n\
+                pop_all\n", offset);
+        }
+        break;
+        case BOOLEAN:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, bool_fmt		;first arg, format \"%%s\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, RBP\n\
+                sub RDX, %d     ; make RDX to point at location of variable on the stack\n\
+                mov RSI, RDX    ; for strings, pointer is passes as arguement to printf\n\
+                mov RAX, 0 \n\
+                call printf \n\
+                pop_all\n", offset);
+        }
+        break;
+        case ARRAY:
+        {
+
+        }
+        break;
+        default:
+        {
+            fprintf(assembly_file_ptr, "\t\t\t\t		;type error, cannot take input \"%%d\" \n");
+        }
+        break;
+    }    
 }
 
 void assign_code_gen(quad_node quad){
@@ -93,14 +188,15 @@ void dynamic_arr_space_code_gen(quad_node quad){
 void static_arr_space_code_gen(quad_node quad){
     /**
      * Space is already allocated, just store base address of first element at location of base address
-     * MOV RSI, RBP + arr's offset
-     * MOV [RSI], RSI + WIDTH_POINTER
+     * MOV [RBP + arr's offset], RBP + arr's offset + width_ptr
      */
-    // int offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
-    // fprintf(assembly_file_ptr, "\t\t\t\tMOV RAX, RBP\n");
-    // fprintf(assembly_file_ptr, "\t\t\t\tADD RAX, %d\n", offset);
-    // fprintf(assembly_file_ptr, "\t\t\t\tADD RAX, %d\n", WIDTH_POINTER);
-    // fprintf(assembly_file_ptr, "\t\t\t\tMOV [RSI], RAX\n");
+    type *arr_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    int offset = arr_type_ptr->offset;
+    fprintf(assembly_file_ptr, "\t\t\t\tMOV RAX, RBP\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tSUB RAX, %d\n", offset);
+    fprintf(assembly_file_ptr, "\t\t\t\tMOV RBX, RAX\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tSUB RAX, %d\n", WIDTH_POINTER);
+    fprintf(assembly_file_ptr, "\t\t\t\tMOV [RBX], RAX\n");
 }
 
 void fn_space_code_gen(quad_node quad){
@@ -110,12 +206,10 @@ void fn_space_code_gen(quad_node quad){
      */
 
     fprintf(assembly_file_ptr, "%s:\n", quad.arg1);
-    if(strcmp(quad.arg1, "main") == 0){
-        fprintf(assembly_file_ptr, "\t\t\t\tPUSH RBP\n");
-        fprintf(assembly_file_ptr, "\t\t\t\tMOV RBP, RSP\n");
-    }
     int offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
-    fprintf(assembly_file_ptr, "\t\t\t\tSUB RSP, %d\n", offset);
+    int alignment = (16 - (offset % 16)) % 16;
+    fprintf(assembly_file_ptr, "\t\t\t\tSUB RSP, %d     ; align RSP to 16 boundary to enable calls to scanf, etc\n", alignment);
+    fprintf(assembly_file_ptr, "\t\t\t\tENTER %d, 0\n", offset);
     print_regs_code_gen();
 }
 
@@ -132,10 +226,14 @@ void exit_if_true_code_gen(quad_node quad){
 }
 
 void generate_code(){    
-    fprintf(assembly_file_ptr, "extern printf\n");
+    fprintf(assembly_file_ptr, "extern printf, scanf\n");
     fprintf(assembly_file_ptr, "section .data\n");
-    fprintf(assembly_file_ptr, "\t\tfmt1: db \"RAX = %%ld, RBX = %%ld, RCX = %%ld, RDX = %%ld\", 10, 0\n");
-    fprintf(assembly_file_ptr, "\t\tfmt2: db \"RSP = %%ld, RBP = %%ld, RSI = %%ld, RDI = %%ld\", 10, 0\n");    
+    fprintf(assembly_file_ptr, "\t\tffour_reg_fmt: db `RAX = %%ld, RBX = %%ld, RCX = %%ld, RDX = %%ld`, 10, 0\n");
+    fprintf(assembly_file_ptr, "\t\tlfour_reg_fmt: db `RSP = %%ld, RBP = %%ld, RSI = %%ld, RDI = %%ld\\n`, 10, 0\n");
+    fprintf(assembly_file_ptr, "\t\tint_fmt: db \"%%d\", 0\n");
+    fprintf(assembly_file_ptr, "\t\treal_fmt: db \"%%lf\", 0\n");
+    fprintf(assembly_file_ptr, "\t\tbool_fmt: db \"%%s\", 0\n");
+    fprintf(assembly_file_ptr, "\t\tstr_fmt: db \"%%s\", 0\n");
     
     fprintf(assembly_file_ptr, "section .text\n");
     
@@ -170,7 +268,7 @@ void generate_code(){
                     push RCX \n\
                     push RBX \n\
                     push RAX \n\
-                    mov RDI, fmt1		; first arg, format \n\
+                    mov RDI, ffour_reg_fmt		; first arg, format \n\
                     pop RSI \n\
                     pop RDX \n\
                     pop RCX \n\
@@ -187,8 +285,9 @@ void generate_code(){
                     push RSI \n\
                     push RBP \n\
                     push RSP \n\
-                    mov RDI, fmt2		; first arg, format \n\
+                    mov RDI, lfour_reg_fmt		; first arg, format \n\
                     pop RSI \n\
+                    add RSI, 88 ; 88 because RSP has pushed additional 11 registers, so original value is 88 more than current\n\
                     pop RDX \n\
                     pop RCX \n\
                     pop R8 \n\
@@ -237,7 +336,7 @@ void generate_code(){
 
             case LABEL_OP:
             {
-                fprintf(assembly_file_ptr, "\t%s:\n",  quadruples[i].arg1);
+                fprintf(assembly_file_ptr, "%s:\n",  quadruples[i].arg1);
             }
             break;
 
@@ -308,9 +407,11 @@ void generate_code(){
             }
             break;
             case RETURN_OP:
-            {                
+            {
+                fprintf(assembly_file_ptr, "\t\t\t\tLEAVE\n");
                 int offset = quadruples[i].encl_fun_type_ptr->typeinfo.module.curr_offset;
-                fprintf(assembly_file_ptr, "\t\t\t\tADD RSP, %d\n", offset);
+                int alignment = (16 - (offset % 16)) % 16;
+                fprintf(assembly_file_ptr, "\t\t\t\tADD RSP, %d     ; align RSP back to intial position\n", alignment);
                 fprintf(assembly_file_ptr, "\t\t\t\t%s\n\n", tac_op_str[quadruples[i].op]);
             }
             break;

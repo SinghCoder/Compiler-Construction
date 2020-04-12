@@ -5,12 +5,195 @@ void arithexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+    
+    /* 
+        Integers are returned in rax or rdx:rax, and floating point values are returned in xmm0 or xmm1:xmm0
+        Note: The floating point instructions have an sd suffix (i.e. convert single s to double precision d)
+    */
+
+    type *var_type_ptr1 = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *var_type_ptr2 = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *var_type_result = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    int offset1 = var_type_ptr1->offset;
+    int offset2 = var_type_ptr2->offset;
+    int offset_result = var_type_result->offset;
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(var_type_ptr1->name == INTEGER)
+    {
+        switch(quad.op)
+        {
+            case PLUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    add RAX, RBX \n\
+                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+
+            case MINUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    sub RAX, RBX \n\
+                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+
+            case MUL_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    mul RBX \n\
+                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+
+            case DIV_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    div RBX \n\
+                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+        }
+    }
+    else if(var_type_ptr1->name == REAL)
+    {
+        switch(quad.op)
+        {
+            case PLUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM2, [RBP + %d]\n\
+                                    addsd XMM0, XMM2 \n\
+                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+
+            case MINUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM2, [RBP + %d]\n\
+                                    subsd XMM0, XMM2 \n\
+                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+
+            case MUL_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM2, [RBP + %d]\n\
+                                    mulsd XMM2 \n\
+                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+
+            case DIV_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM2, [RBP + %d]\n\
+                                    divsd XMM2 \n\
+                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void relexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+
+    type *var_type_ptr1 = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *var_type_ptr2 = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *var_type_result = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    int offset1 = var_type_ptr1->offset;
+    int offset2 = var_type_ptr2->offset;
+    int offset_result = var_type_result->offset;
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(var_type_ptr1->name == INTEGER)
+    {
+        // initialize temp to 0
+        fprintf(assembly_file_ptr, 
+                "\t\t\t\tmov RAX, 0\n\
+                    mov RDX, 1\n\
+                    mov [RBP + %d], RAX \n", offset_result);
+
+        switch(quad.op)
+        {
+            case LT_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmovl [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case LE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmovle [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case GT_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmovg [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case GE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmovge [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case NE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmovne [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case EQ_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov RBX, [RBP + %d]\n\
+                                    cmp RAX, RBX \n\
+                                    cmove [RBP + %d], RDX \n", offset1, offset2, offset_result);
+        }
+    }
+    else if(var_type_ptr1->name == REAL)
+    {
+        // initialize temp to 0
+        fprintf(assembly_file_ptr, 
+                "\t\t\t\tmov RAX, 0\n\
+                    mov RDX, 1\n\
+                    mov [RBP + %d], RAX \n", offset_result);
+
+        switch(quad.op)
+        {
+            case LT_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmovl [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case LE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmovle [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case GT_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmovg [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case GE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmovge [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case NE_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmovne [RBP + %d], RDX \n", offset1, offset2, offset_result);
+
+            case EQ_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov XMM1, [RBP + %d]\n\
+                                    cmp XMM0, XMM1 \n\
+                                    cmove [RBP + %d], RDX \n", offset1, offset2, offset_result);
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void logexpr_code_gen(quad_node quad){
@@ -23,6 +206,46 @@ void uexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+
+    type *var_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *var_type_result = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    int offset = var_type_ptr->offset;
+    int offset_result = var_type_result->offset;
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(var_type_ptr->name == INTEGER)
+    {
+        switch(quad.op)
+        {
+            case UPLUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    mov [RBP + %d], RAX \n", offset, offset_result);
+
+            case UMINUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov RAX, [RBP + %d]\n\
+                                    neg RAX\n\
+                                    mov [RBP + %d], RAX \n", offset, offset_result);
+        }
+    }
+    else if(var_type_ptr->name == REAL)
+    {
+        switch(quad.op)
+        {
+            case UPLUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    mov [RBP + %d], XMM0 \n", offset, offset_result);
+
+            case UMINUS_OP: fprintf(assembly_file_ptr, 
+                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
+                                    neg XMM0\n\
+                                    mov [RBP + %d], XMM0 \n", offset, offset_result);
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
+
 }
 
 void input_code_gen(quad_node quad){

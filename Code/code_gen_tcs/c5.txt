@@ -1,0 +1,47 @@
+**Code Generation test case 5: Loops for static arrays
+
+Single driver module with multiple levels of nesting 
+
+Assuming run time bound checking of array elements A[m] and B[m] in the background for each value of m during the execution of for loop**
+
+<<<driver program>>>
+start
+	declare m, temp:integer;	
+	declare A, B, C: array[6..10] of integer;
+	get_value(A);
+	get_value(B);
+	for(m in 6..10)
+        start
+		temp:= A[m]+B[m];
+		print(temp);
+		C[m]:= temp;
+	end
+	print(C);
+end
+
+** On the console
+
+Input: Enter 5 array elements of integer type for range 6 to 10
+2
+-6
+4
+10
+-8
+Input: Enter 5 array elements of integer type for range 6 to 10
+-5
+-15
+7
+-3
+4
+Output: -3
+Output: -21
+Output: 11
+Output: 7
+Output: -4
+Output: -3 -21 11 7 -4
+
+
+Note: Printing of array variable is in one line with values of all elements separated by a blank space
+
+Similarly run the generated assembly code for other input values and verify.
+**

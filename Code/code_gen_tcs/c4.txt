@@ -1,0 +1,103 @@
+**Code Generation test case 4: Computing expressions using integer, boolean and static array data types**
+
+**Single driver module with two levels of nesting 
+Variant of test case 3**
+
+<<<driver program>>>
+start
+	declare x, y, z, k:integer;
+	declare a, b, c:integer;
+	declare u, v: boolean;
+	declare A: array[10..15] of integer;
+	u:= true;
+	a:= 5;
+	b:= 9;
+	get_value(x);
+	get_value(y);
+	z:= x + y*b +(a-b)*y+ a*2 - b*x;
+	print(z);
+	for(k in 10..15)
+        start
+              declare a, b:integer;
+              a:= 7;
+              get_value(b);
+              a:= a+b;
+              print(a);
+              z:= z+k+a*2;
+              print(z);
+        end
+	z:= x + y*b +(a-b)*y+ a*2 - b*x;
+	v:= z > 10 OR a<=b AND x<y AND u;	**follows left to right associativity**
+        print(z);
+	print(u);
+	get_value(A); 
+                          
+**Note: Implement get_value(A) using type information of A. Your code template should first inform user of the size, range indices and type of data and read accordingly to populate the memory locations allocated for elements of A**
+   
+        y:= a+x+A[13]*2 + A[14]*3 +A[15];                **bound checking at compile time must have been done before code generation**
+	print(y);	
+	print(A);
+
+end
+
+** Expected output
+
+For values of x = 2 and y = 3 as run time input, print z as 9.
+
+Then print u as true (use string true or false to print output of a variable of boolean type).
+
+Repeat for 6 times for executing for loop
+      read value of b from console giving message as "Input: Enter an integer value" and prompt for the user input from a new line.
+      print value of a on the console giving mesage as "Output: 10"  (for example)
+      print value of z on the console giving mesage as "Output: 40"  (for example)
+
+Read array element values as 12, 4, -8, 9, 10, -18 as shown below and 
+then print the value of y
+and print values of A - i.e. all elements of A one after the other in each line
+
+On the console your output and input messages should appear in new line for each print as shown below
+Input: Enter an integer value
+2
+Input: Enter an integer value
+3
+Output: 9
+Input: Enter an integer value
+-5
+Output: 2
+Output: 23
+Input: Enter an integer value
+3
+Output: 10
+Output: 43
+Input: Enter an integer value
+6
+Output: 13
+Output: 47
+Input: Enter an integer value
+9
+Output: 16
+Output: 54
+Input: Enter an integer value
+-8
+Output: -1
+Output: 21
+Input: Enter an integer value
+10
+Output: 17
+Output: 58
+Output: 9
+Output: true
+Input: Enter 6 array elements of integer type for range 10 to 15
+12
+4
+-8
+9
+10
+-18
+Output: 37
+Output: 12 4 -8 9 10 -18
+
+
+Similarly run the generated assembly code for other input values and verify.
+
+**

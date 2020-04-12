@@ -705,9 +705,9 @@ void print_symbol_(tree_node *temp) {
     if(!temp)
         return;
   if (temp->sym.is_terminal == true) {	
-   /**  printf("%s\n", terminal_string[temp->sym.t]);	 */
+     printf("%s\n", terminal_string[temp->sym.t]);	 
   } else {	
-  /**  printf("%s\n", non_terminal_string[temp->sym.nt]);	 */
+   printf("%s\n", non_terminal_string[temp->sym.nt]);	
   }	
 }
 

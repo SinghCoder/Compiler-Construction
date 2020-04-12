@@ -637,6 +637,7 @@ void one_var_output_code_gen(token_name type_name, int offset){
         }
         break;
     }
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void output_code_gen(quad_node quad){
@@ -735,7 +736,6 @@ void output_code_gen(quad_node quad){
             fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
             fprintf(assembly_file_ptr, "\t\t\t\t;just check RCX value to verify\n");            
             print_regs_code_gen();
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Output:\"\n");
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
 
             fprintf(assembly_file_ptr, "\t\t\t\t;printing array elements\n");
@@ -766,7 +766,15 @@ void output_code_gen(quad_node quad){
         break;
     }    
     fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\" ;print a newline after output\n");
-    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
+    
+    
+    /** 
+     * ToDo:
+     * There are unmatching push and pops coming in the generated code
+     * /
+    // fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
+
+
 }
 
 void assign_code_gen(quad_node quad){
@@ -814,6 +822,28 @@ void jmp_if_true_code_gen(quad_node quad){
      * So subtract one from the value
      * And jump if answer is zero(jz isntrn)
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);    
+    
+    char *arg1_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t;jmp if true code\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n", arg1_str);
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RAX, 1\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tjz %s\n", quad.arg2);
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void param_code_gen(quad_node quad){
@@ -829,6 +859,44 @@ void index_copy_code_gen(quad_node quad){
      * store "smth" in the reg
      * then from reg to memory locn of arr[i]
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *arg2_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg1_str, *arg2_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    arg2_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+    
+    int offset_arg2 = 0;
+    
+    if(arg2_type_ptr){
+        offset_arg2 = arg2_type_ptr->offset;
+        snprintf(arg2_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg2);
+    }
+    else{
+        strncpy(arg2_str, quad.arg2, MAX_LEXEME_LEN);
+    }
+    
+    int offset_result = res_type_ptr->offset;
+    
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t; index copy\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", offset_result);
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RAX, %s\n", arg1_str);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, %s\n", arg2_str);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov [RAX], RBX\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void array_access_code_gen(quad_node quad){
@@ -838,6 +906,38 @@ void array_access_code_gen(quad_node quad){
      * Store value from there to register
      * from register to locn of "smth"
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *arg2_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg2_str;
+
+    arg2_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    offset_arg1 = arg1_type_ptr->offset;
+    
+    int offset_arg2 = 0;
+    
+    if(arg2_type_ptr){
+        offset_arg2 = arg2_type_ptr->offset;
+        snprintf(arg2_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg2);
+    }
+    else{
+        strncpy(arg2_str, quad.arg2, MAX_LEXEME_LEN);
+    }
+    
+    int offset_result = res_type_ptr->offset;
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t; array access\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, %s\n", arg2_str);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP - %d]\n", offset_arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RBX, RCX\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBX]\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX\n", offset_result);
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void dynamic_arr_space_code_gen(quad_node quad){
@@ -939,11 +1039,36 @@ void exit_if_true_code_gen(quad_node quad){
      * @brief Check condition
      * If 1 comes output, exit call
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);    
+    
+    char *arg1_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t;exit if condition is true\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n", arg1_str);
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RAX, 1\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tjnz %s\n", quad.cnstrct_code_begin);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, 0\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Invalid array access, exiting program\"\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tcall exit\n");    
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void generate_code(){    
     // printf("\nsizeof(int) = %lu\n", sizeof(int));
-    fprintf(assembly_file_ptr, "extern printf, scanf\n");
+    fprintf(assembly_file_ptr, "extern printf, scanf, exit\n");
     fprintf(assembly_file_ptr, "section .data\n");
     fprintf(assembly_file_ptr, "\t\tffour_reg_fmt: db `RAX = %%ld, RBX = %%ld, RCX = %%ld, RDX = %%ld`, 10, 0\n");
     fprintf(assembly_file_ptr, "\t\tlfour_reg_fmt: db `RSP = %%ld, RBP = %%ld, RSI = %%ld, RDI = %%ld\\n`, 10, 0\n");

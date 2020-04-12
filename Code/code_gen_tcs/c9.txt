@@ -1,0 +1,60 @@
+**Code Generation test case 9: Switch Case statement with for loop
+
+Single driver module with multiple levels of nesting 
+Variant of test case 8
+
+
+**
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	declare b: boolean;
+	declare loop_var:integer;
+	y:= 19;
+	z:= 56;
+	for(loop_var in 3..6)
+	start
+		get_value(x);
+		switch(x)
+		start
+			case 1: y:= x*2-y+loop_var;
+				print(y);
+                        	break;
+			case 2: z:= x*3-z+loop_var;
+				print(z);
+                        	break;
+			default:print(x);
+				break;
+		end
+		print(y);
+		print(z);
+	end
+end
+
+** On the console                                              [Reading via loop 4 values of x iteratively - 2, 1, 2 and 3 in 4 iterations]
+
+Input: Enter an integer value  
+2
+Output: -47
+Output: 19
+Output: -47                       
+Input: Enter an integer value  
+1
+Output: -13
+Output: -13
+Output: -47
+Input: Enter an integer value  
+2
+Output: 58
+Output: -13
+Output: 58
+Input: Enter an integer value  
+3
+Output: 3
+Output: -13
+Output: 58
+
+
+Similarly run the generated assembly code for other input values and verify.
+**

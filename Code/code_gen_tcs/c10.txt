@@ -1,0 +1,67 @@
+**Code Generation test case 9: Function call implementation
+
+Multiple modules with the driver module with single level of nesting 
+Variant of test case 8
+
+
+**
+<<module compute_expr>>
+takes input[ a: integer, b:integer, c:boolean];
+returns [u:integer, v:boolean];
+start
+	declare p, q, d: integer;
+	declare m: boolean;
+	get_value(d);
+	get_value(q);
+	p:= a*b+ d*2-3;
+	m:= c AND a<=b;
+	u:= p+q;
+	v:= m OR p<=q;
+	print(a);
+	print(b);
+	print(c);
+	print(d);
+	print(p);
+	print(q);
+	print(u);
+	print(v);
+end
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	get_value(x);
+	get_value(y);
+	declare k, h:boolean;
+	h:= false;
+	[z, k]:= use module compute_expr with parameters x, y, h;				
+	print(x);
+	print(y);
+	print(z);
+	print(k);
+end
+
+** On the console                                                 Following Notes are for reference and are not supposed be printed on the console
+
+Input: Enter an integer value                                     [Note: Reading values of x and y in driver as 5 and 12 respectively]
+5
+Input: Enter an integer value  
+12
+Input: Enter an integer value                                     [Note: Reading values of d and q in compute_expr as 2 and 7 respectively]
+2
+Input: Enter an integer value  
+7  
+Output: 5							  [Note: Writing values while in compute_expr module]
+Output: 12
+Output: false
+Output: 2
+Output: 61
+Output: 7
+Output: 68
+Output: false
+Output: 5							 [Note: Writing values after the execution control returns to driver from compute_expr]
+Output: 12
+Output: 68
+Output: false
+
+Similarly implement more functions with complex constructs and verify execution**

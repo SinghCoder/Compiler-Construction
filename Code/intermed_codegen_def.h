@@ -46,6 +46,7 @@ typedef struct{
     char *arg1;
     char *arg2;
     char *result;
+    char *cnstrct_code_begin;
     st_wrapper *curr_scope_table_ptr;
     type *encl_fun_type_ptr;
 }quad_node;

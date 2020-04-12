@@ -7,7 +7,7 @@ void assign_next_label(tree_node *ast_node)
 {
     if(ast_node->sibling){
         ast_node->label.next_label = newlabel();                            
-        // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL);
+        // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, NULL);
     }
     else{
         ast_node->label.next_label = ast_node->parent->label.next_label;        
@@ -30,8 +30,10 @@ void print_quadruples()
     printf("%-12s | ","arg2");
     printf("%-12s | ","result");
     printf("%-12s | ","level_no");
+    printf("%-12s | ","begin_lbl");
     printf("%-50s | ","Result type");
     printf("\n");
+    printf("%-12s | ","-----------");
     printf("%-12s | ","-----------");
     printf("%-12s | ","-----------");
     printf("%-12s | ","-----------");
@@ -62,6 +64,12 @@ void print_quadruples()
         
         if(quadruples[i].curr_scope_table_ptr){
             printf("%-12d | ",quadruples[i].curr_scope_table_ptr->level_num);
+            if(quadruples[i].cnstrct_code_begin != NULL){
+                printf("%-12s | ", quadruples[i].cnstrct_code_begin);
+            }
+            else{
+                printf("%-12s | ", "(empty)");
+            }
             if(quadruples[i].result){
                 type *res_type = (type *)key_search_recursive(quadruples[i].curr_scope_table_ptr, quadruples[i].result, quadruples[i].encl_fun_type_ptr, NULL);
                 print_a_type(res_type);
@@ -239,7 +247,7 @@ tac_op get_tac_op(tree_node *node){
     return op;
 }
 
-void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr_scope_table_ptr, type *encl_fun_type_ptr)
+void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr_scope_table_ptr, type *encl_fun_type_ptr, char *cnstrct_beg_lbl)
 {
     if(op == LABEL_OP && arg1 == NULL)
             return;
@@ -260,6 +268,7 @@ void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr
     quadruples[quad_count].result = result;
     quadruples[quad_count].curr_scope_table_ptr = curr_scope_table_ptr;
     quadruples[quad_count].encl_fun_type_ptr = encl_fun_type_ptr;
+    quadruples[quad_count].cnstrct_code_begin = cnstrct_beg_lbl;
     quad_count++;
 }
 
@@ -268,7 +277,7 @@ void module_first_time(tree_node *module_node){
     char *fun_name;
     fun_name = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
     strcpy(fun_name, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
-    code_emit(FN_DEFN_OP, fun_name, NULL, NULL, module_node->scope_sym_tab,  module_node->encl_fun_type_ptr);                        
+    code_emit(FN_DEFN_OP, fun_name, NULL, NULL, module_node->scope_sym_tab,  module_node->encl_fun_type_ptr, NULL);
     char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
     strcpy(fn_end_str, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
     strcat(fn_end_str, "_end");
@@ -286,7 +295,7 @@ void whileloop_first_time(tree_node *while_node){
     expr_node->label.boolean.false_label = while_node->label.next_label;
     stmts_node->label.next_label = begin;
     while_node->label.cnstrct_code_begin = begin;
-    code_emit(LABEL_OP, begin, NULL, NULL, while_node->scope_sym_tab,  while_node->encl_fun_type_ptr);
+    code_emit(LABEL_OP, begin, NULL, NULL, while_node->scope_sym_tab,  while_node->encl_fun_type_ptr, NULL);
     
 }
 
@@ -297,15 +306,15 @@ void forloop_first_time(tree_node *forloop_node){
     tree_node *range_low_node = get_nth_child(forloop_node, 2);
     tree_node *range_high_node = get_nth_child(forloop_node, 3);
 
-    code_emit(ASSIGN_OP, node2_tkn_str_val(range_low_node), NULL, node2_tkn_str_val(iter_var_node), forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+    code_emit(ASSIGN_OP, node2_tkn_str_val(range_low_node), NULL, node2_tkn_str_val(iter_var_node), forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
     tree_node *tmp_node = newtemp(iter_var_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
     forloop_node->label.cnstrct_code_begin = newlabel();
-    code_emit(LABEL_OP, forloop_node->label.cnstrct_code_begin, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
-    code_emit(LE_OP, node2_tkn_str_val(iter_var_node), node2_tkn_str_val(range_high_node), tmp_node->addr, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+    code_emit(LABEL_OP, forloop_node->label.cnstrct_code_begin, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
+    code_emit(LE_OP, node2_tkn_str_val(iter_var_node), node2_tkn_str_val(range_high_node), tmp_node->addr, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
     char *condn_true_lbl = newlabel();
-    code_emit(IF_TRUE_GOTO_OP, node2_tkn_str_val(tmp_node), NULL, condn_true_lbl, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
-    code_emit(GOTO_UNCOND_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
-    code_emit(LABEL_OP, condn_true_lbl, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+    code_emit(IF_TRUE_GOTO_OP, node2_tkn_str_val(tmp_node), NULL, condn_true_lbl, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
+    code_emit(GOTO_UNCOND_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
+    code_emit(LABEL_OP, condn_true_lbl, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
 }
 
 void conditional_node_first_time(tree_node *conditional_node){
@@ -313,7 +322,7 @@ void conditional_node_first_time(tree_node *conditional_node){
     if(switch_test_label)
         free(switch_test_label);
     switch_test_label = newlabel();
-    code_emit(GOTO_UNCOND_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+    code_emit(GOTO_UNCOND_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     switch_tbl_entry_num = 0;
 }
 
@@ -330,13 +339,13 @@ void term_node_second_time(tree_node *term_node){
         third_child = get_nth_child(term_node, 3);
         tree_node *addr_node = newtemp(first_child, get_operator(second_child), third_child, TYPE_ERROR);
         term_node->addr = addr_node->addr;
-        code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, term_node->addr, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr);
+        code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, term_node->addr, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr, NULL);
     }
     if(term_node->parent->sym.nt == WHILELOOP){
         // printf("leacving term and part of while\n");
-        code_emit(IF_TRUE_GOTO_OP, term_node->addr, term_node->label.boolean.true_label, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr);
-        code_emit(GOTO_UNCOND_OP, term_node->label.boolean.false_label, NULL, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr);
-        code_emit(LABEL_OP, term_node->label.boolean.true_label, NULL, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr);
+        code_emit(IF_TRUE_GOTO_OP, term_node->addr, term_node->label.boolean.true_label, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr, NULL);
+        code_emit(GOTO_UNCOND_OP, term_node->label.boolean.false_label, NULL, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr, NULL);
+        code_emit(LABEL_OP, term_node->label.boolean.true_label, NULL, NULL, term_node->scope_sym_tab,  term_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -348,12 +357,12 @@ void rexpr_node_second_time(tree_node *rexpr_node){
     third_child = get_nth_child(rexpr_node, 3);
     tree_node *addr_node = newtemp(first_child, get_operator(second_child), third_child, TYPE_ERROR);
     rexpr_node->addr = addr_node->addr;
-    code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, rexpr_node->addr, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr);
-    // code_emit(GOTO_UNCOND_OP, rexpr_node->label.boolean.false_label, NULL, NULL);
+    code_emit(get_tac_op(second_child), first_child->addr,third_child->addr, rexpr_node->addr, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr, NULL);
+    // code_emit(GOTO_UNCOND_OP, rexpr_node->label.boolean.false_label, NULL, NULL, NULL);
     if(rexpr_node->parent->sym.nt == WHILELOOP){
-        code_emit(IF_TRUE_GOTO_OP, rexpr_node->addr, rexpr_node->label.boolean.true_label, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr);
-        code_emit(GOTO_UNCOND_OP, rexpr_node->label.boolean.false_label, NULL, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr);
-        code_emit(LABEL_OP, rexpr_node->label.boolean.true_label, NULL, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr);
+        code_emit(IF_TRUE_GOTO_OP, rexpr_node->addr, rexpr_node->label.boolean.true_label, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr, NULL);
+        code_emit(GOTO_UNCOND_OP, rexpr_node->label.boolean.false_label, NULL, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr, NULL);
+        code_emit(LABEL_OP, rexpr_node->label.boolean.true_label, NULL, NULL, rexpr_node->scope_sym_tab,  rexpr_node->encl_fun_type_ptr, NULL);
     }
 
 }
@@ -377,10 +386,10 @@ void expr_n_nuaexpr_second_time(tree_node *ast_node){
         temp = tmp_node->addr;                             
         
         if(i == 0){                                                               
-            code_emit(get_tac_op(operator_node), operand1->addr, operand2->addr, temp, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+            code_emit(get_tac_op(operator_node), operand1->addr, operand2->addr, temp, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
         }
         else{
-            code_emit(get_tac_op(operator_node), prev_temp, operand2->addr, temp, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+            code_emit(get_tac_op(operator_node), prev_temp, operand2->addr, temp, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
         }
         operand1 = operand2;
         operator_node = operand2->sibling;
@@ -391,9 +400,9 @@ void expr_n_nuaexpr_second_time(tree_node *ast_node){
     ast_node->addr = temp;
     if(ast_node->parent->sym.nt == WHILELOOP){
         // printf("leacving expr & nonunary and part of while\n");
-        code_emit(IF_TRUE_GOTO_OP, ast_node->addr, ast_node->label.boolean.true_label, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
-        code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
-        code_emit(LABEL_OP, ast_node->label.boolean.true_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+        code_emit(IF_TRUE_GOTO_OP, ast_node->addr, ast_node->label.boolean.true_label, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
+        code_emit(GOTO_UNCOND_OP, ast_node->label.boolean.false_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
+        code_emit(LABEL_OP, ast_node->label.boolean.true_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -407,7 +416,7 @@ void uexpr_second_time(tree_node *uexpr_node){
     /** 
      * ToDo : it could be UPLUS also, correct it
      */
-    code_emit(op, expr_node->addr,NULL, uexpr_node->addr, uexpr_node->scope_sym_tab,  uexpr_node->encl_fun_type_ptr);
+    code_emit(op, expr_node->addr,NULL, uexpr_node->addr, uexpr_node->scope_sym_tab,  uexpr_node->encl_fun_type_ptr, NULL);
 }
 
 void var_node_second_time(tree_node *var_node){
@@ -445,7 +454,7 @@ void var_node_second_time(tree_node *var_node){
         
         if(index_node->token.name == ID){
             index_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
-            code_emit(MUL_OP,id_node->sibling->addr, width, index, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
+            code_emit(MUL_OP,id_node->sibling->addr, width, index, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
         }
         else{
             snprintf(index, MAX_LABEL_LEN, "%d", index_node->token.num * width_val);
@@ -487,14 +496,14 @@ void var_node_second_time(tree_node *var_node){
             dummy_bool_node->scope_sym_tab = index_node->scope_sym_tab;
             tree_node *condn_eval_temp = newtemp(dummy_bool_node, NO_MATCHING_OP, NULL, BOOLEAN);
 
-            code_emit(LT_OP, node2_tkn_str_val(id_node->sibling), low_range, condn_eval_temp->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
-            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
+            code_emit(LT_OP, node2_tkn_str_val(id_node->sibling), low_range, condn_eval_temp->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
+            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
 
-            code_emit(GT_OP, node2_tkn_str_val(id_node->sibling), high_range, condn_eval_temp->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
-            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
+            code_emit(GT_OP, node2_tkn_str_val(id_node->sibling), high_range, condn_eval_temp->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
+            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
         }
 
-        code_emit(ARRAY_ACCESS_OP, id_node->addr, index, var_node->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr);
+        code_emit(ARRAY_ACCESS_OP, id_node->addr, index, var_node->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
     }
     else{
         var_node->addr = id_node->addr;
@@ -508,7 +517,7 @@ void assign_node_second_time(tree_node *assign_node){
     
     char *lvalue;
     if(index_node->sym.t == EPSILON)
-        code_emit(ASSIGN_OP, rvalue_node->addr, NULL, lvalue_id_node->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+        code_emit(ASSIGN_OP, rvalue_node->addr, NULL, lvalue_id_node->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
     else{
         /**
          * @brief Array type
@@ -547,11 +556,11 @@ void assign_node_second_time(tree_node *assign_node){
             dummy_bool_node->scope_sym_tab = index_node->scope_sym_tab;
             tree_node *condn_eval_temp = newtemp(dummy_bool_node, NO_MATCHING_OP, NULL, BOOLEAN);
 
-            code_emit(LT_OP, node2_tkn_str_val(index_node), low_range, condn_eval_temp->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
-            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+            code_emit(LT_OP, node2_tkn_str_val(index_node), low_range, condn_eval_temp->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
+            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
 
-            code_emit(GT_OP, node2_tkn_str_val(index_node), high_range, condn_eval_temp->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
-            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+            code_emit(GT_OP, node2_tkn_str_val(index_node), high_range, condn_eval_temp->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
+            code_emit(EXIT_PROGRAM_IF_TRUE_OP, condn_eval_temp->addr, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
         }
 
         char *width = (char*) malloc(sizeof(char) * MAX_LABEL_LEN);
@@ -582,14 +591,14 @@ void assign_node_second_time(tree_node *assign_node){
         if(index_node->token.name == ID){
             tree_node *arr_locn_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
             index = arr_locn_node->addr;
-            code_emit(MUL_OP,node2_tkn_str_val(index_node), width, index, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+            code_emit(MUL_OP,node2_tkn_str_val(index_node), width, index, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
         }
         else{
             index = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
             snprintf(index, MAX_LEXEME_LEN, "%d", width_val * index_node->token.num);
         }
 
-        code_emit(INDEXED_COPY_OP,index, rvalue_node->addr, lvalue_id_node->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+        code_emit(INDEXED_COPY_OP,index, rvalue_node->addr, lvalue_id_node->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
     }
 
     
@@ -598,12 +607,12 @@ void assign_node_second_time(tree_node *assign_node){
     if(assign_node->parent->label.next_label == NULL ){
 
 
-        code_emit(LABEL_OP, assign_node->label.next_label, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, assign_node->label.next_label, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(assign_node->label.next_label, assign_node->parent->label.next_label) != 0){
 
 
-        code_emit(LABEL_OP, assign_node->label.next_label, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, assign_node->label.next_label, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -611,24 +620,20 @@ void iostmt_node_second_time(tree_node *iostmt_node){
     tree_node *action_node = iostmt_node->leftmost_child;                        
     if(action_node->token.name == GET_VALUE){
         tree_node *id_node = iostmt_node->rightmost_child;
-        code_emit(INPUT_OP, id_node->token.id.str, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr);
+        code_emit(INPUT_OP, id_node->token.id.str, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr, iostmt_node->label.cnstrct_code_begin);
     }
     else{   //print
         tree_node *var_node = iostmt_node->rightmost_child;
-        code_emit(OUTPUT_OP, var_node->addr, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr);
+        code_emit(OUTPUT_OP, var_node->addr, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr, iostmt_node->label.cnstrct_code_begin);
     }
     
     // iostmt_node->label.next_label = newlabel();                            
 
     if(iostmt_node->parent->label.next_label == NULL ){
-
-
-        code_emit(LABEL_OP, iostmt_node->label.next_label, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, iostmt_node->label.next_label, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(iostmt_node->label.next_label, iostmt_node->parent->label.next_label) != 0){
-
-
-        code_emit(LABEL_OP, iostmt_node->label.next_label, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, iostmt_node->label.next_label, NULL, NULL, iostmt_node->scope_sym_tab,  iostmt_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -649,7 +654,7 @@ void fncall_node_second_time(tree_node *fncall_node){
 
     for(int i = 0; i < outp_param_num; i++){
         outp_param = pop(stack_ptr);
-        code_emit(OUTP_PARAM_OP, outp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr);
+        code_emit(OUTP_PARAM_OP, outp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
 
     tree_node *inp_param = inp_params_node->leftmost_child;
@@ -660,7 +665,7 @@ void fncall_node_second_time(tree_node *fncall_node){
 
     for(int i = 0; i< inp_param_num; i++){
         inp_param = pop(stack_ptr);
-        code_emit(INP_PARAM_OP, inp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr);
+        code_emit(INP_PARAM_OP, inp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
 
     free(stack_ptr->arr);   // free up space used by stack
@@ -668,33 +673,33 @@ void fncall_node_second_time(tree_node *fncall_node){
 
     char *param_num_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
     snprintf(param_num_str, MAX_LABEL_LEN, "%d", inp_param_num);
-    code_emit(PROC_CALL_OP, get_nth_child(fncall_node, 2)->addr, param_num_str, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr);
+    code_emit(PROC_CALL_OP, get_nth_child(fncall_node, 2)->addr, param_num_str, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     
     // fncall_node->label.next_label = newlabel();                            
 
     if(fncall_node->parent->label.next_label == NULL ){
 
 
-        code_emit(LABEL_OP, fncall_node->label.next_label, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, fncall_node->label.next_label, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(fncall_node->label.next_label, fncall_node->parent->label.next_label) != 0){
 
 
-        code_emit(LABEL_OP, fncall_node->label.next_label, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, fncall_node->label.next_label, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
 }
 
 void whileloop_node_second_time(tree_node *whileloop_node){
-    code_emit(GOTO_UNCOND_OP, whileloop_node->label.cnstrct_code_begin, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr);
+    code_emit(GOTO_UNCOND_OP, whileloop_node->label.cnstrct_code_begin, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr, NULL);
     if(whileloop_node->parent->label.next_label == NULL ){
 
 
-        code_emit(LABEL_OP, whileloop_node->label.next_label, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, whileloop_node->label.next_label, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(whileloop_node->label.next_label, whileloop_node->parent->label.next_label) != 0){
 
 
-        code_emit(LABEL_OP, whileloop_node->label.next_label, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, whileloop_node->label.next_label, NULL, NULL, whileloop_node->scope_sym_tab,  whileloop_node->encl_fun_type_ptr, NULL);
     }
     // printf("And whileloop second time visiting emits after jmp begin, label %s\n", whileloop_node->label.next_label);
     // whileloop_node->label.next_label = newlabel();                            
@@ -706,18 +711,18 @@ void forloop_node_second_time(tree_node *forloop_node){
      */
     
     tree_node *iter_node = get_nth_child(forloop_node, 1);
-    code_emit(PLUS_OP, iter_node->addr, "#1", iter_node->addr, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
-    code_emit(GOTO_UNCOND_OP, forloop_node->label.cnstrct_code_begin, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+    code_emit(PLUS_OP, iter_node->addr, "#1", iter_node->addr, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
+    code_emit(GOTO_UNCOND_OP, forloop_node->label.cnstrct_code_begin, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
 
     if(forloop_node->parent->label.next_label == NULL ){
 
 
-        code_emit(LABEL_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(forloop_node->label.next_label, forloop_node->parent->label.next_label) != 0){
 
 
-        code_emit(LABEL_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, forloop_node->label.next_label, NULL, NULL, forloop_node->scope_sym_tab,  forloop_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -733,27 +738,27 @@ void conditional_node_second_time(tree_node *conditional_node){
      * @brief Emit test label
      */
 
-    code_emit(LABEL_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+    code_emit(LABEL_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
 
     for(int i=0; i<num_cases; i++){
-        code_emit(EQ_OP, switch_table[i].value, switch_var_node->addr, tmp_var->addr, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
-        code_emit(IF_TRUE_GOTO_OP, tmp_var->addr, switch_table[i].label, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+        code_emit(EQ_OP, switch_table[i].value, switch_var_node->addr, tmp_var->addr, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
+        code_emit(IF_TRUE_GOTO_OP, tmp_var->addr, switch_table[i].label, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     }
 
     tree_node *default_node = conditional_node->rightmost_child;
     if(default_node->sym.is_terminal == false){
-        code_emit(GOTO_UNCOND_OP, switch_table[switch_tbl_entry_num-1].label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+        code_emit(GOTO_UNCOND_OP, switch_table[switch_tbl_entry_num-1].label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     }
 
     if(conditional_node->parent->label.next_label == NULL ){
 
 
-        code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     }
     else if(strcmp(conditional_node->label.next_label, conditional_node->parent->label.next_label) != 0){
 
 
-        code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr);
+        code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     }
 }
 
@@ -769,9 +774,9 @@ void declare_node_second_time(tree_node *declare_node){
             if(id_type_ptr->typeinfo.array.is_dynamic.range_high)
                 is_dynamic = true;
             if(is_dynamic)
-                code_emit(DECLARE_DYN_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr);
+                code_emit(DECLARE_DYN_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr, NULL);
             else
-                code_emit(DECLARE_STATIC_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr);
+                code_emit(DECLARE_STATIC_ARR_OP, id_node->token.id.str, NULL, NULL, id_node->scope_sym_tab, id_node->encl_fun_type_ptr, NULL);
         }
         id_node = id_node->sibling;
     }
@@ -801,7 +806,6 @@ void generate_ir(tree_node *ast_node)
                     }   
                     break;         
                     case ASSIGNMENTSTMT:
-                    case IOSTMT:
                     case FUNCTIONCALLSTMT:
                     {
                         assign_next_label(ast_node);
@@ -820,19 +824,26 @@ void generate_ir(tree_node *ast_node)
                     case CASESTMT:
                     {
                         ast_node->label.cnstrct_code_begin = newlabel();
-                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
                     }
                     break;
                     case DEFAULTSTMT:
                     {
                         ast_node->label.cnstrct_code_begin = newlabel();
-                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+                        code_emit(LABEL_OP, ast_node->label.cnstrct_code_begin, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
                     }
                     break;
                     case STATEMENTS:
                     {
                         assign_next_label(ast_node);
                     }
+                    break;
+                    case IOSTMT:
+                    {
+                        ast_node->label.cnstrct_code_begin = newlabel();                        
+                        assign_next_label(ast_node);
+                    }
+                    break;
                 }
             }
 
@@ -906,14 +917,14 @@ void generate_ir(tree_node *ast_node)
                     case NTMODULE:
                     case DRIVERMODULE:
                     {   
-                        code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);                        
-                        code_emit(RETURN_OP, NULL, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);                        
+                        code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);                        
+                        code_emit(RETURN_OP, NULL, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);                        
                     }
                     break;
                     case CASESTMT:
                     {
                         tree_node *switch_node = ast_node->parent->parent;
-                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);
+                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);
                         
                         switch_table[switch_tbl_entry_num].label = ast_node->label.cnstrct_code_begin;
                         switch_table[switch_tbl_entry_num].value = ast_node->leftmost_child->addr;
@@ -923,7 +934,7 @@ void generate_ir(tree_node *ast_node)
                     case DEFAULTSTMT:
                     {
                         tree_node *switch_node = ast_node->parent->parent;
-                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr);                        
+                        code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);                        
                         switch_table[switch_tbl_entry_num].label = ast_node->label.cnstrct_code_begin;
                         switch_table[switch_tbl_entry_num].value = "default_case";
                         switch_tbl_entry_num++;

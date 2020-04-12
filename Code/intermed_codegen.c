@@ -177,17 +177,17 @@ char *node2_tkn_str_val(tree_node *node)
         break;
 
         case NUM:
-            sprintf(str_val, "#%d", node->token.num);
+            sprintf(str_val, "%d", node->token.num);
         break;
 
         case RNUM:
-            sprintf(str_val, "#%lf", node->token.rnum);
+            sprintf(str_val, "%lf", node->token.rnum);
         break;
         case TRUE:
-            sprintf(str_val,"#1");
+            sprintf(str_val,"1");
         break;
         case FALSE:
-            sprintf(str_val,"#0");
+            sprintf(str_val,"0");
         break;
         default:
             strcpy(str_val, "");

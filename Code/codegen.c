@@ -6,24 +6,435 @@ void arithexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+    
+    /* 
+        Integers are returned in rax or rdx:rax, and floating point values are returned in xmm0 or xmm1:xmm0
+        Note: The floating point instructions have an sd suffix (i.e. convert single s to double precision d)
+    */
+
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *arg2_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg1_str, *arg2_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    arg2_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+    
+    int offset_arg2 = 0;
+    
+    if(arg2_type_ptr){
+        offset_arg2 = arg2_type_ptr->offset;
+        snprintf(arg2_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg2);
+    }
+    else{
+        strncpy(arg2_str, quad.arg2, MAX_LEXEME_LEN);
+    }
+    
+    int offset_result = res_type_ptr->offset;
+    
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(res_type_ptr->name == INTEGER)
+    {
+        switch(quad.op)
+        {
+            case PLUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Addition of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                add RAX, RBX \n\
+                mov [RBP - %d], RAX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case MINUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Subtraction of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                sub RAX, RBX \n\
+                mov [RBP - %d], RAX \n", arg1_str, arg2_str, offset_result);
+            break;
+            
+            case MUL_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Multiplication of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                mul RBX \n\
+                mov [RBP - %d], RAX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case DIV_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Division of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                div RBX \n\
+                mov [RBP - %d], RAX \n", arg1_str, arg2_str, offset_result);
+            break;
+            
+        }
+    }
+    else if(res_type_ptr->name == REAL)
+    {
+        switch(quad.op)
+        {
+            case PLUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Addition of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM2, %s\n\
+                addsd XMM0, XMM2 \n\
+                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            break;
+
+            case MINUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Subtraction of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM2, %s\n\
+                subsd XMM0, XMM2 \n\
+                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            break;
+
+            case MUL_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Multiplication of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM2, %s\n\
+                mulsd XMM2 \n\
+                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            break;
+
+            case DIV_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Division of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM2, %s\n\
+                divsd XMM2 \n\
+                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            break;
+            
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
+}
+
+token_name get_type_name(char *str){
+    int len = strlen(str);
+    for(int i=0; i<len; i++){
+        if(str[i] == '.')
+            return REAL;
+    }
+    return INTEGER;
 }
 
 void relexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *arg2_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg1_str, *arg2_str;
+    token_name type_name = TYPE_ERROR;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    arg2_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+        type_name = arg1_type_ptr->name;
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+    
+    int offset_arg2 = 0;
+    
+    if(arg2_type_ptr){
+        offset_arg2 = arg2_type_ptr->offset;
+        snprintf(arg2_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg2);
+        type_name = arg2_type_ptr->name;
+    }
+    else{
+        strncpy(arg2_str, quad.arg2, MAX_LEXEME_LEN);
+    }
+
+    if(type_name == TYPE_ERROR)
+        type_name = get_type_name(arg1_str);
+
+    int offset_result = res_type_ptr->offset;
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(type_name == INTEGER)
+    {
+        // initialize temp to 0
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, 0; initialize RCX with false\n\
+                mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies\n");
+
+        switch(quad.op)
+        {
+            case LT_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (LT) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmovl RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case LE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (LE) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmovle RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case GT_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (GT) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmovg RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case GE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (GE) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmovge RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case NE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (NE) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmovne RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case EQ_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (EQ) of integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                cmp RAX, RBX \n\
+                cmove RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+        }
+    }
+    else if(type_name == REAL)
+    {
+        // initialize temp to 0
+        fprintf(assembly_file_ptr,"\t\t\t\tmov RCX, 0; initialize RCX with false\n\
+                mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies\n");
+
+        switch(quad.op)
+        {
+            case LT_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (LT) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmovl RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case LE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (LE) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmovle RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case GT_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (GT) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmovg RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case GE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (GE) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmovge RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case NE_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (NE) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmovne RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+
+            case EQ_OP:
+            fprintf(assembly_file_ptr, "\t\t\t\t;Comparison (EQ) of reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov XMM1, %s\n\
+                cmp XMM0, XMM1 \n\
+                cmove RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+            break;
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void logexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *arg2_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg2, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg1_str, *arg2_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    arg2_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+    
+    int offset_arg2 = 0;
+    
+    if(arg2_type_ptr){
+        offset_arg2 = arg2_type_ptr->offset;
+        snprintf(arg2_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg2);
+    }
+    else{
+        strncpy(arg2_str, quad.arg2, MAX_LEXEME_LEN);
+    }
+    
+    int offset_result = res_type_ptr->offset;
+    
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, 0; initialize RCX with false\n\
+                mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies\n");
+
+    if(quad.op == AND_OP){
+        fprintf(assembly_file_ptr, "\t\t\t\t;Logical AND\n");
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                add RAX, RBX \n\
+                cmp RAX, 2 \n\
+                cmove RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+    }
+    else{
+        fprintf(assembly_file_ptr, "\t\t\t\t;Logical OR \n");
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov RBX, %s\n\
+                sub RAX, RBX \n\
+                cmp RAX, 0 \n\
+                cmovne RCX, RDX \n\
+                mov [RBP - %d], RCX \n", arg1_str, arg2_str, offset_result);
+    }
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void uexpr_code_gen(quad_node quad){
     /**
      * @brief Check the operator and generate code
      */
+
+    type *var_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    int offset = var_type_ptr->offset;
+    int offset_result = res_type_ptr->offset;
+
+    char *var_str;
+    
+    var_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_var = 0;
+    
+    if(var_type_ptr){
+        offset_var = var_type_ptr->offset;
+        snprintf(var_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_var);
+    }
+    else{
+        strncpy(var_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+
+    if(var_type_ptr->name == INTEGER)
+    {
+        switch(quad.op)
+        {
+            case UPLUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Unary plus for integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                mov [RBP - %d], RAX \n", var_str, offset_result);
+            break;
+            
+            case UMINUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Unary minus for integers\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+                neg RAX\n\
+                mov [RBP - %d], RAX \n", var_str, offset_result);
+            break;
+        }
+    }
+    else if(var_type_ptr->name == REAL)
+    {
+        switch(quad.op)
+        {
+            case UPLUS_OP:
+            fprintf(assembly_file_ptr, "\t\t\t\t;Unary plus for reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                mov [RBP - %d], XMM0 \n", var_str, offset_result);
+            break;
+
+            case UMINUS_OP: 
+            fprintf(assembly_file_ptr, "\t\t\t\t;Unary minus for reals\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
+                neg XMM0\n\
+                mov [RBP - %d], XMM0 \n", var_str, offset_result);
+            break;
+        }
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
+
 }
 
 void one_input_code_gen(token_name type_name, int offset){    
@@ -189,7 +600,7 @@ void input_code_gen(quad_node quad){
     fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
-void one_output_code_gen(token_name type_name, int offset){
+void one_var_output_code_gen(token_name type_name, int offset){
     fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
     switch(type_name){
         case INTEGER:
@@ -236,6 +647,10 @@ void output_code_gen(quad_node quad){
      * If #true/#false, print true false strings
      */
     type *var_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    if(var_type_ptr == NULL){       // if a value has to be printed
+        fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"%s\"\n", quad.arg1);
+        return;
+    }
     print_a_type(var_type_ptr);
     int offset = var_type_ptr->offset;
     int width;
@@ -245,17 +660,17 @@ void output_code_gen(quad_node quad){
     switch(var_type_ptr->name){
         case INTEGER:
         {
-            one_output_code_gen(INTEGER, offset);
+            one_var_output_code_gen(INTEGER, offset);
         }
         break;
         case REAL:
         {
-            one_output_code_gen(REAL, offset);
+            one_var_output_code_gen(REAL, offset);
         }
         break;
         case BOOLEAN:
         {
-            one_output_code_gen(BOOLEAN, offset);
+            one_var_output_code_gen(BOOLEAN, offset);
         }
         break;
         case ARRAY:
@@ -360,6 +775,37 @@ void assign_code_gen(quad_node quad){
      * Simply copy value stored at second's location to first's location
      * take width number of bytes from source and copy to dest
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    type *res_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.result, quad.encl_fun_type_ptr, NULL);
+    
+    char *arg1_str;
+    
+    arg1_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+
+    int offset_arg1 = 0;
+    
+    if(arg1_type_ptr){
+        offset_arg1 = arg1_type_ptr->offset;
+        snprintf(arg1_str, MAX_LEXEME_LEN, "[RBP - %d]", offset_arg1);
+    }
+    else{
+        strncpy(arg1_str, quad.arg1, MAX_LEXEME_LEN);
+    }
+
+    int offset_result = res_type_ptr->offset;
+    
+    fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+    if(res_type_ptr->name == REAL){
+        fprintf(assembly_file_ptr, "\t\t\t\t;Assignment to a real\n");
+        fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n", arg1_str);
+        fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], XMM0\n", offset_result);
+    }
+    else{
+        fprintf(assembly_file_ptr, "\t\t\t\t;Assignment to a %s\n", terminal_string[res_type_ptr->name]);
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n", arg1_str);
+        fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX\n", offset_result);
+    }
+    fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
 }
 
 void jmp_if_true_code_gen(quad_node quad){

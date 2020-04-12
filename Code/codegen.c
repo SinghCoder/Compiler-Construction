@@ -26,28 +26,28 @@ void arithexpr_code_gen(quad_node quad){
         switch(quad.op)
         {
             case PLUS_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    add RAX, RBX \n\
-                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    add RAX, RBX     ; Add the two contents and store the result in RAX\n\
+                                    mov [RBP + %d], RAX     ; Move the resltant content from RAX to result location\n", offset1, offset2, offset_result);
 
             case MINUS_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    sub RAX, RBX \n\
-                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    sub RAX, RBX      ; Sub the two contents and store the result in RAX\n\
+                                    mov [RBP + %d], RAX      ; Move the resltant content from RAX to result location\n", offset1, offset2, offset_result);
 
             case MUL_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    mul RBX \n\
-                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    mul RBX      ; Mul the two contents and store the result in RAX\n\
+                                    mov [RBP + %d], RAX      ; Move the resltant content from RAX to result location\n", offset1, offset2, offset_result);
 
             case DIV_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    div RBX \n\
-                                    mov [RBP + %d], RAX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    div RBX      ; Div the two contents and store the result in RAX\n\
+                                    mov [RBP + %d], RAX      ; Move the resltant content from RAX to result location\n", offset1, offset2, offset_result);
         }
     }
     else if(var_type_ptr1->name == REAL)
@@ -55,28 +55,28 @@ void arithexpr_code_gen(quad_node quad){
         switch(quad.op)
         {
             case PLUS_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM2, [RBP + %d]\n\
-                                    addsd XMM0, XMM2 \n\
-                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM2, [RBP + %d]    ; Move content of arg2 to XMM2\n\
+                                    addsd XMM0, XMM2     ; Add the two contents and store the result in XMM0\n\
+                                    mov [RBP + %d], XMM0      ; Move the resltant content from XMM0 to result location\n", offset1, offset2, offset_result);
 
             case MINUS_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM2, [RBP + %d]\n\
-                                    subsd XMM0, XMM2 \n\
-                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM2, [RBP + %d]    ; Move content of arg2 to XMM2\n\
+                                    subsd XMM0, XMM2     ; Add the two contents and store the result in XMM0\n\
+                                    mov [RBP + %d], XMM0      ; Move the resltant content from XMM0 to result location\n", offset1, offset2, offset_result);
 
             case MUL_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM2, [RBP + %d]\n\
-                                    mulsd XMM2 \n\
-                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM2, [RBP + %d]    ; Move content of arg2 to XMM2\n\
+                                    mulsd XMM2     ; Add the two contents and store the result in XMM0\n\
+                                    mov [RBP + %d], XMM0      ; Move the resltant content from XMM0 to result location\n", offset1, offset2, offset_result);
 
             case DIV_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM2, [RBP + %d]\n\
-                                    divsd XMM2 \n\
-                                    mov [RBP + %d], XMM0 \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM2, [RBP + %d]    ; Move content of arg2 to XMM2\n\
+                                    divsd XMM2     ; Add the two contents and store the result in XMM0\n\
+                                    mov [RBP + %d], XMM0      ; Move the resltant content from XMM0 to result location\n", offset1, offset2, offset_result);
         }
     }
 
@@ -98,98 +98,92 @@ void relexpr_code_gen(quad_node quad){
 
     fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
 
+    // initialize temp to 0
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\tmov RAX, 0     ; initialize RAX to 0\n\
+                mov RDX, 1      ; initialize RDX to 1, move it to temp in case the condition is true, otherwise no use\n\
+                mov [RBP + %d], RAX     ; initialize result temp to 0 \n", offset_result);
+
     if(var_type_ptr1->name == INTEGER)
     {
-        // initialize temp to 0
-        fprintf(assembly_file_ptr, 
-                "\t\t\t\tmov RAX, 0\n\
-                    mov RDX, 1\n\
-                    mov [RBP + %d], RAX \n", offset_result);
-
         switch(quad.op)
         {
             case LT_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmovl [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX    ; compare arg1 and arg2\n\
+                                    cmovl [RBP + %d], RDX     ; Store 1 in temp if arg1 < arg2\n", offset1, offset2, offset_result);
 
             case LE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmovle [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX    ; compare arg1 and arg2 \n\
+                                    cmovle [RBP + %d], RDX     ; Store 1 in temp if arg1 <= arg2 \n", offset1, offset2, offset_result);
 
             case GT_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmovg [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX     ; compare arg1 and arg2\n\
+                                    cmovg [RBP + %d], RDX     ; Store 1 in temp if arg1 > arg2 \n", offset1, offset2, offset_result);
 
             case GE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmovge [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX     ; compare arg1 and arg2\n\
+                                    cmovge [RBP + %d], RDX     ; Store 1 in temp if arg1 >= arg2 \n", offset1, offset2, offset_result);
 
             case NE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmovne [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX     ; compare arg1 and arg2\n\
+                                    cmovne [RBP + %d], RDX     ; Store 1 in temp if arg1 != arg2 \n", offset1, offset2, offset_result);
 
             case EQ_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    mov RBX, [RBP + %d]\n\
-                                    cmp RAX, RBX \n\
-                                    cmove [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov RAX, [RBP + %d]    ; Move content of arg1 to RAX\n\
+                                    mov RBX, [RBP + %d]    ; Move content of arg2 to RBX\n\
+                                    cmp RAX, RBX     ; compare arg1 and arg2\n\
+                                    cmove [RBP + %d], RDX     ; Store 1 in temp if arg1 == arg2 \n", offset1, offset2, offset_result);
         }
     }
     else if(var_type_ptr1->name == REAL)
     {
-        // initialize temp to 0
-        fprintf(assembly_file_ptr, 
-                "\t\t\t\tmov RAX, 0\n\
-                    mov RDX, 1\n\
-                    mov [RBP + %d], RAX \n", offset_result);
-
         switch(quad.op)
         {
             case LT_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmovl [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmovl [RBP + %d], RDX     ; Store 1 in temp if arg1 < arg2 \n", offset1, offset2, offset_result);
 
             case LE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmovle [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmovle [RBP + %d], RDX     ; Store 1 in temp if arg1 <= arg2 \n", offset1, offset2, offset_result);
 
             case GT_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmovg [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmovg [RBP + %d], RDX     ; Store 1 in temp if arg1 > arg2 \n", offset1, offset2, offset_result);
 
             case GE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmovge [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmovge [RBP + %d], RDX     ; Store 1 in temp if arg1 >= arg2 \n", offset1, offset2, offset_result);
 
             case NE_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmovne [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmovne [RBP + %d], RDX     ; Store 1 in temp if arg1 != arg2 \n", offset1, offset2, offset_result);
 
             case EQ_OP: fprintf(assembly_file_ptr, 
-                                "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    mov XMM1, [RBP + %d]\n\
-                                    cmp XMM0, XMM1 \n\
-                                    cmove [RBP + %d], RDX \n", offset1, offset2, offset_result);
+                                "\t\t\t\tmov XMM0, [RBP + %d]    ; Move content of arg1 to XMM0\n\
+                                    mov XMM1, [RBP + %d]    ; Move content of arg2 to XMM1\n\
+                                    cmp XMM0, XMM1     ; compare arg1 and arg2\n\
+                                    cmove [RBP + %d], RDX     ; Store 1 in temp if arg1 == arg2 \n", offset1, offset2, offset_result);
         }
     }
 
@@ -225,7 +219,7 @@ void uexpr_code_gen(quad_node quad){
 
             case UMINUS_OP: fprintf(assembly_file_ptr, 
                                 "\t\t\t\tmov RAX, [RBP + %d]\n\
-                                    neg RAX\n\
+                                    neg RAX     ; Negate the contents\n\
                                     mov [RBP + %d], RAX \n", offset, offset_result);
         }
     }
@@ -239,7 +233,7 @@ void uexpr_code_gen(quad_node quad){
 
             case UMINUS_OP: fprintf(assembly_file_ptr, 
                                 "\t\t\t\tmov XMM0, [RBP + %d]\n\
-                                    neg XMM0\n\
+                                    neg XMM0     ; Negate the contents\n\
                                     mov [RBP + %d], XMM0 \n", offset, offset_result);
         }
     }

@@ -25,7 +25,7 @@ stack *stack_init() {
   }
   stack_ptr->size = INIT_STACK_SIZE;
   stack_ptr->arr =
-      (tree_node **)malloc(sizeof(tree_node *) * (stack_ptr->size));
+      (void **)malloc(sizeof(void *) * (stack_ptr->size));
   if (stack_ptr->arr == NULL) {
     perror("stack array member init error.. memory not available\n");
   }
@@ -40,11 +40,11 @@ stack *stack_init() {
  * @param node - tree node element to be inserted
  */
 
-void push(stack *stack_ptr, tree_node *node) {
+void push(stack *stack_ptr, void *node) {
   if (stack_ptr->top == (stack_ptr->size)) {
     stack_ptr->size *= 2;
-    tree_node **tmp =
-        realloc(stack_ptr->arr, sizeof(tree_node *) * stack_ptr->size);
+    void **tmp =
+        realloc(stack_ptr->arr, sizeof(void *) * stack_ptr->size);
     if (tmp == NULL) {
       perror("Error in doubling stack's size: realloc failed\n");
     } else {
@@ -59,10 +59,10 @@ void push(stack *stack_ptr, tree_node *node) {
  * @brief Remove the element from stack top
  *
  * @param stack_ptr - pointer to structure interface of stack
- * @return tree_node* - Element removed
+ * @return void* - Element removed
  */
 
-tree_node *pop(stack *stack_ptr) {
+void *pop(stack *stack_ptr) {
   if (stack_ptr->top == 0) {
     return NULL;
   }
@@ -75,9 +75,9 @@ tree_node *pop(stack *stack_ptr) {
  * @brief Peek through the stack
  *
  * @param stack_ptr pointer to structure interface of stack
- * @return tree_node* element at top
+ * @return void* element at top
  */
-tree_node *top(stack *stack_ptr) {
+void *top(stack *stack_ptr) {
   if (stack_ptr->top == 0) {
     return NULL;
   } else {

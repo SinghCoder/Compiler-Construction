@@ -20,7 +20,7 @@
  */
 typedef struct
 {
-    tree_node **arr;
+    void **arr;
     int top;
     int size;
 } stack;

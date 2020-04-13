@@ -9,7 +9,7 @@ void assign_next_label(tree_node *ast_node)
         ast_node->label.next_label = newlabel();                            
         // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, NULL);
         print_symbol_(ast_node);
-        printf(" node is assigned a new label = %s\n", ast_node->label.next_label);
+        // printf(" node is assigned a new label = %s\n", ast_node->label.next_label);
     }
     else{
         ast_node->label.next_label = ast_node->parent->label.next_label;         
@@ -22,7 +22,7 @@ void assign_next_label(tree_node *ast_node)
         }
         else{
             print_symbol_(ast_node);
-            printf(" node is assigned parent label = %s\n", ast_node->label.next_label);
+            // printf(" node is assigned parent label = %s\n", ast_node->label.next_label);
         }
     }
     // printf("Next label is assigned as %s\n", ast_node->label.next_label);
@@ -673,7 +673,7 @@ void fncall_node_second_time(tree_node *fncall_node){
     }
 
     for(int i = 0; i < outp_param_num; i++){
-        outp_param = pop(stack_ptr);
+        outp_param = (tree_node *)pop(stack_ptr);
         code_emit(OUTP_PARAM_OP, outp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
 
@@ -684,7 +684,7 @@ void fncall_node_second_time(tree_node *fncall_node){
     }
 
     for(int i = 0; i< inp_param_num; i++){
-        inp_param = pop(stack_ptr);
+        inp_param = (tree_node *)pop(stack_ptr);
         code_emit(INP_PARAM_OP, inp_param->addr, NULL, NULL, fncall_node->scope_sym_tab,  fncall_node->encl_fun_type_ptr, NULL);
     }
 
@@ -803,8 +803,6 @@ void declare_node_second_time(tree_node *declare_node){
 void generate_ir(tree_node *ast_node)
 {
     while(ast_node != NULL){
-        printf("At symbol : ");
-        print_symbol_(ast_node);
         if(ast_node->visited == false){
             // printf("Visiting first time: ");
 

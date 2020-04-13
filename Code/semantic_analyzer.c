@@ -50,8 +50,9 @@ st_wrapper *symbol_table_init(){
 }
 
 void* key_search_recursive(st_wrapper *sym_table,char *lexeme, type *encl_fun_type_ptr, bool *is_outp_param){
-    if(sym_table == NULL)
+    if(sym_table == NULL){
         return NULL;
+    }
     
     bool b = key_present_in_table(sym_table->table, lexeme);
 	type *type_ptr;
@@ -483,7 +484,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         while(inp_param_node != NULL){
             inp_param_type_ptr = retreive_type(inp_param_node);
             inp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
-            t->typeinfo.module.curr_offset += inp_param_type_ptr->width;
+            // t->typeinfo.module.curr_offset += inp_param_type_ptr->width;
             insert_param_in_list(t->typeinfo.module.input_params, inp_param_type_ptr, id_str);
             inp_param_node = inp_param_node->sibling;     // rn at node labelled ID
             id_str = inp_param_node->token.id.str;
@@ -500,7 +501,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
             outp_param_type_ptr = retreive_type(outp_param_node);
             
             outp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
-            t->typeinfo.module.curr_offset += outp_param_type_ptr->width;
+            // t->typeinfo.module.curr_offset += outp_param_type_ptr->width;
 
             insert_param_in_list(t->typeinfo.module.output_params, outp_param_type_ptr, id_str);
             outp_param_node = outp_param_node->sibling;     // rn at node labelled ID
@@ -648,54 +649,54 @@ void print_a_type(type *type_ptr){
 
 void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
     if(sym_tab_ptr == NULL){
-       /**  printf("Empty Symbol table\n");     */
+       printf("Empty Symbol table\n");   
         return;
     }
-    /**  printf("************************Printing Symbol table for a new scope**********************\n");  */
+    printf("************************Printing Symbol table for a new scope**********************\n");
     for(int i=0; i < HASH_SIZE; i++){
         type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
         if(type_ptr != NULL)
         {
-            /**  printf("%s | ",sym_tab_ptr->table[i].lexeme);  */
-            /**  printf("Width : %d | ", type_ptr->width);  */
-            /**  printf("Offset : %d | ", type_ptr->offset);  */
-            /**  printf("Type : %s | ",terminal_string[ type_ptr->name] );  */
+            printf("%s | ",sym_tab_ptr->table[i].lexeme);
+            printf("Width : %d | ", type_ptr->width);
+            printf("Offset : %d | ", type_ptr->offset);
+            printf("Type : %s | ",terminal_string[ type_ptr->name] );
             
             if(type_ptr->name == ARRAY){
-                /**  printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );  */
+                printf("Prim_type : %s ",terminal_string[type_ptr->typeinfo.array.primitive_type] );
                 if(type_ptr->typeinfo.array.is_dynamic.range_low){
-                    /**  printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);  */
+                    printf(" Dynamic left range | [%s .. ", type_ptr->typeinfo.array.range_low.lexeme);
                 }
                 else{
-                    /**  printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);  */
+                    printf(" Static left range | [%d .. ", type_ptr->typeinfo.array.range_low.value);
                 }
                 if(type_ptr->typeinfo.array.is_dynamic.range_high){
-                    /**  printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);  */
+                    printf("%s] Dynamic right range | ", type_ptr->typeinfo.array.range_high.lexeme);
                 }
                 else{
-                    /**  printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);  */
+                    printf("%d] Static right range | ", type_ptr->typeinfo.array.range_high.value);
                 }
-                /**  printf("\n");  */
+                printf("\n");
             }
 
             else if(type_ptr->name == MODULE){
-                /**  printf("\n");  */
-                /**  printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);  */
+                printf("\n");
+                printf("Module name : %s\n", type_ptr->typeinfo.module.module_name);
                 print_params_list(type_ptr->typeinfo.module.input_params);
                 print_params_list(type_ptr->typeinfo.module.output_params);
-                /**  printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);              */
-                /**  printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);              */
+                printf("is_declared : %d\n",type_ptr->typeinfo.module.is_declared);            
+                printf("is_defined : %d\n",type_ptr->typeinfo.module.is_defined);            
             }
-            /**  printf("\n------------------------------------------------\n");  */
+            printf("\n------------------------------------------------\n");
         }
     }
     if(sym_tab_ptr->leftmost_child_table){
-        /**  printf("\t\t\t\t Leftmost child\n");  */
+        printf("\t\t\t\t Leftmost child\n");
         print_symbol_table(sym_tab_ptr->leftmost_child_table);
     }
-    /**  printf("************************Printing Symbol table for this scope ends**********************\n");  */
+    printf("************************Printing Symbol table for this scope ends**********************\n");
     if(sym_tab_ptr->sibling_table){
-        /**  printf("\t\t\t\t Sibling\n");  */
+        printf("\t\t\t\t Sibling\n");
         print_symbol_table(sym_tab_ptr->sibling_table);
     }
     

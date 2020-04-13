@@ -1,6 +1,7 @@
 #include "codegen.h"
 #include <malloc.h>
 #include <string.h>
+#include "stackADT.h"
 
 void arithexpr_code_gen(quad_node quad){
     /**
@@ -849,6 +850,13 @@ void param_code_gen(quad_node quad){
     /**
      * @brief Push the parameter on the stack
      */
+    type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+    int offset_arg1 = 0;
+    offset_arg1 = arg1_type_ptr->offset;
+    fprintf(assembly_file_ptr, "\t\t\t\t;pushing a parameter(%s) on stack\n", quad.arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, RBP\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RAX, %d\n", offset_arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
 }
 
 void index_copy_code_gen(quad_node quad){
@@ -1024,10 +1032,163 @@ void fn_space_code_gen(quad_node quad){
 
     fprintf(assembly_file_ptr, "%s:\n", quad.arg1);
     int offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
-    int alignment = (16 - (offset % 16)) % 16;
-    fprintf(assembly_file_ptr, "\t\t\t\tSUB RSP, %d     ; align RSP to 16 boundary to enable calls to scanf, etc\n", alignment);
     fprintf(assembly_file_ptr, "\t\t\t\tENTER %d, 0\n", offset);
+    fprintf(assembly_file_ptr, "\t\t\t\t;reserve space for the input/output params of fn, later flush this space\n");
+    /**
+     * @brief Insert the parameters in current scope's table too
+     * This is to enable updation locally in function
+     * While returning output params 
+     */
+    
+    int total_offset_reqd = 0;
+
+    type *fn_type_ptr = (type*)key_search_recursive(root_sym_tab_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+
+    params_list_node *inp_param = NULL;
+    int inp_param_num = 0;
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params)
+        inp_param = fn_type_ptr->typeinfo.module.input_params->first;
+
+    while(inp_param){
+        
+        char *param_str = inp_param->param_name;
+        
+        type *param_type  = inp_param->t;
+        param_type->offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
+        quad.encl_fun_type_ptr->typeinfo.module.curr_offset += param_type->width;
+        hash_insert_ptr_val(quad.curr_scope_table_ptr->table, param_str, param_type);
+        total_offset_reqd += param_type->width;
+
+        fprintf(assembly_file_ptr, "\t\t\t\t; Allocating space to %s inp param on stack\n", inp_param->param_name);
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d]; copy value of this param from caller\n", inp_param_num);
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RAX] ;copy to my local space for the param\n");
+        fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX ;copy to my local space for the param\n", param_type->offset);
+
+        inp_param_num++;
+        inp_param = inp_param->next;
+    }
+
+    params_list_node *outp_param = NULL;
+    int outp_param_num = 0;
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params)
+        outp_param = fn_type_ptr->typeinfo.module.output_params->first;
+
+    while(outp_param){
+        
+        char *param_str = outp_param->param_name;
+        
+        type *param_type  = outp_param->t;
+        param_type->offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
+        quad.encl_fun_type_ptr->typeinfo.module.curr_offset += param_type->width;
+        hash_insert_ptr_val(quad.curr_scope_table_ptr->table, param_str, param_type);
+        total_offset_reqd += param_type->width;
+        outp_param_num++;
+        outp_param = outp_param->next;
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RSP, %d; allocated space for i/o variables on stack\n", total_offset_reqd);
     print_regs_code_gen();
+}
+
+void call_code_gen(quad_node quad){    
+    fprintf(assembly_file_ptr, "\t\t\t\tpush RBP\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t%s %s\n", tac_op_str[quad.op], quad.arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tpop RBP\n");
+    type *calle_type = (type *)key_search_recursive(root_sym_tab_ptr, quad.arg1, NULL, NULL);
+    
+    params_list_node *inp_param = NULL;
+    
+    if(calle_type->typeinfo.module.input_params)
+        inp_param = calle_type->typeinfo.module.input_params->first;
+    
+    fprintf(assembly_file_ptr, "\t\t\t\t;popping back input parameters\n");
+    
+    while(inp_param){
+        fprintf(assembly_file_ptr, "\t\t\t\tpop RAX\n");
+        inp_param = inp_param->next;
+    }
+    
+    params_list_node *outp_param = NULL;
+    if(calle_type->typeinfo.module.output_params)
+        outp_param = calle_type->typeinfo.module.output_params->first;
+    
+    stack *stk_ptr = stack_init();
+
+    while(outp_param){
+        push(stk_ptr, outp_param);
+        outp_param = outp_param->next;
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\t;popping back output parameters\n");
+    
+    int outp_param_offset_caller = -1;
+    type *outp_param_type_caller;
+    
+    while( top(stk_ptr) != NULL ){
+        // outp_param = (params_list_node *)pop(stk_ptr);
+        // printf("outp_param is %s\n", outp_param->param_name);
+        // outp_param_type_caller = (type *)key_search_recursive(quad.curr_scope_table_ptr, outp_param->param_name, quad.encl_fun_type_ptr, NULL);
+        // outp_param_offset_caller = outp_param_type_caller->offset;
+
+        fprintf(assembly_file_ptr, "\t\t\t\tpop RAX\n");
+        // fprintf(assembly_file_ptr, "\t\t\t\t;update value of %s in caller's record too\n", outp_param->param_name);
+        // fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX\n", outp_param_offset_caller);
+        // outp_param = outp_param->next;
+        pop(stk_ptr);
+    }
+}
+
+void return_code_gen(quad_node quad){
+
+    type *fn_type_ptr = quad.encl_fun_type_ptr;
+
+    params_list_node *outp_param = NULL;
+    int total_offset_reqd = 0;
+
+    params_list_node *inp_param = NULL;
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params)
+        inp_param = fn_type_ptr->typeinfo.module.input_params->first;
+
+    while(inp_param){
+        type *param_type  = inp_param->t;
+        total_offset_reqd += param_type->width;
+        inp_param = inp_param->next;
+    }
+
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params)
+        outp_param = fn_type_ptr->typeinfo.module.output_params->first;
+
+    while(outp_param){        
+        type *param_type  = outp_param->t;
+        total_offset_reqd += param_type->width;
+        outp_param = outp_param->next;
+    }
+
+
+    if(fn_type_ptr && strcmp(fn_type_ptr->typeinfo.module.module_name, "main") != 0){
+        if(fn_type_ptr->typeinfo.module.output_params)
+            outp_param = fn_type_ptr->typeinfo.module.output_params->first;
+    
+        int num_inp_params = fn_type_ptr->typeinfo.module.input_params->length;    
+        int outp_param_num = 1;
+        int outp_param_offset_callee;
+        type *outp_param_type_ptr_callee = NULL;
+        fprintf(assembly_file_ptr, "\t\t\t\t; copy values to output parameters that u have computed so far\n");
+        while(outp_param){
+            outp_param_type_ptr_callee = (type *)key_search_recursive(quad.curr_scope_table_ptr, outp_param->param_name, quad.encl_fun_type_ptr, NULL);
+            outp_param_offset_callee = outp_param_type_ptr_callee->offset;
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", outp_param_offset_callee);
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP + 16 + 8*%d + 8*%d]\n", num_inp_params,outp_param_num);
+            fprintf(assembly_file_ptr, "\t\t\t\tmov [RBX], RAX\n");
+            outp_param_num++;
+            outp_param = outp_param->next;
+        }
+    }    
+    fprintf(assembly_file_ptr, "\t\t\t\t;Deallocate space given to I/O variables on stack\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tadd RSP, %d\n", total_offset_reqd);
+    fprintf(assembly_file_ptr, "\t\t\t\tLEAVE\n");
+    int offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
+    fprintf(assembly_file_ptr, "\t\t\t\t%s\n\n", tac_op_str[quad.op]);
 }
 
 void print_regs_code_gen(){
@@ -1163,7 +1324,7 @@ void generate_code(){
 
             case PROC_CALL_OP:
             {
-                fprintf(assembly_file_ptr, "\t\t\t\t%s %s\n", tac_op_str[quadruples[i].op], quadruples[i].arg1);
+                call_code_gen(quadruples[i]);
             }
             break;
 
@@ -1193,11 +1354,7 @@ void generate_code(){
             case RETURN_OP:
             {
                 print_regs_code_gen();
-                fprintf(assembly_file_ptr, "\t\t\t\tLEAVE\n");
-                int offset = quadruples[i].encl_fun_type_ptr->typeinfo.module.curr_offset;
-                int alignment = (16 - (offset % 16)) % 16;
-                fprintf(assembly_file_ptr, "\t\t\t\tADD RSP, %d     ; align RSP back to intial position\n", alignment);
-                fprintf(assembly_file_ptr, "\t\t\t\t%s\n\n", tac_op_str[quadruples[i].op]);
+                return_code_gen(quadruples[i]);
             }
             break;
 

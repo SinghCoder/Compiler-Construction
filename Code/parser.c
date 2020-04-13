@@ -215,7 +215,7 @@ tree_node *parse_input_source_code(FILE *source) {
   TOKEN tkn = get_next_token(source);
 
   while (true) {
-	tree_node *node = pop(main_stack);
+	tree_node *node = (tree_node *)pop(main_stack);
 	if ((node != NULL) && (node->sym).is_terminal == true) {
 	  if (node->sym.t == EPSILON) {
 		  node->token.name = EPSILON;
@@ -237,7 +237,7 @@ tree_node *parse_input_source_code(FILE *source) {
 		printf("Popping token %s from stack top\n",
 			   terminal_string[node->sym.t]);
 		// tkn = get_next_token(source);
-		node = pop(main_stack);
+		node = (tree_node *)pop(main_stack);
 		if (node == NULL) {
 		  print_error("Panic Mode Error Recovery Not possible", "Partial parse tree formed");          
 		  return root;
@@ -323,11 +323,11 @@ tree_node *parse_input_source_code(FILE *source) {
 	  rhs_ptr = rhs_ptr->next;
 	}
 
-	tree_node *temp = pop(aux_stack);
+	tree_node *temp = (tree_node *)pop(aux_stack);
 
 	while (temp != NULL) {
 	  push(main_stack, temp);
-	  temp = pop(aux_stack);
+	  temp = (tree_node *)pop(aux_stack);
 	}
   } // end of while(true) loop : parsing done
   return root;

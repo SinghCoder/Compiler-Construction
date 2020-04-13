@@ -469,27 +469,27 @@ void var_node_second_time(tree_node *var_node){
         /**
          * @brief Dynamic array code
          */
-        if(arr_type->typeinfo.array.is_dynamic.range_low || arr_type->typeinfo.array.is_dynamic.range_high || index_node->token.name == ID){
-            /**
-             * @brief Convert low and high ranges to strings                                 * 
-             */
+        /**
+         * @brief Convert low and high ranges to strings                                 * 
+         */
 
-            
-            if(arr_type->typeinfo.array.is_dynamic.range_low){
-                low_range = arr_type->typeinfo.array.range_low.lexeme;
-            }
-            else{
-                low_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
-                snprintf(low_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_low.value);
-            }
+        
+        if(arr_type->typeinfo.array.is_dynamic.range_low){
+            low_range = arr_type->typeinfo.array.range_low.lexeme;
+        }
+        else{
+            low_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
+            snprintf(low_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_low.value);
+        }
 
-            if(arr_type->typeinfo.array.is_dynamic.range_high){
-                high_range = arr_type->typeinfo.array.range_high.lexeme;
-            }
-            else{
-                high_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
-                snprintf(high_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_high.value);
-            }
+        if(arr_type->typeinfo.array.is_dynamic.range_high){
+            high_range = arr_type->typeinfo.array.range_high.lexeme;
+        }
+        else{
+            high_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
+            snprintf(high_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_high.value);
+        }
+        if(arr_type->typeinfo.array.is_dynamic.range_low || arr_type->typeinfo.array.is_dynamic.range_high || index_node->token.name == ID){            
 
             /**
              * @brief Emit code for index bounds checking
@@ -511,15 +511,14 @@ void var_node_second_time(tree_node *var_node){
         
         code_emit(LABEL_OP, var_node->label.cnstrct_code_begin, NULL, NULL, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
 
-        if(index_node->token.name == ID){
-            index_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
-            tree_node *offset_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
-            code_emit(MINUS_OP,index, low_range, offset_node->token.id.str, offset_node->scope_sym_tab,  offset_node->encl_fun_type_ptr, NULL);
-            code_emit(MUL_OP,offset_node->token.id.str, width, index_node->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
+        if(index_node->token.name != ID){
+            snprintf(index, MAX_LABEL_LEN, "%d", index_node->token.num);
         }
-        else{
-            snprintf(index, MAX_LABEL_LEN, "%d", index_node->token.num * width_val);
-        }        
+        
+        index_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
+        tree_node *offset_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
+        code_emit(MINUS_OP,index, low_range, offset_node->token.id.str, offset_node->scope_sym_tab,  offset_node->encl_fun_type_ptr, NULL);
+        code_emit(MUL_OP,offset_node->token.id.str, width, index_node->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);                
 
         code_emit(ARRAY_ACCESS_OP, id_node->addr, index_node->addr, var_node->addr, var_node->scope_sym_tab,  var_node->encl_fun_type_ptr, NULL);
     }
@@ -545,29 +544,29 @@ void assign_node_second_time(tree_node *assign_node){
                             lvalue_id_node->encl_fun_type_ptr, NULL);
         char *low_range, *high_range;
         /**
+         * @brief Convert low and high ranges to strings                                 * 
+         */
+        
+        if(arr_type->typeinfo.array.is_dynamic.range_low){
+            low_range = arr_type->typeinfo.array.range_low.lexeme;
+        }
+        else{
+            low_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
+            snprintf(low_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_low.value);
+        }
+
+        if(arr_type->typeinfo.array.is_dynamic.range_high){
+            high_range = arr_type->typeinfo.array.range_high.lexeme;
+        }
+        else{
+            high_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
+            snprintf(high_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_high.value);
+        }    
+        /**
          * @brief Dynamic array code
          */
         if(arr_type->typeinfo.array.is_dynamic.range_low || arr_type->typeinfo.array.is_dynamic.range_high 
-            || index_node->token.name == ID){
-            /**
-             * @brief Convert low and high ranges to strings                                 * 
-             */
-            
-            if(arr_type->typeinfo.array.is_dynamic.range_low){
-                low_range = arr_type->typeinfo.array.range_low.lexeme;
-            }
-            else{
-                low_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
-                snprintf(low_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_low.value);
-            }
-
-            if(arr_type->typeinfo.array.is_dynamic.range_high){
-                high_range = arr_type->typeinfo.array.range_high.lexeme;
-            }
-            else{
-                high_range = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
-                snprintf(high_range, MAX_LEXEME_LEN, "%d", arr_type->typeinfo.array.range_high.value);
-            }                                
+            || index_node->token.name == ID){                                        
             
             tree_node *dummy_bool_node = create_tree_node();
             char *sec_cnd_chk_lbl = newlabel();
@@ -613,18 +612,16 @@ void assign_node_second_time(tree_node *assign_node){
          */
         code_emit(LABEL_OP, assign_node->label.cnstrct_code_begin, NULL, NULL, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
         
-        if(index_node->token.name == ID){
-            tree_node *arr_locn_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
-            tree_node *offset_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
-            index = arr_locn_node->addr;
-            code_emit(MINUS_OP,node2_tkn_str_val(index_node), low_range, offset_node->token.id.str, offset_node->scope_sym_tab,  offset_node->encl_fun_type_ptr, NULL);
-            code_emit(MUL_OP,offset_node->token.id.str, width, index, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
-        }
-        else{
+        if(index_node->token.name != ID){
             index = (char*) malloc(sizeof(char) * MAX_LEXEME_LEN);
             snprintf(index, MAX_LEXEME_LEN, "%d", width_val * index_node->token.num);
         }
-
+        tree_node *arr_locn_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
+        tree_node *offset_node = newtemp(index_node, NO_MATCHING_OP, NULL, TYPE_ERROR);
+        index = arr_locn_node->addr;
+        code_emit(MINUS_OP,node2_tkn_str_val(index_node), low_range, offset_node->token.id.str, offset_node->scope_sym_tab,  offset_node->encl_fun_type_ptr, NULL);
+        code_emit(MUL_OP,offset_node->token.id.str, width, index, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
+        
         code_emit(INDEXED_COPY_OP,index, rvalue_node->addr, lvalue_id_node->addr, assign_node->scope_sym_tab,  assign_node->encl_fun_type_ptr, NULL);
     }
 
@@ -971,7 +968,7 @@ void generate_ir(tree_node *ast_node)
                     break;
                     case DEFAULTSTMT:
                     {
-                        tree_node *switch_node = ast_node->parent->parent;
+                        tree_node *switch_node = ast_node->parent;
                         code_emit(GOTO_UNCOND_OP, switch_node->label.next_label, NULL, NULL, ast_node->scope_sym_tab,  ast_node->encl_fun_type_ptr, NULL);                        
                         switch_table[switch_tbl_entry_num].label = ast_node->label.cnstrct_code_begin;
                         switch_table[switch_tbl_entry_num].value = "default_case";

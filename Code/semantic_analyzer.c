@@ -749,10 +749,12 @@ void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
         }
     }
     if(sym_tab_ptr->leftmost_child_table){
+        // printf("*************CHILD***********\n");
         print_symbol_table(sym_tab_ptr->leftmost_child_table);
     }
     // printf("************************Printing Symbol table for this scope ends**********************\n");
     if(sym_tab_ptr->sibling_table){
+        // printf("*************SIBLING***********\n");
         print_symbol_table(sym_tab_ptr->sibling_table);
     }
     

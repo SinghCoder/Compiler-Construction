@@ -5,7 +5,7 @@
 
 void assign_next_label(tree_node *ast_node)
 {
-    if(ast_node->sibling){
+    if(ast_node->sibling || (ast_node->parent && (ast_node->parent->sym.nt == FORLOOP || ast_node->parent->sym.nt == WHILELOOP)) ){
         ast_node->label.next_label = newlabel();                            
         // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, NULL);
         // print_symbol_(ast_node);
@@ -171,9 +171,11 @@ tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node, to
     tmp_type->offset_used = tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset_used;
     tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset += tmp_type->width;
     tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
+    
     if(tmp_node->encl_fun_type_ptr){
         tmp_type->encl_mod_name = tmp_node->encl_fun_type_ptr->typeinfo.module.module_name;
     }
+    // printf("inserting %s in ht %llu\n", tmp_node->token.id.str, tmp_node->scope_sym_tab->table);
     hash_insert_ptr_val(tmp_node->scope_sym_tab->table, tmp_node->token.id.str, tmp_type);
     return tmp_node;
 }
@@ -334,9 +336,8 @@ void forloop_first_time(tree_node *forloop_node){
 
 void conditional_node_first_time(tree_node *conditional_node){
     assign_next_label(conditional_node);
-    if(switch_test_label)
-        free(switch_test_label);
     switch_test_label = newlabel();
+    printf("switch_test_label assigned as %s\n", switch_test_label);
     code_emit(GOTO_UNCOND_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     switch_tbl_entry_num = 0;
 }
@@ -781,6 +782,9 @@ void conditional_node_second_time(tree_node *conditional_node){
     }
     else if(strcmp(conditional_node->label.next_label, conditional_node->parent->label.next_label) != 0){
         // printf("cndnal : %s, par = %s\n")
+        code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
+    }
+    else{
         code_emit(LABEL_OP, conditional_node->label.next_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     }
 }

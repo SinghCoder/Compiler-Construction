@@ -76,7 +76,8 @@ void arithexpr_code_gen(quad_node quad){
 
             case DIV_OP: 
             fprintf(assembly_file_ptr, "\t\t\t\t;Division of integers\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %s\n\
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, 0\n\
+                mov RAX, %s\n\
                 mov RBX, %s\n\
                 div RBX \n\
                 mov [RBP - %d], RAX \n", arg1_str, arg2_str, offset_result);
@@ -1034,18 +1035,41 @@ void fn_space_code_gen(quad_node quad){
     int num_elems = 0;
     type *type_ptr;
     int offset = 0;
-    for(int i=0; i < HASH_SIZE; i++){
-        type_ptr = (type*)(quad.curr_scope_table_ptr->table[i].value);
-        if(type_ptr != NULL){
-            num_elems++;
-            offset += WIDTH_POINTER;
-            if(type_ptr->name == ARRAY){
-                if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
-                    offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
+    st_wrapper *table_ptr = quad.curr_scope_table_ptr, *lvl_start_ptr;
+    lvl_start_ptr = table_ptr;
+    while(lvl_start_ptr != NULL){
+        for(int i=0; i < HASH_SIZE; i++){        
+            type_ptr = (type*)(lvl_start_ptr->table[i].value);
+            if(type_ptr != NULL){
+                // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",lvl_start_ptr,lvl_start_ptr->table[i].lexeme );
+                num_elems++;
+                offset += WIDTH_POINTER;
+                if(type_ptr->name == ARRAY){
+                    if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
+                        offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
+                    }
                 }
+            }            
+        }
+        table_ptr = lvl_start_ptr->sibling_table;
+        while(table_ptr){
+            for(int i=0; i < HASH_SIZE; i++){        
+                type_ptr = (type*)(lvl_start_ptr->table[i].value);
+                if(type_ptr != NULL){
+                    // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",lvl_start_ptr,lvl_start_ptr->table[i].lexeme );
+                    num_elems++;
+                    offset += WIDTH_POINTER;
+                    if(type_ptr->name == ARRAY){
+                        if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
+                            offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
+                        }
+                    }
+                }            
             }
-        }            
-    }    
+            table_ptr = table_ptr->sibling_table;
+        }
+        lvl_start_ptr = lvl_start_ptr->leftmost_child_table;
+    }
 
     fprintf(assembly_file_ptr, "\t\t\t\tENTER %d, 0\n", offset);
     fprintf(assembly_file_ptr, "\t\t\t\t;reserve space for the input/output params of fn, later flush this space\n");
@@ -1061,8 +1085,19 @@ void fn_space_code_gen(quad_node quad){
 
     params_list_node *inp_param = NULL;
     int inp_param_num = 0;
-    if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params)
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params){
         inp_param = fn_type_ptr->typeinfo.module.input_params->first;
+        total_offset_reqd += fn_type_ptr->typeinfo.module.input_params->length * WIDTH_POINTER;
+    }
+
+    params_list_node *outp_param = NULL;
+    int outp_param_num = 0;
+    if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params){
+        outp_param = fn_type_ptr->typeinfo.module.output_params->first;
+        total_offset_reqd += fn_type_ptr->typeinfo.module.output_params->length * WIDTH_POINTER;
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\tsub RSP, %d; allocated space for i/o variables on stack\n", total_offset_reqd);
 
     while(inp_param){
         
@@ -1075,7 +1110,6 @@ void fn_space_code_gen(quad_node quad){
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset += param_type->width;
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
         hash_insert_ptr_val(quad.curr_scope_table_ptr->table, param_str, param_type);
-        total_offset_reqd += WIDTH_POINTER;
 
         fprintf(assembly_file_ptr, "\t\t\t\t; Allocating space to %s inp param on stack\n", inp_param->param_name);
         fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d]; copy value of this param from caller\n", inp_param_num);
@@ -1084,12 +1118,7 @@ void fn_space_code_gen(quad_node quad){
 
         inp_param_num++;
         inp_param = inp_param->next;
-    }
-
-    params_list_node *outp_param = NULL;
-    int outp_param_num = 0;
-    if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params)
-        outp_param = fn_type_ptr->typeinfo.module.output_params->first;
+    }   
 
     while(outp_param){
         
@@ -1101,14 +1130,10 @@ void fn_space_code_gen(quad_node quad){
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset += param_type->width;
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
         hash_insert_ptr_val(quad.curr_scope_table_ptr->table, param_str, param_type);
-        total_offset_reqd += WIDTH_POINTER;
         outp_param_num++;
         outp_param = outp_param->next;
-    }
-
-    fprintf(assembly_file_ptr, "\t\t\t\tsub RSP, %d; allocated space for i/o variables on stack\n", total_offset_reqd);
+    }    
     print_regs_code_gen();
-    // print_symbol_table(quad.curr_scope_table_ptr);
 }
 
 void call_code_gen(quad_node quad){    

@@ -41,6 +41,8 @@ tree_node *create_tree_node() {
   node->label.cnstrct_code_begin = NULL;
   strcpy(node->token.id.str, "");
   node->encl_fun_type_ptr = NULL;
+  node->line_nums.start = 0;
+  node->line_nums.end = 0;
   return node;
 }
 
@@ -60,6 +62,12 @@ void add_child(tree_node *parent, tree_node *child) {
   parent->num_child++;
   child->parent = parent;
   child->sibling = NULL;
+  if(child->sym.is_terminal == false){
+    if(parent->line_nums.start == 0)
+      parent->line_nums.start = child->line_nums.start;
+    if(child->line_nums.end != 0)
+      parent->line_nums.end = child->line_nums.end;
+  }
 }
 
 tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {

@@ -8,7 +8,7 @@ void assign_next_label(tree_node *ast_node)
     if(ast_node->sibling){
         ast_node->label.next_label = newlabel();                            
         // code_emit(LABEL_OP, ast_node->label.next_label, NULL, NULL, NULL);
-        print_symbol_(ast_node);
+        // print_symbol_(ast_node);
         // printf(" node is assigned a new label = %s\n", ast_node->label.next_label);
     }
     else{
@@ -21,7 +21,7 @@ void assign_next_label(tree_node *ast_node)
             ast_node->label.next_label = fn_end_str;
         }
         else{
-            print_symbol_(ast_node);
+            // print_symbol_(ast_node);
             // printf(" node is assigned parent label = %s\n", ast_node->label.next_label);
         }
     }
@@ -168,7 +168,12 @@ tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node, to
         printf("encl_fun_type_ptr for tmp is NULL\n\n");
     }
     tmp_type->offset = tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset;
+    tmp_type->offset_used = tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset_used;
     tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset += tmp_type->width;
+    tmp_node->encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
+    if(tmp_node->encl_fun_type_ptr){
+        tmp_type->encl_mod_name = tmp_node->encl_fun_type_ptr->typeinfo.module.module_name;
+    }
     hash_insert_ptr_val(tmp_node->scope_sym_tab->table, tmp_node->token.id.str, tmp_type);
     return tmp_node;
 }
@@ -258,7 +263,7 @@ void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr
         if(arg1 == NULL)
             return;
         else{
-            printf("Emitting label %s\n", arg1);
+            // printf("Emitting label %s\n", arg1);
         }
     }
         
@@ -747,6 +752,7 @@ void forloop_node_second_time(tree_node *forloop_node){
 }
 
 void conditional_node_second_time(tree_node *conditional_node){
+    // print_symbol_table(conditional_node->scope_sym_tab);
     tree_node *switch_var_node = conditional_node->leftmost_child;
     tree_node *dummy_bool_node = create_tree_node();
     dummy_bool_node->encl_fun_type_ptr = switch_var_node->encl_fun_type_ptr;

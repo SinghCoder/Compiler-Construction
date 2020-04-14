@@ -47,6 +47,10 @@ typedef struct TREENODE
     char *cnstrct_code_begin;
   }label;
   char *addr;
+  struct{
+    int start;
+    int end;
+  }line_nums;
 } tree_node;
 
 #endif

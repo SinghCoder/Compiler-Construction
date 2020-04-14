@@ -42,4 +42,6 @@ void mark_while_loop_var_assigned(tree_node *while_node, char *var_name);
 bool is_id_part_of_while_loop(tree_node *id_node/*In param*/, tree_node **while_node, int *child_dir /*Out params*/);
 void install_id_in_loop_args(tree_node *while_node, char *id_str);
 void second_ast_pass(tree_node *ast_root);
+void print_arrays(st_wrapper *sym_tab_ptr);
+void print_activation_records();
 #endif

@@ -6,9 +6,9 @@
 #include <limits.h>
 
 #define OBTAIN_DYNAMICALLY 0x3f3f3f3f
-#define WIDTH_BOOLEAN 8
-#define WIDTH_INTEGER 8
-#define WIDTH_REAL 8	
+#define WIDTH_BOOLEAN 1
+#define WIDTH_INTEGER 2
+#define WIDTH_REAL 4
 #define WIDTH_POINTER 8
 #define MAX_VARSNUM_IN_EXPR 100
 #define WHILE_LHS 0
@@ -61,6 +61,7 @@ struct type{
             bool is_defined;
             bool is_declrn_valid;
             int curr_offset;
+            int curr_offset_used;
             int base_addr;
         }module;
             
@@ -68,6 +69,12 @@ struct type{
     bool is_assigned;
     int width;
     int offset;
+    int offset_used;
+    char *encl_mod_name;
+    struct{
+        int start;
+        int end;
+    }line_nums;
 };
 
 st_wrapper *curr_sym_tab_ptr;

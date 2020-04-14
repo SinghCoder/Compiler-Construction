@@ -215,6 +215,7 @@ tree_node *parse_input_source_code(FILE *source) {
   TOKEN tkn = get_next_token(source);
 
   while (true) {
+	num_tree_nodes++;
 	tree_node *node = (tree_node *)pop(main_stack);
 	if ((node != NULL) && (node->sym).is_terminal == true) {
 	  if (node->sym.t == EPSILON) {
@@ -225,21 +226,18 @@ tree_node *parse_input_source_code(FILE *source) {
 	  if (node->sym.t != tkn.name) // terminal on top of stack does not match
 								   // with lookhead symbol
 	  {
-		// node->token.name = LEX_ERROR;
-		char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-		sprintf(type_err,"%d) SYNTAX ERORR", tkn.line_no);
-		
+		// node->token.name = LEX_ERROR;		
 		char *err_msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
 		sprintf(err_msg, "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET,terminal_string[node->sym.t], terminal_string[tkn.name]);
 		
-		print_error(type_err, err_msg);        
+		store_error(tkn.line_no, SYNTACTIC_ERROR, err_msg);        
 		
 		printf("Popping token %s from stack top\n",
 			   terminal_string[node->sym.t]);
 		// tkn = get_next_token(source);
 		node = (tree_node *)pop(main_stack);
 		if (node == NULL) {
-		  print_error("Panic Mode Error Recovery Not possible", "Partial parse tree formed");          
+		  store_error(tkn.line_no, SYNTACTIC_ERROR, "Panic Mode Error Recovery Not possible, Partial parse tree formed");          
 		  return root;
 		}
 		continue;
@@ -266,10 +264,7 @@ tree_node *parse_input_source_code(FILE *source) {
 	}
 
 	if (tkn.name == LEX_ERROR) {
-
-	  char *err_type = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-	  sprintf(err_type, "%d) LEXICAL ERROR", tkn.line_no);
-	  print_error(err_type, tkn.id.str);
+	  store_error(tkn.line_no, LEXICAL_ERROR, tkn.id.str);
 
 	  tkn = get_next_token(source);
 	  push(main_stack, node);
@@ -278,12 +273,9 @@ tree_node *parse_input_source_code(FILE *source) {
 	if (node == NULL) {
 	  if (tkn.name != DOLLAR) // rule not read completely but stack became empty
 	  {
-		char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-		sprintf(type_err, "%d) SYNTAX ERORR", tkn.line_no);        
-		print_error(type_err, "Extra symbols in the source code");        
+		store_error(tkn.line_no, LEXICAL_ERROR, "Extra symbols in the source code");        
 	  } else {
-		printf(
-			"\nInput source code is now syntactically correct...........\n\n");
+		// printf("\nInput source code is now syntactically correct...........\n\n");
 	  }
 	  break;
 	}
@@ -291,18 +283,15 @@ tree_node *parse_input_source_code(FILE *source) {
 	int rule_no = parse_table[node->sym.nt][tkn.name];
 	if (rule_no == NO_MATCHING_RULE) {
 	  // printf("[%s][%s]", non_terminal_string[node->sym.nt],
-			//  terminal_string[tkn.name]);
-	  
-	  char *type_err = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-	  sprintf(type_err, "%d) SYNTAX ERORR", tkn.line_no);        
-	  print_error(type_err, "No matching rule found in grammar");  
+			//  terminal_string[tkn.name]);      
+	  store_error(tkn.line_no, LEXICAL_ERROR, "No matching rule found in grammar");  
 
 	  printf("Waiting for an element in follow of " ANSI_COLOR_YELLOW "\"%s\"\n" ANSI_COLOR_RESET, non_terminal_string[node->sym.nt]);
 	  
 	  while (set_find_elem(follow_set[node->sym.nt], tkn.name) == false) {
 		tkn = get_next_token(source);
 		if (tkn.name == DOLLAR) {
-		  print_error("Panic Mode Error Recovery Not possible", "Partial parse tree formed");          
+		  store_error(tkn.line_no, SYNTACTIC_ERROR,  "Panic Mode Error Recovery Not possible, Partial parse tree formed");          
 		  return root;
 		}
 	  }
@@ -353,20 +342,28 @@ void free_grammar() {
  *
  */
 void pretty_print(char *s) {
-  int column_size = COLUMN_SIZE, len, left_margin;
-  len = strlen(s);
-  left_margin = (column_size - len) / 2;
-  for (int i = 0; i < left_margin; i++) {
-	fprintf(parse_tree_file_ptr, " ");
-  }
-  fprintf(parse_tree_file_ptr, "%s", s);
-  int right_margin = left_margin;
-  if (len % 2 == 1)
-	right_margin++;
-  for (int i = 0; i < right_margin; i++) {
-	fprintf(parse_tree_file_ptr, " ");
-  }
-  fprintf(parse_tree_file_ptr, "|");
+	int column_size = COLUMN_SIZE, len, left_margin;
+
+	len = strlen(s);
+	left_margin = (column_size - len) / 2;
+
+	for (int i = 0; i < left_margin; i++)
+	{
+		printf(" ");
+	}
+
+	printf("%s", s);
+	
+	int right_margin = left_margin;
+	
+	if (len % 2 == 1)
+		right_margin++;
+	for (int i = 0; i < right_margin; i++) 
+	{
+		printf(" ");
+	}
+	
+	printf("|");
 }
 
 /**
@@ -374,62 +371,88 @@ void pretty_print(char *s) {
  *
  * @param node
  */
-void print_node(tree_node *node) {
-  char *s = (char *)calloc(30, sizeof(char));
-  for (int i = 0; i < 30; i++) {
-	s[i] = '\0';
-  }
-
-  if (node == NULL)
-	return;
-  bool is_terminal = (node->sym).is_terminal;
-  if (is_terminal == true) {
-	if ((node->token.name != NUM && node->token.name != RNUM) &&
-		node->token.id.str != NULL) {
-	  sprintf(s, "%s", (node->token).id.str);
-	  pretty_print(s);
-	} else
-	  pretty_print("----");
-	sprintf(s, "%d", (node->token).line_no);
-	pretty_print(s);
-
-	if (node->token.id.str != NULL) {
-	  sprintf(s, "%s", terminal_string[(node->token).name]);
-	  pretty_print(s);
-	} else
-	  pretty_print("----");
-
-	switch ((node->token).name) {
-	case NUM:
-	  sprintf(s, "%d", (node->token).num);
-	  pretty_print(s);
-	  break;
-	case RNUM:
-	  sprintf(s, "%f", (node->token).rnum);
-	  pretty_print(s);
-	  break;
-	default:
-	  pretty_print("----");
-	  break;
+void print_node(tree_node *node) 
+{
+	char *s = (char *)calloc(30, sizeof(char));
+	for (int i = 0; i < 30; i++) 
+	{
+		s[i] = '\0';
 	}
-	sprintf(s, "%s", non_terminal_string[(node->parent->sym).nt]);
-	pretty_print(s);
-	pretty_print("yes");
-	fprintf(parse_tree_file_ptr, "\t\t%s\n", terminal_string[(node->sym).t]);
-  } else {
-	pretty_print("----");
-	pretty_print("----");
-	pretty_print("----");
-	pretty_print("----");
 
-	if (node->parent)
-	  pretty_print(non_terminal_string[(node->parent->sym).nt]);
-	else
-	  pretty_print("(ROOT)");
-	pretty_print("no");
-	fprintf(parse_tree_file_ptr, "\t\t%s\n",
-			non_terminal_string[(node->sym).nt]);
-  }
+	if(node == NULL)
+		return;
+
+	bool is_terminal = (node->sym).is_terminal;
+
+	if (is_terminal == true){
+
+		if((node->token.name != NUM && node->token.name != RNUM) && node->token.id.str != NULL)
+		{
+			sprintf(s, "%s", (node->token).id.str);
+			pretty_print(s);
+		} 
+		else
+		{
+			pretty_print("----");
+		}
+		sprintf(s, "%d", (node->token).line_no);
+		pretty_print(s);
+
+		if(node->token.id.str != NULL) 
+		{
+			sprintf(s, "%s", terminal_string[(node->token).name]);
+			pretty_print(s);
+		} 
+		else
+		{
+			pretty_print("----");
+		}
+
+		switch ((node->token).name) 
+		{
+			case NUM:
+			{
+				sprintf(s, "%d", (node->token).num);
+				pretty_print(s);
+			}
+			break;
+			case RNUM:
+			{
+				sprintf(s, "%f", (node->token).rnum);
+				pretty_print(s);
+			}        
+			break;
+
+			default:
+			{
+				pretty_print("----");
+			}
+			break;
+		}
+
+		sprintf(s, "%s", non_terminal_string[(node->parent->sym).nt]);
+
+		pretty_print(s);
+		pretty_print("yes");
+
+		printf("\t\t%s\n", terminal_string[(node->sym).t]);
+	} 
+	else 
+	{
+		pretty_print("----");
+		pretty_print("----");
+		pretty_print("----");
+		pretty_print("----");
+
+		if (node->parent)
+			pretty_print(non_terminal_string[(node->parent->sym).nt]);
+		else
+			pretty_print("(ROOT)");
+
+		pretty_print("no");
+
+		printf("\t\t%s\n",non_terminal_string[(node->sym).nt]);
+	}
 }
 
 /**
@@ -438,21 +461,24 @@ void print_node(tree_node *node) {
  * @param root root node of the tree
  */
 void print_parse_tree(tree_node *root) {
-  if (root == NULL)
-	return;
+	if (root == NULL)
+		return;
 
-  if (root->leftmost_child)
-	print_parse_tree(root->leftmost_child);
+	if (root->leftmost_child)
+		print_parse_tree(root->leftmost_child);
+	
+	print_node(root);
 
-  print_node(root);
+	if (root->leftmost_child)
+  	{
+		tree_node *temp = root->leftmost_child->sibling;
 
-  if (root->leftmost_child) {
-	tree_node *temp = root->leftmost_child->sibling;
-	while (temp != NULL) {
-	  print_parse_tree(temp);
-	  temp = temp->sibling;
-	}
-  }
+		while (temp != NULL) 
+		{
+			print_parse_tree(temp);
+			temp = temp->sibling;
+		}
+  	}
 }
 
 /**
@@ -499,6 +525,9 @@ void print_node_for_tool(tree_node *node, tree_type typ) {
 	  break;
 
 	default: {
+		// if(node->token.name == ID){
+		// 	printf("ast :  %s, s : %d, e : %d\n", node->token.id.str, node->line_nums.start, node->line_nums.end);
+		// }
 	  char tkn_name[MAX_LEXEME_LEN];
 	  strcpy(tkn_name, terminal_string[(node->sym).t]);
 

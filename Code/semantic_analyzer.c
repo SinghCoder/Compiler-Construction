@@ -581,6 +581,11 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
                 type_ptr->line_nums.end = node->line_nums.end;
                 node->encl_fun_type_ptr->typeinfo.module.curr_offset += type_ptr->width;
                 node->encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
+                if(type_ptr->name == ARRAY){
+                    if(type_ptr->typeinfo.array.is_dynamic.range_low == false && type_ptr->typeinfo.array.is_dynamic.range_high == false){
+                        node->encl_fun_type_ptr->typeinfo.module.curr_offset_used += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
+                    }
+                }
             }
             else{
                 return;

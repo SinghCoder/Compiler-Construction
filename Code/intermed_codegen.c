@@ -151,13 +151,13 @@ tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node, to
     // printf("e1_type->name = %s\n", terminal_string[e1_type->name]);
     switch(tmp_type->name){
         case BOOLEAN:
-            tmp_type->width = WIDTH_BOOLEAN;
+            tmp_type->width = WIDTH_POINTER;
         break;
         case INTEGER:
-            tmp_type->width = WIDTH_INTEGER;
+            tmp_type->width = WIDTH_POINTER;
         break;
         case REAL:
-            tmp_type->width = WIDTH_REAL;
+            tmp_type->width = WIDTH_POINTER;
         break;        
         default:
             tmp_type->width = 0;
@@ -446,18 +446,18 @@ void var_node_second_time(tree_node *var_node){
         
         switch(arr_type->typeinfo.array.primitive_type){
             case BOOLEAN:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_BOOLEAN);       
-                width_val = WIDTH_BOOLEAN;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;
 
             case INTEGER:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_INTEGER);       
-                width_val = WIDTH_INTEGER;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;
 
             case REAL:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_REAL);       
-                width_val = WIDTH_REAL;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;        
 
             default:
@@ -592,18 +592,18 @@ void assign_node_second_time(tree_node *assign_node){
         int width_val = 0;
         switch(arr_type->typeinfo.array.primitive_type){
             case BOOLEAN:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_BOOLEAN);       
-                width_val = WIDTH_BOOLEAN;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;
 
             case INTEGER:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_INTEGER);       
-                width_val = WIDTH_INTEGER;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;
 
             case REAL:
-                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_REAL);       
-                width_val = WIDTH_REAL;
+                snprintf(width, MAX_LABEL_LEN, "%d", WIDTH_POINTER);       
+                width_val = WIDTH_POINTER;
             break;        
 
             default:

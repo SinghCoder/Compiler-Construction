@@ -992,7 +992,7 @@ void dynamic_arr_space_code_gen(quad_node quad){
     fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Declared dynamic array with RCX elements\"\n");
     fprintf(assembly_file_ptr, "\t\t\t\tprint_str\"\"\n");
 
-    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", width);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", WIDTH_POINTER);
     fprintf(assembly_file_ptr, "\t\t\t\tmul RCX;RCX = count_elems * width\n");
     
     fprintf(assembly_file_ptr, "\t\t\t\t;Save current RSP(location of alocation of elements of array) at array's name location\n");
@@ -1033,12 +1033,19 @@ void fn_space_code_gen(quad_node quad){
     
     int num_elems = 0;
     type *type_ptr;
+    int offset = 0;
     for(int i=0; i < HASH_SIZE; i++){
         type_ptr = (type*)(quad.curr_scope_table_ptr->table[i].value);
-        if(type_ptr != NULL)
+        if(type_ptr != NULL){
             num_elems++;
-    }
-    int offset = num_elems * WIDTH_POINTER;
+            offset += WIDTH_POINTER;
+            if(type_ptr->name == ARRAY){
+                if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
+                    offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
+                }
+            }
+        }            
+    }    
 
     fprintf(assembly_file_ptr, "\t\t\t\tENTER %d, 0\n", offset);
     fprintf(assembly_file_ptr, "\t\t\t\t;reserve space for the input/output params of fn, later flush this space\n");
@@ -1101,6 +1108,7 @@ void fn_space_code_gen(quad_node quad){
 
     fprintf(assembly_file_ptr, "\t\t\t\tsub RSP, %d; allocated space for i/o variables on stack\n", total_offset_reqd);
     print_regs_code_gen();
+    // print_symbol_table(quad.curr_scope_table_ptr);
 }
 
 void call_code_gen(quad_node quad){    

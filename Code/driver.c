@@ -535,6 +535,8 @@ int main(int argc, char *argv[]) {
 				}
 
 				generate_ir(ast_tree);	
+				print_quadruples();
+				// print_symbol_table(root_sym_tab_ptr);	
 
 				assembly_file_ptr = fopen(assembly_file, "w");
 

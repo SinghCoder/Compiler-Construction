@@ -446,6 +446,12 @@ int main(int argc, char *argv[]) {
 
 			case 8:
 			{
+				clock_t    start_time, end_time;
+
+                double total_CPU_time, total_CPU_time_in_seconds;
+
+                start_time = clock();
+				
 				lex_err_num = 0;
 				syn_err_num = 0;
 				sem_err_num = 0;
@@ -485,6 +491,30 @@ int main(int argc, char *argv[]) {
 				second_ast_pass(ast_tree);
 
 				print_errors();
+
+				generate_ir(ast_tree);	
+				// print_quadruples();
+				// print_symbol_table(root_sym_tab_ptr);	
+
+				assembly_file_ptr = fopen(assembly_file, "w");
+
+				generate_code();
+
+				fclose(assembly_file_ptr);
+
+				printf("Code compiles successfully..........\n\n");
+
+				free_grammar();
+				fclose(fptr);
+
+				end_time = clock();
+
+                total_CPU_time  =  (double) (end_time - start_time);
+
+                total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
+
+				printf("Total CPU time : %lf\n", total_CPU_time);
+				printf("Total CPU time(in seconds) : %lf\n", total_CPU_time_in_seconds);
 			}
 			break;
 
@@ -535,7 +565,7 @@ int main(int argc, char *argv[]) {
 				}
 
 				generate_ir(ast_tree);	
-				print_quadruples();
+				// print_quadruples();
 				// print_symbol_table(root_sym_tab_ptr);	
 
 				assembly_file_ptr = fopen(assembly_file, "w");

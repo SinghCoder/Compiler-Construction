@@ -1514,7 +1514,7 @@ void verify_construct_semantics(tree_node *node){
             tree_node *high_range_node = range_node->rightmost_child;
             if(low_range_node->sym.t == ID){
                 type *low_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, low_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
-                if(low_range_type->name != INTEGER){
+                if(low_range_type && low_range_type->name != INTEGER){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                     sprintf(msg, "Range %s must be integer type", low_range_node->token.id.str);
 
@@ -1522,9 +1522,9 @@ void verify_construct_semantics(tree_node *node){
                 }
             }
 
-            if(high_range_node->sym.t == ID){
+            if(high_range_node && high_range_node->sym.t == ID){
                 type *high_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, high_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
-                if(high_range_type->name != INTEGER){
+                if(high_range_type && high_range_type->name != INTEGER){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                     sprintf(msg, "Range %s must be integer type", high_range_node->token.id.str);
 

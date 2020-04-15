@@ -12,7 +12,7 @@
 #include "hashtable.h"
 #include "driver.h"
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 10000
 
 typedef enum {
 #include "tokens.txt"
@@ -21,7 +21,9 @@ typedef enum {
 typedef struct token {
   token_name name;
   union {
-    char str[MAX_LEXEME_LEN];
+    struct{
+      char str[MAX_LEXEME_LEN];
+    }id;
     int num;
     double rnum;
   };
@@ -29,7 +31,9 @@ typedef struct token {
 } TOKEN;
 
 int state;
-int just_retracted;
+int retract_count;
+
+hash_element lookup_table[HASH_SIZE];
 
 hash_element lookup_table[HASH_SIZE];
 

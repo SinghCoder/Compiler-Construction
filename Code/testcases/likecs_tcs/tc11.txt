@@ -1,0 +1,15 @@
+<<<driver program>>>
+start
+	declare a:integer;
+	declare b:array [1..5] of integer;
+	declare k:integer;
+	for (k in 1..5)
+	start
+		get_value(k);
+		a := 3;
+		k:=4;
+		b[k] := k;
+		b[k] := 3;
+		b := 3;
+	end
+end

@@ -13,10 +13,10 @@
 
 stack *stack_init();
 
-void push(stack *stack_ptr, tree_node* node);
+void push(stack *stack_ptr, void* node);
 
-tree_node* top(stack *stack_ptr);
+void* top(stack *stack_ptr);
 
-tree_node* pop(stack* stack_ptr);
+void* pop(stack* stack_ptr);
 
 #endif

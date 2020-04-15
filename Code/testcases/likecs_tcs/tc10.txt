@@ -1,0 +1,9 @@
+<<<driver program>>>
+start
+	declare a:array [1..5] of integer;
+	declare i:integer;
+	for (i in 1..5)
+	start
+		a[i] := 3;
+	end
+end

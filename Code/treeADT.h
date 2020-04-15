@@ -17,4 +17,5 @@ void add_child(tree_node *parent, tree_node *child);
 
 tree_node* delete_child(tree_node* parent, tree_node* prev, tree_node *child);
 
+tree_node *get_nth_child(tree_node *root, int n);
 #endif

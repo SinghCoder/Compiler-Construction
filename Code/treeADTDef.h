@@ -12,6 +12,7 @@
 #include<stdbool.h>
 #include "parserDef.h"
 #include "driver.h"
+#include "semantic_analyzerDef.h"
 
 extern char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
@@ -29,11 +30,26 @@ typedef struct TREENODE
 
   struct TREENODE *node_inh;
   struct TREENODE *node_syn;
-
+  st_wrapper *scope_sym_tab;
+  type *encl_fun_type_ptr;
   symbol sym;
   TOKEN token;
-  int rule_num;
+  int num_child;
   bool visited;
+  void *extra_args;
+  struct{
+    struct{
+      char *true_label;
+      char *false_label;
+    }boolean;
+    char *next_label;
+    char *cnstrct_code_begin;
+  }label;
+  char *addr;
+  struct{
+    int start;
+    int end;
+  }line_nums;
 } tree_node;
 
 #endif

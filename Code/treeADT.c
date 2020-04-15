@@ -32,7 +32,17 @@ tree_node *create_tree_node() {
   node->rightmost_child = NULL;
   node->node_inh = NULL;
   node->node_syn = NULL;
-  strcpy(node->token.str, "");
+  node->num_child = 0;
+  node->scope_sym_tab = NULL;
+  node->extra_args = NULL;
+  // strcpy(node->addr, "");
+  node->addr = NULL;
+  node->label.next_label = NULL;
+  node->label.cnstrct_code_begin = NULL;
+  strcpy(node->token.id.str, "");
+  node->encl_fun_type_ptr = NULL;
+  node->line_nums.start = 0;
+  node->line_nums.end = 0;
   return node;
 }
 
@@ -49,7 +59,15 @@ void add_child(tree_node *parent, tree_node *child) {
     parent->rightmost_child->sibling = child;
     parent->rightmost_child = child;
   }
+  parent->num_child++;
+  child->parent = parent;
   child->sibling = NULL;
+  if(child->sym.is_terminal == false){
+    if(parent->line_nums.start == 0)
+      parent->line_nums.start = child->line_nums.start;
+    if(child->line_nums.end != 0)
+      parent->line_nums.end = child->line_nums.end;
+  }
 }
 
 tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {
@@ -66,8 +84,24 @@ tree_node *delete_child(tree_node *parent, tree_node *prev, tree_node *child) {
     parent->rightmost_child = prev;
   }
   free(child);
+  
+  parent->num_child--;
+
   if (prev != NULL)
     return prev->sibling;
   else
     return parent->leftmost_child;
+}
+
+tree_node *get_nth_child(tree_node *root, int n){
+	if((root == NULL) || (n > root->num_child))
+		return NULL;
+	
+	tree_node *tmp_child = root->leftmost_child;
+
+	for(int i = 1; i < n; i++){		// loop tells how many child u have to go ahead
+		tmp_child = tmp_child->sibling;
+	}
+
+	return tmp_child;
 }

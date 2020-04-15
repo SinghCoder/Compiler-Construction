@@ -1,0 +1,26 @@
+** Test case c2.txt: Handles conditional statements**
+
+<<<driver program>>>
+start
+	declare x,y, z:integer; 
+	declare t: boolean;
+	get_value(x);
+	get_value(y);
+	declare sum, value, x_1:integer;
+	z:= 19;
+	sum:= x*20-y*4+17-z;
+	t := sum <= 200 AND x>20;
+	switch(t)
+	start
+	case true: 	value:= sum+z*2-x*y-5;  
+			x_1:= 100;
+			break;
+	case false: 	value:= z*3 - x*y-20;
+			x_1:= 200;
+			break;
+	end
+	print(sum);
+	print(value);
+	print(x_1);					    
+end
+**Expression values will be different based on associativity implementation. Left to right associativity and right to left associativity will produce two different values of the same expression. Mention the implemented associativity in the coding details proforma later**

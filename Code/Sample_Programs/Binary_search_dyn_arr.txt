@@ -1,0 +1,72 @@
+**returns index at which element is found or -1 if element not found**
+<<module binarySearch>>
+takes input[m: integer, A: array[1..m] of integer, x: integer];
+returns [index: integer];
+start
+    **print array once inside function to check if it is reveived correctly**
+    print(A);
+
+    declare lo: integer;
+    declare hi: integer;
+    declare mid: integer;
+    declare flag : boolean;
+
+    declare b : integer;
+    b := 1;
+
+    index := -(b);
+
+    lo := 1;
+    hi := m;
+
+    while(lo <= hi)
+    start
+        mid := lo + hi  ;
+        mid := mid/2;
+
+        
+        flag := x == A[mid];
+        switch(flag)
+        start
+            case true : index := mid;
+                        break;
+            case false :break;
+        end
+
+        flag := x < A[mid];
+        switch(flag)
+        start
+            case true : hi := mid - 1;
+                        break;
+            case false :break;
+        end
+
+        flag := x > A[mid];
+        switch(flag)
+        start
+            case true : lo := mid + 1;
+                        break;  
+            case false :break;
+        end
+    end
+end
+
+<<<driver program>>>
+start
+    declare m: integer;     **size of array**
+    get_value(m);
+	declare A: array [1..m] of integer;
+
+    **insert array in sorted order (I am not gonna write mergesort in ERPLAG, it is not as easy as C++)**
+    ** Refer: https://github.com/vismit2000/compCode-II/blob/master/CompCode%20-%20I.docx for simple code of merge sort in CPP**
+
+	get_value(A);
+
+    declare search: integer;
+    **Enter element to search**
+    get_value(search);
+
+    declare idx : integer;
+    [idx] := use module binarySearch with parameters m, A, search;	
+    print(idx);
+end

@@ -1,0 +1,60 @@
+** Test case 2: Testing symbol table creation for variable declaration and redeclaration checks**
+** Single level nesting using static array data type**
+
+
+<<module var_demo_array>>
+takes input [x:integer, m:array [2..20] of integer, p:real];
+returns [ n:integer, k: boolean];
+start
+	declare a,b:integer;	
+	get_value(b);
+	declare p: array[2..20] of integer;	**Not an error as local variable can shadow the definition of input parameter**
+	a:= m[5]+3;
+	p:= m;					** not an error**
+	p[10]:= a*b-20*h;			**ERROR: variable h is not declared**
+        n:= a - b;
+	declare b:real;				**ERROR: variable b is re-declared**
+	b:= b+3;
+	k:= a>b OR b>100;
+	print(k);	
+end
+
+
+<<module f1>>
+takes input[a: array[10..30] of integer, b:array[10..30] of integer, c:real];
+returns [m:boolean, n:integer];
+start
+	declare x,y: real;
+	get_value(y);
+	declare A,B: array[4..10] of integer;
+	get_value(B);
+	declare C: array[10..30] of integer;
+	A:=B;
+	C:=a;
+	D:=C;					**ERROR: variable D is not declared**
+	x:=c+y;	
+	C[18]:= a[18]+ b[18];
+	A[5]:= B[6]- 10;
+	declare A: array[10..70] of integer;	**ERROR: variable A is re-declared**
+	m:= A[5]< C[18];
+	m:= c>=x AND E[10]>=y;			**ERROR: variable E is not declared**
+	n:= 20*8-5;	
+end
+
+
+
+<<<driver program>>>
+start
+	declare v_1_2_3, A:integer;
+	declare u1:boolean;
+        A:=12;
+	declare p: real;
+	p:= 23.56;
+	get_value(v_1_2_43);							**ERROR: variable v_1_2_43 is not declared**		
+	declare B, C: array [2..20] of integer;
+	[ v_1_2_3, u1]:=use module var_demo_array with parameters A,B,p;		
+	[ v_1_2_3, k]:=use module var_demo_array with parameters A,B,p;		**ERROR: variable k is not declared**
+	B:= C;
+	declare B: real;							**ERROR: variable B is re-declared**
+end
+

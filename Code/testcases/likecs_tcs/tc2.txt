@@ -1,0 +1,28 @@
+declare module compute;
+<<<driver program>>>
+start
+	declare var_1_, var_2_, var_3_:integer;
+	declare R1_abc: boolean;
+	declare r2_ABC: integer;
+	declare R3_abc: real;
+	get_value(var_1_);
+	var_2_:=10;
+	var_3_:= -(6);
+	declare var_4_: array[1..15] of real;
+	[R1_abc, r2_ABC, R3_abc] := use module compute with parameters var_1_, var_2_, var_3_, var_4_;
+	** do not bother that the last variable is not declared It will be taken care of later**
+end
+<<module compute>>
+takes input[A:integer, B:integer, c:integer, Q:array[1..15] of real];
+returns [res_1:boolean, res_2_a:integer, res_2__b:real];
+start
+	declare b:boolean;
+	declare a:integer;
+	res_2_a:= -(a*b-c/5);
+	res_2__b:= ((res_2_a + a)*12+22.34E-2)/13;
+	b :=((a <=  b) AND c >= a)OR (a<0);
+	res_1:= ((b AND c==b)OR(b AND (a<=c)));
+	** check  rules 27 a to e and redefine to preserve the parentheses needs check  rules 27 a to e and redefine to 
+	preserve the parentheses needs ** 
+	print(res_1);
+end

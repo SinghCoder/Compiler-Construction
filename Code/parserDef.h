@@ -16,6 +16,7 @@
 
 #define RHS_MAX_LENGTH 100
 #define NO_MATCHING_RULE -1
+#define MAX_ERR_TYPE_STR_LEN 100
 
 typedef enum
 {
@@ -55,10 +56,8 @@ ull follow_set[NUM_OF_NONTERMINALS][SET_SIZE];
 
 cell grammar[NUM_OF_RULES];
 
-hash_element terminal_table[HASH_SIZE];
-hash_element non_terminal_table[HASH_SIZE];
-
-bool error_present;
+hash_table terminal_table;
+hash_table non_terminal_table;
 
 int parse_table[NUM_OF_NONTERMINALS][NUM_OF_TERMINALS];
 

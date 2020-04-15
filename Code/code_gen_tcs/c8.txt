@@ -1,0 +1,40 @@
+**Code Generation test case 8: Switch Case statement
+
+Single driver module with multiple levels of nesting 
+
+
+
+**
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	declare b: boolean;
+	get_value(x);
+	y:= 19;
+	z:= 56;
+	switch(x)
+	start
+		case 1: y:= x*2-y;
+			print(y);
+                        break;
+		case 2: z:= x*3-z;
+			print(z);
+                        break;
+		default:print(x);
+			break;
+	end
+	print(y);
+	print(z);
+end
+
+** On the console 
+
+Input: Enter an integer value  
+2
+Output: -50
+Output: 19
+Output: -50                       
+	
+Similarly run the generated assembly code for other input values and verify.
+**

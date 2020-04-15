@@ -1,0 +1,73 @@
+**Code Generation test case 7: Dynamic type checking with dynamic arrays
+
+Single driver module with multiple levels of nesting 
+
+Variant of testcase 6
+
+**
+
+<<<driver program>>>
+start
+	declare m, n,p, k, x, y, z:integer;
+	declare	low, high: integer;
+	get_value(low);
+	get_value(high);                                               
+	declare A, B, C: array[low..high] of integer;
+	get_value(A);
+	get_value(B);
+	p:= 7;
+	for(k in 1..3)
+	start	
+		get_value(m);
+		get_value(n);
+		x:= A[m]+B[n];
+		y:= A[p]+B[n];
+		z:= A[m]+B[p];
+		print(x);
+		print(y);
+		print(z);                           **As long as there is no run time error with respect to the bounds, x, y, z get printed**
+	end                     
+end
+
+** On the console
+
+Input: Enter an integer value                            [Note: Reading low and high range values of dynamic arrays A and B]
+6
+Input: Enter an integer value
+10
+Input: Enter 5 array elements of integer type for range 6 to 10
+2
+-6
+4
+10
+-8
+Input: Enter 5 array elements of integer type for range 6 to 10
+-5
+-15
+7
+-3
+4
+Input: Enter an integer value                            [Note: Iteration 1: reading values of m and n]
+6
+Input: Enter an integer value
+8
+Output: 9
+Output: 1
+Output: -13                                              [Note: Run time bound checking went successfull in iteration 1]
+Input: Enter an integer value                            [Note: Iteration 2: reading values of m and n]
+8
+Input: Enter an integer value
+10
+Output: 8
+Output: -2
+Output: -11                                              [Note: Run time bound checking went successfull in iteration 2]
+Input: Enter an integer value                            [Note: Iteration 3: reading values of m and n]
+5
+Input: Enter an integer value
+7
+RUN TIME ERROR:  Array index out of bound                [Note: Run time bound checking is done and reported here as A[5] is an error, Aborted execution]
+
+Similarly run the generated assembly code for other input values and verify.
+**
+
+

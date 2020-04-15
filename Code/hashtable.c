@@ -1,5 +1,5 @@
 /***************************************
-								|GROUP-09|
+				|GROUP-09|
 	Aditya Upadhyay      -   2017A7PS0083P
 	Harpider Jot Singh   -   2017A7PS0057P
 	Jaladi Lakshmi Teja  -   2017A7PS0068P
@@ -7,6 +7,7 @@
 	Yash Vijay           -   2017A7PS0072P
 *****************************************/
 #include "hashtable.h"
+#include "semantic_analyzerDef.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +57,7 @@ int hash(char *str) {
  * 
  */
 void init_hash_table(hash_table table) {
+	
 	if (table == NULL) 
 	{
 		perror("HASH table allocation error: memory not available\n");
@@ -64,7 +66,7 @@ void init_hash_table(hash_table table) {
 	for (int i = 0; i < HASH_SIZE; i++) 
 	{
 		table[i].present = false;
-		table[i].value = 0; 
+		table[i].value = NULL; 
 	}
 }
 
@@ -81,13 +83,35 @@ void hash_insert(hash_table table, char *lexeme, int value) {
 	int probe_num = 1;
 	while (table[hashValue].present == true) 
 	{
-			hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
-			probe_num++;
+		if(strcmp(lexeme, table[hashValue].lexeme) == 0)	//updating a key's value instead inserting a new one
+			break;
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
+	}
+
+	strcpy(table[hashValue].lexeme, lexeme);
+	table[hashValue].present = true;
+	table[hashValue].value = malloc(sizeof(int));
+	*(int*)(table[hashValue].value) = value;
+}
+
+void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr){
+	// printf("Inserting in hash table %s\n", lexeme);
+	int hashValue;
+	hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+		if(strcmp(lexeme, table[hashValue].lexeme) == 0)	//updating a key's value instead inserting a new one
+			break;
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
 	}
 	strcpy(table[hashValue].lexeme, lexeme);
 
 	table[hashValue].present = true;
-	table[hashValue].value = value;
+	table[hashValue].value = value_ptr;
+
 }
 
 /**
@@ -103,10 +127,43 @@ int search_hash_table(hash_table table, char *lexeme) {
 	{
 		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
 		{
-			return table[hashValue].value;
+			return *(int*)(table[hashValue].value);
 		}
 		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
 		probe_num++;
 	}
 	return KEY_NOT_FOUND;
+}
+
+bool key_present_in_table(hash_table table, char *lexeme){
+	int hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
+		{
+			return true;
+		}
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
+	}
+	return false;
+}
+
+void* search_hash_table_ptr_val(hash_table table, char *lexeme){
+	if(table == NULL){
+		return NULL;
+	}
+	int hashValue = hash(lexeme);
+	int probe_num = 1;
+	while (table[hashValue].present == true) 
+	{
+		if (strcmp(table[hashValue].lexeme, lexeme) == 0) 
+		{
+			return table[hashValue].value;
+		}
+		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
+		probe_num++;
+	}
+	return NULL;
 }

@@ -1,0 +1,20 @@
+** Test case c5.txt: Handles iterative statements with arrays**
+
+<<<driver program>>>
+start
+	declare list: array[1..10] of integer;
+	declare constArr: array[1..10] of integer;
+	declare sum, p, k:integer;
+	get_value(list);                      **The get_value statement populates the variable identifier according to its type** 
+	for(k in 1..10)
+	start
+		constArr[k]:= k*3;            **This loop initializes the array constArr**
+	end
+	for(p in 1..10)
+	start
+		sum:= list[p] + constArr[p];  
+		print(sum);		  
+	end	
+	print(sum);
+end
+

@@ -1,3 +1,11 @@
+;/***************************************
+                ;|GROUP-09|    
+    ;Aditya Upadhyay      -   2017A7PS0083P
+    ;Harpider Jot Singh   -   2017A7PS0057P
+    ;Jaladi Lakshmi Teja  -   2017A7PS0068P
+    ;Vishal Mittal        -   2017A7PS0080P
+    ;Yash Vijay           -   2017A7PS0072P
+;*****************************************
 extern printf, scanf, exit
 %include "utility.asm"
 section .data
@@ -220,14 +228,12 @@ label_23:
 label_28:
 				jmp label_31
 label_32:
-				print_str "101"
-label_34:
 				push_all
 				;Assignment to a INTEGER
 				mov RAX, [RBP - 16]
 				mov [RBP - 264], RAX
 				pop_all
-label_36:
+label_34:
 				push_all
 				;Addition of integers
 				mov RAX, [RBP - 8]
@@ -241,8 +247,7 @@ label_36:
 				mov [RBP - 0], RAX
 				pop_all
 				jmp label_30
-label_40:
-				print_str "102"
+label_38:
 				jmp label_30
 label_31:
 				push_all
@@ -275,7 +280,7 @@ label_31:
 				;jmp if true code
 				mov RAX, [RBP - 120]
 				sub RAX, 1
-				jz label_40
+				jz label_38
 				pop_all
 label_30:
 				push_all
@@ -292,12 +297,12 @@ label_30:
 				;exit if condition is true
 				mov RAX, [RBP - 136]
 				sub RAX, 1
-				jnz label_46
+				jnz label_43
 				mov RDI, 0
 				print_str "Invalid array access, exiting program"
 				call exit
 				pop_all
-label_46:
+label_43:
 				push_all
 				mov RCX, 0; initialize RCX with false
                 mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies
@@ -312,12 +317,12 @@ label_46:
 				;exit if condition is true
 				mov RAX, [RBP - 136]
 				sub RAX, 1
-				jnz label_45
+				jnz label_42
 				mov RDI, 0
 				print_str "Invalid array access, exiting program"
 				call exit
 				pop_all
-label_45:
+label_42:
 				push_all
 				;Subtraction of integers
 				mov RAX, [RBP - 16]
@@ -355,11 +360,9 @@ label_45:
 				mov RAX, [RBP - 160]
 				mov [RBP - 24], RAX
 				pop_all
-label_43:
-				jmp label_48
-label_49:
-				print_str "201"
-label_51:
+label_40:
+				jmp label_45
+label_46:
 				push_all
 				;Subtraction of integers
 				mov RAX, [RBP - 16]
@@ -372,11 +375,10 @@ label_51:
 				mov RAX, [RBP - 168]
 				mov [RBP - 8], RAX
 				pop_all
-				jmp label_47
-label_54:
-				print_str "202"
-				jmp label_47
-label_48:
+				jmp label_44
+label_49:
+				jmp label_44
+label_45:
 				push_all
 				mov RCX, 0; initialize RCX with false
                 mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies
@@ -391,7 +393,7 @@ label_48:
 				;jmp if true code
 				mov RAX, [RBP - 176]
 				sub RAX, 1
-				jz label_49
+				jz label_46
 				pop_all
 				push_all
 				mov RCX, 0; initialize RCX with false
@@ -407,9 +409,9 @@ label_48:
 				;jmp if true code
 				mov RAX, [RBP - 176]
 				sub RAX, 1
-				jz label_54
+				jz label_49
 				pop_all
-label_47:
+label_44:
 				push_all
 				mov RCX, 0; initialize RCX with false
                 mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies
@@ -424,12 +426,12 @@ label_47:
 				;exit if condition is true
 				mov RAX, [RBP - 192]
 				sub RAX, 1
-				jnz label_60
+				jnz label_54
 				mov RDI, 0
 				print_str "Invalid array access, exiting program"
 				call exit
 				pop_all
-label_60:
+label_54:
 				push_all
 				mov RCX, 0; initialize RCX with false
                 mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies
@@ -444,12 +446,12 @@ label_60:
 				;exit if condition is true
 				mov RAX, [RBP - 192]
 				sub RAX, 1
-				jnz label_59
+				jnz label_53
 				mov RDI, 0
 				print_str "Invalid array access, exiting program"
 				call exit
 				pop_all
-label_59:
+label_53:
 				push_all
 				;Subtraction of integers
 				mov RAX, [RBP - 16]
@@ -487,11 +489,9 @@ label_59:
 				mov RAX, [RBP - 216]
 				mov [RBP - 24], RAX
 				pop_all
-label_57:
-				jmp label_61
-label_62:
-				print_str "301"
-label_64:
+label_51:
+				jmp label_55
+label_56:
 				push_all
 				;Addition of integers
 				mov RAX, [RBP - 16]
@@ -505,10 +505,9 @@ label_64:
 				mov [RBP - 0], RAX
 				pop_all
 				jmp label_17
-label_67:
-				print_str "302"
+label_59:
 				jmp label_17
-label_61:
+label_55:
 				push_all
 				mov RCX, 0; initialize RCX with false
                 mov RDX, 1 ; assign RDX, a value true to assign to result if condition satisfies
@@ -523,7 +522,7 @@ label_61:
 				;jmp if true code
 				mov RAX, [RBP - 232]
 				sub RAX, 1
-				jz label_62
+				jz label_56
 				pop_all
 				push_all
 				mov RCX, 0; initialize RCX with false
@@ -539,7 +538,7 @@ label_61:
 				;jmp if true code
 				mov RAX, [RBP - 232]
 				sub RAX, 1
-				jz label_67
+				jz label_59
 				pop_all
 label_17:
 				jmp label_13
@@ -566,7 +565,7 @@ main:
 				mov RAX, 5
 				mov [RBP - 0], RAX
 				pop_all
-label_70:
+label_61:
 				push_all
 				;Declaring static array A, store A[0]'s address at location of A
 				MOV RAX, RBP
@@ -591,7 +590,7 @@ label_70:
 				print_str "Input: Enter {RCX} number of aray elements"
 				;taking input for array elements
 				mov RDX, [RBP - 8] ;address of arr[0] in RDX from contents of [A]
-label_71: ;scanf loop label
+label_62: ;scanf loop label
 				mov RAX, 0x0000_0000_ffff_ffff ;machine has sizeof(int) to be 4, and we took 8, so clear upper 32 bits
 				mov [RDX], RAX ;clear upper 32 bits of array's element
 				mov RSI, RDX ;address of variable to be scanned in RSI
@@ -603,9 +602,9 @@ label_71: ;scanf loop label
 				pop_all
 				sub RDX, 8 ;move pointer to next elem of array
 				dec RCX ;decrement num of elem count to be scanned
-				jnz label_71
+				jnz label_62
 				pop_all
-label_72:
+label_63:
 				; Code to take input value(s) of search
 				push_all
 				print_str "Input: Enter an integer value"
@@ -621,7 +620,7 @@ label_72:
                 call scanf 
                 remove_align_16_rsp ;realign it to original position
 				pop_all
-label_74:
+label_65:
 				;pushing a parameter(idx) on stack
 				mov RAX, RBP
 				sub RAX, 64
@@ -647,7 +646,7 @@ label_74:
 				pop RAX
 				;popping back output parameters
 				pop RAX
-label_75:
+label_66:
 				; Code to output value(s) of idx
 				print_str "Output: "
 				push_all

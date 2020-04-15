@@ -1,3 +1,11 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #include "ast.h"
 #include "astDef.h"
 #include "parser.h"
@@ -93,17 +101,17 @@ bool is_useful_terminal(token_name t) {
   case DRIVER:
   case DEFAULT:
 
-	return true;
-	break;
+    return true;
+    break;
   default:
-	return false;
-	break;
+    return false;
+    break;
   }
 }
 
 bool is_important(tree_node *node) {
   if (node->sym.is_terminal == false)
-	return true;
+    return true;
 
   return is_useful_terminal(node->sym.t);
 }

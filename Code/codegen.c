@@ -1,3 +1,11 @@
+/***************************************
+                |GROUP-09|
+  Aditya Upadhyay      -   2017A7PS0083P
+  Harpider Jot Singh   -   2017A7PS0057P
+  Jaladi Lakshmi Teja  -   2017A7PS0068P
+  Vishal Mittal        -   2017A7PS0080P
+  Yash Vijay           -   2017A7PS0072P
+*****************************************/
 #include "codegen.h"
 #include <malloc.h>
 #include <string.h>
@@ -1276,6 +1284,14 @@ void exit_if_true_code_gen(quad_node quad){
 
 void generate_code(){    
     // printf("\nsizeof(int) = %lu\n", sizeof(int));
+    fprintf(assembly_file_ptr, ";/***************************************\n\
+                ;|GROUP-09|    \n\
+    ;Aditya Upadhyay      -   2017A7PS0083P\n\
+    ;Harpider Jot Singh   -   2017A7PS0057P\n\
+    ;Jaladi Lakshmi Teja  -   2017A7PS0068P\n\
+    ;Vishal Mittal        -   2017A7PS0080P\n\
+    ;Yash Vijay           -   2017A7PS0072P\n\
+;*****************************************\n");
     fprintf(assembly_file_ptr, "extern printf, scanf, exit\n");
     fprintf(assembly_file_ptr, "%%include \"utility.asm\"\n");
     fprintf(assembly_file_ptr, "section .data\n");

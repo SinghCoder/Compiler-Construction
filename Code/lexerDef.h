@@ -35,6 +35,8 @@ int retract_count;
 
 hash_element lookup_table[HASH_SIZE];
 
+hash_element lookup_table[HASH_SIZE];
+
 char buffer[BUFFER_SIZE];
 char lexeme[MAX_LEXEME_LEN];
 

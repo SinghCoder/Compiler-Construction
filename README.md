@@ -43,6 +43,26 @@ The asm code is compatible with NASM, version 2.14.02
 
 <img src="binary_search_run.gif">
 
+## Some additional information
+
+- To visualise parse tree/ abstract syntax tree, initialize parse_tree_file_ptr inside driver.c by opening a file and then call print_tree_for_tool(tree_ptr); where tree_ptr is corresponding tree pointer (ast / parse tree). 
+- Then go to [Tree visualizer](http://lrv.bplaced.net/syntaxtree) and paste there the contents of the file you opened.
+
+- To generate Intermediate representation of a code call ```print_quadruples()``` after calling ```generate_ir()``` in driver.
+
+### Some snapshots
+
+- DFA
+    - [front](./Images/dfa_front.jpg)
+    - [back](./Images/dfa_back.jpg)
+- For the [code](./Images/program.png), [file](./Code/code_gen_tcs/c9.txt)
+    - [Parse tree](./Images/pt.png)
+    - [Abstract Syntax tree](./Images/ast.png)
+    - [IR](./Images/ir.png)
+    - [asm file generated](./Code/code_gen_tcs/code_c9.asm)
+    
+
+
 ## Team Members
 
 1. Vishal Mittal [Profile](https://github.com/vismit2000)

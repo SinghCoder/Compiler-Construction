@@ -345,7 +345,7 @@ void forloop_first_time(tree_node *forloop_node){
 void conditional_node_first_time(tree_node *conditional_node){
     assign_next_label(conditional_node);
     switch_test_label = newlabel();
-    printf("switch_test_label assigned as %s\n", switch_test_label);
+    // printf("switch_test_label assigned as %s\n", switch_test_label);
     code_emit(GOTO_UNCOND_OP, switch_test_label, NULL, NULL, conditional_node->scope_sym_tab,  conditional_node->encl_fun_type_ptr, NULL);
     switch_tbl_entry_num = 0;
 }

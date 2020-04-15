@@ -458,6 +458,7 @@ int main(int argc, char *argv[]) {
 
 				lexer_init(source);
 				parser_init();
+				intermed_codegen_init();
 				semantic_analyzer_init();
 
 				FILE *fptr = fopen("grammar.txt", "r");
@@ -548,6 +549,9 @@ int main(int argc, char *argv[]) {
 					printf("Empty parse tree\n");
 				}
 				tree_node *ast_tree = construct_ast(ptr);
+				// parse_tree_file_ptr = fopen("pt.txt", "w");
+				// print_parse_tree_for_tool(ast_tree, ast);
+				// fclose(parse_tree_file_ptr);
 
 				if(lex_err_num || syn_err_num){
 					print_errors();

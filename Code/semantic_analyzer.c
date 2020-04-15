@@ -541,6 +541,20 @@ bool is_declaring_node(tree_node *node){
             else
                 return false;
         break;
+        case RANGE:
+        {
+            /**
+             * @brief Check if the ID is part of array and the array is a input parameter             * 
+             */
+            if(node->parent && node->parent->sym.nt == NT_ARRAY){
+                tree_node *par = node->parent;
+                if(par->parent && par->parent->sym.nt == INPUT_PLIST){
+                    return true;
+                }
+            }
+            return false;
+        }
+        break;
         default:
             return false;
         break;
@@ -550,11 +564,13 @@ bool is_declaring_node(tree_node *node){
 void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node){    
     // printf("inserting %s, scope is %d-%d\n", node->token.id.str, node->line_nums.start, node->line_nums.end);
     type *type_ptr = (type*) malloc( sizeof(type) );        
-    if(node == NULL || node->parent == NULL)
+    if(node == NULL || node->parent == NULL){
         return;
+    }
     
     switch(node->parent->sym.nt){
-        case MODULEDECLARATIONS:      
+        case MODULEDECLARATIONS:    
+        {  
             /**  printf("Was inside moddecs\n");  */
             type_ptr->name = MODULE;
             type_ptr->typeinfo.module.is_declared = true;
@@ -572,7 +588,8 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             type_ptr->encl_mod_name = NULL;
             type_ptr->line_nums.start = node->line_nums.start;
             type_ptr->line_nums.end = node->line_nums.end;
-            break;
+        }
+        break;
         
         // case INPUT_PLIST:
         // case OUTPUT_PLIST:
@@ -580,6 +597,7 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
         //     break;
         
         case IDLIST:
+        {
             if(node->parent && node->parent->parent && node->parent->parent->sym.nt == DECLARESTMT){
                 free(type_ptr);
                 type_ptr = retreive_type(node->parent->sibling);
@@ -598,7 +616,27 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             else{
                 return;
             }
-            break;
+        }
+        break;
+        case RANGE:
+        {
+            tree_node *par = node->parent;
+            if(par->parent && par->parent->sym.nt == NT_ARRAY){
+                tree_node *grand_par = par->parent;
+                if(grand_par->parent && grand_par->parent->sym.nt == INPUT_PLIST){
+                    type_ptr->name = INTEGER;
+                    printf("%s\n", terminal_string[type_ptr->name]);
+                    type_ptr->width = WIDTH_INTEGER;
+                    type_ptr->offset = node->encl_fun_type_ptr->typeinfo.module.curr_offset;
+                    type_ptr->offset_used = node->encl_fun_type_ptr->typeinfo.module.curr_offset_used;
+                    type_ptr->line_nums.start = node->encl_fun_type_ptr->line_nums.start;
+                    type_ptr->line_nums.end = node->encl_fun_type_ptr->line_nums.end;
+                    node->encl_fun_type_ptr->typeinfo.module.curr_offset += type_ptr->width;
+                    node->encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;                    
+                }
+            }
+        }
+        break;
         default:
             return;
             break;
@@ -1688,7 +1726,7 @@ void construct_symtable(tree_node *ast_root) {
                  * @brief Assign terminal's encl_fun_type_ptr to point to enclosing function's type 
                  */
                 node->encl_fun_type_ptr = node->parent->encl_fun_type_ptr;
-                if(node->sym.t == ID){                    
+                if(node->sym.t == ID){    
                     // /**  printf("Node->parent->encl_fun_type_ptr exists? %d\n", node->parent->encl_fun_type_ptr != NULL);  */
                     int check_hash_table = search_hash_table(curr_sym_tab_ptr->table, node->token.id.str);
                     
@@ -1717,8 +1755,9 @@ void construct_symtable(tree_node *ast_root) {
                                 }
                                 output_param = output_param->next;
                             }
-                            if(!outp_redec_err)
+                            if(!outp_redec_err){
                                 insert_in_sym_table(curr_sym_tab_ptr, node);
+                            }
                             
                             /**
                              * @brief Check if the id being declared is an enclosing for loop's

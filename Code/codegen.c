@@ -502,18 +502,21 @@ void input_code_gen(quad_node quad){
     switch(var_type_ptr->name){
         case INTEGER:
         {
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter an integer value\"\n");
             one_input_code_gen(INTEGER, offset);
         }
         break;
         case REAL:
         {
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a real value\"\n");
             one_input_code_gen(REAL, offset);
         }
         break;
         case BOOLEAN:
         {
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a boolean value\"\n");
             one_input_code_gen(BOOLEAN, offset);
         }
@@ -521,6 +524,7 @@ void input_code_gen(quad_node quad){
         case ARRAY:
         {
             int num_floating_regs = 0;
+            char *prim_type;
             /**
              * @brief Code for format of input == base type
              */
@@ -530,6 +534,7 @@ void input_code_gen(quad_node quad){
                 {
                     width = WIDTH_POINTER;
                     fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+                    prim_type = "integer";
                 }
                 break;
                 case REAL:
@@ -537,12 +542,14 @@ void input_code_gen(quad_node quad){
                     width = WIDTH_POINTER;
                     num_floating_regs = 1;
                     fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, real_fmt		;first arg, format \"%%d\" \n");
+                    prim_type = "real";
                 }
                 break;
                 case BOOLEAN:
                 {
                     width = WIDTH_POINTER;
                     fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, bool_fmt		;first arg, format \"%%d\" \n");
+                    prim_type = "boolean";
                 }
             }
 
@@ -559,6 +566,8 @@ void input_code_gen(quad_node quad){
             }
             else{
                 rlow_val = var_type_ptr->typeinfo.array.range_low.value;
+                range_low = (char *)malloc(sizeof(char) * MAX_LEXEME_LEN);
+                snprintf(range_low, MAX_LEXEME_LEN, "%d", rlow_val);
                 fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d ; Load low range value into RAX\n", rlow_val);                
             }
 
@@ -570,6 +579,8 @@ void input_code_gen(quad_node quad){
             }
             else{
                 rhigh_val = var_type_ptr->typeinfo.array.range_high.value;
+                range_high = (char *)malloc(sizeof(char) * MAX_LEXEME_LEN);
+                snprintf(range_high, MAX_LEXEME_LEN, "%d", rhigh_val);
                 fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, %d ; Load high range value into RBX\n", rhigh_val);                
             }
 
@@ -579,7 +590,7 @@ void input_code_gen(quad_node quad){
             fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
             fprintf(assembly_file_ptr, "\t\t\t\t;just check RCX value to verify\n");            
             print_regs_code_gen();
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter {RCX} number of aray elements\"\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter {RCX} number of aray elements of %s type for range %s to %s\"\n",prim_type, range_low, range_high);
 
             fprintf(assembly_file_ptr, "\t\t\t\t;taking input for array elements\n");
             fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, [RBP - %d] ;address of arr[0] in RDX from contents of [%s]\n", offset, quad.arg1);            
@@ -621,7 +632,9 @@ void one_var_output_code_gen(token_name type_name, int offset){
                 mov RSI, [RDX]  ; for integer, value stored at offset should be passed to printf\n\
                 mov RAX, 0 \n\
                 push_all\n\
+                align_16_rsp ;align RSP to 16 byte boundary for printf call\n\
                 call printf \n\
+                remove_align_16_rsp ;realign RSP\n\
                 pop_all\n", offset);
         }
         break;
@@ -633,20 +646,27 @@ void one_var_output_code_gen(token_name type_name, int offset){
                 movq XMM0, [RDX]  ; for real, value stored at offset should be passed to printf\n\
                 mov RAX, 1      ; for real, number of floating point regs passed here = 1\n\
                 push_all\n\
+                align_16_rsp ;align RSP to 16 byte boundary for printf call\n\
                 call printf \n\
+                remove_align_16_rsp ;realign RSP\n\
                 pop_all\n", offset);
         }
         break;
         case BOOLEAN:
         {
+            char *bool_print_false_lbl = newlabel();
+            char *bool_print_next_lbl = newlabel();
             fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, bool_fmt		;first arg, format \"%%s\" \n");
             fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, RBP\n\
                 sub RDX, %d     ; make RDX to point at location of variable on the stack\n\
-                mov RSI, [RDX]    \n\
-                mov RAX, 0 \n\
-                push_all\n\
-                call printf \n\
-                pop_all\n", offset);
+                mov RAX, [RDX]    \n\
+                cmp RAX, 0 \n\
+                jz %s\n\
+                print_str_no_new_line \"true\" \n\
+                jmp %s\n\
+%s:\n\
+                print_str_no_new_line \"false\" \n\
+%s:\n", offset, bool_print_false_lbl, bool_print_next_lbl,  bool_print_false_lbl, bool_print_next_lbl);
         }
         break;
     }
@@ -668,7 +688,8 @@ void output_code_gen(quad_node quad){
     int offset = var_type_ptr->offset_used;
     int width;
     fprintf(assembly_file_ptr, "\t\t\t\t; Code to output value(s) of %s\n", quad.arg1);
-    fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Output: \"\n");    
+    fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");    
+    fprintf(assembly_file_ptr, "\t\t\t\tprint_str_no_new_line \"Output: \"\n");    
     fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");    
     switch(var_type_ptr->name){
         case INTEGER:
@@ -745,9 +766,6 @@ void output_code_gen(quad_node quad){
             fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, RBX\n");
             fprintf(assembly_file_ptr, "\t\t\t\tsub RCX, RAX\n");
             fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
-            fprintf(assembly_file_ptr, "\t\t\t\t;just check RCX value to verify\n");            
-            print_regs_code_gen();
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
 
             fprintf(assembly_file_ptr, "\t\t\t\t;printing array elements\n");
             fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, [RBP - %d] ;address of arr[0] in RDX from contents of [%s]\n", offset, quad.arg1);            
@@ -761,12 +779,15 @@ void output_code_gen(quad_node quad){
             
             fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d ;num of float regs\n", num_floating_regs);
             fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
+            fprintf(assembly_file_ptr, "\t\t\t\talign_16_rsp ;aligning at 16 byte boundary\n");
             fprintf(assembly_file_ptr, "\t\t\t\tcall printf\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tremove_align_16_rsp ;aligning at 16 byte boundary\n");
             fprintf(assembly_file_ptr, "\t\t\t\tpop_all\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str_no_new_line \" \"\n");
             fprintf(assembly_file_ptr, "\t\t\t\tsub RDX, %d ;move pointer to next elem of array\n", width);
             fprintf(assembly_file_ptr, "\t\t\t\tdec RCX ;decrement num of elem count to be scanned\n");
             fprintf(assembly_file_ptr, "\t\t\t\tjnz %s\n", quad.cnstrct_code_begin);            
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
         }
         break;
         default:
@@ -859,11 +880,43 @@ void param_code_gen(quad_node quad){
      * @brief Push the parameter on the stack
      */
     type *arg1_type_ptr = (type*)key_search_recursive(quad.curr_scope_table_ptr, quad.arg1, quad.encl_fun_type_ptr, NULL);
+
     int offset_arg1 = 0;
     offset_arg1 = arg1_type_ptr->offset_used;
     fprintf(assembly_file_ptr, "\t\t\t\t;pushing a parameter(%s) on stack\n", quad.arg1);
     fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, RBP\n");
     fprintf(assembly_file_ptr, "\t\t\t\tsub RAX, %d\n", offset_arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
+
+    /**
+     * @brief If type is array, push range values on stack
+     */
+    if(arg1_type_ptr->typeinfo.array.is_dynamic.range_high){
+        char *range_high = arg1_type_ptr->typeinfo.array.range_high.lexeme;
+        fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array high range param %s\n", range_high);
+        type *rhigh_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_high, quad.encl_fun_type_ptr, NULL);
+        int rhigh_offset = rhigh_type->offset_used;
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rhigh_offset);
+    }
+    else{
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_high.value);
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\t;Push the high range value on stack\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
+
+    if(arg1_type_ptr->typeinfo.array.is_dynamic.range_low){
+        char *range_low = arg1_type_ptr->typeinfo.array.range_low.lexeme;
+        fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array low range param %s\n", range_low);
+        type *rlow_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_low, quad.encl_fun_type_ptr, NULL);
+        int rlow_offset = rlow_type->offset_used;
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rlow_offset);
+    }
+    else{
+        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_low.value);
+    }
+
+    fprintf(assembly_file_ptr, "\t\t\t\t;Push the low range value on stack\n");
     fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
 }
 
@@ -995,11 +1048,6 @@ void dynamic_arr_space_code_gen(quad_node quad){
     fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, RBX\n");
     fprintf(assembly_file_ptr, "\t\t\t\tsub RCX, RAX\n");
     fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
-    fprintf(assembly_file_ptr, "\t\t\t\t;just check RCX value to verify\n");
-    print_regs_code_gen();
-    
-    fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Declared dynamic array with RCX elements\"\n");
-    fprintf(assembly_file_ptr, "\t\t\t\tprint_str\"\"\n");
 
     fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", WIDTH_POINTER);
     fprintf(assembly_file_ptr, "\t\t\t\tmul RCX;RCX = count_elems * width\n");
@@ -1044,27 +1092,31 @@ void fn_space_code_gen(quad_node quad){
     type *type_ptr;
     int offset = 0;
     st_wrapper *table_ptr = quad.curr_scope_table_ptr, *lvl_start_ptr;
-    lvl_start_ptr = table_ptr;
-    while(lvl_start_ptr != NULL){
-        for(int i=0; i < HASH_SIZE; i++){        
-            type_ptr = (type*)(lvl_start_ptr->table[i].value);
-            if(type_ptr != NULL){
-                // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",lvl_start_ptr,lvl_start_ptr->table[i].lexeme );
-                num_elems++;
-                offset += WIDTH_POINTER;
-                if(type_ptr->name == ARRAY){
-                    if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
-                        offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
-                    }
+
+    for(int i=0; i < HASH_SIZE; i++){                        
+        type_ptr = (type*)(table_ptr->table[i].value);
+        if(type_ptr != NULL){
+            // printf("adding2 offset for %s\n", table_ptr->table[i].lexeme);
+            // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",table_ptr,table_ptr->table[i].lexeme );
+            num_elems++;
+            offset += WIDTH_POINTER;
+            if(type_ptr->name == ARRAY){
+                if(type_ptr->typeinfo.array.is_dynamic.range_high == false && type_ptr->typeinfo.array.is_dynamic.range_low == false){
+                    offset += (type_ptr->typeinfo.array.range_high.value - type_ptr->typeinfo.array.range_low.value + 1) * WIDTH_POINTER;
                 }
-            }            
-        }
-        table_ptr = lvl_start_ptr->sibling_table;
+            }
+        }            
+    }
+
+    lvl_start_ptr = table_ptr->leftmost_child_table;
+    while(lvl_start_ptr != NULL){
+        table_ptr = lvl_start_ptr;
         while(table_ptr){
-            for(int i=0; i < HASH_SIZE; i++){        
-                type_ptr = (type*)(lvl_start_ptr->table[i].value);
+            for(int i=0; i < HASH_SIZE; i++){                        
+                type_ptr = (type*)(table_ptr->table[i].value);
                 if(type_ptr != NULL){
-                    // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",lvl_start_ptr,lvl_start_ptr->table[i].lexeme );
+                    // printf("adding2 offset for %s\n", table_ptr->table[i].lexeme);
+                    // printf("while gen space for fn, lexeme in ht %llu found to be %s\n",table_ptr,table_ptr->table[i].lexeme );
                     num_elems++;
                     offset += WIDTH_POINTER;
                     if(type_ptr->name == ARRAY){
@@ -1078,6 +1130,8 @@ void fn_space_code_gen(quad_node quad){
         }
         lvl_start_ptr = lvl_start_ptr->leftmost_child_table;
     }
+
+    // printf("total_num_elems : %d\n", num_elems);
 
     fprintf(assembly_file_ptr, "\t\t\t\tENTER %d, 0\n", offset);
     fprintf(assembly_file_ptr, "\t\t\t\t;reserve space for the input/output params of fn, later flush this space\n");
@@ -1112,11 +1166,77 @@ void fn_space_code_gen(quad_node quad){
         char *param_str = inp_param->param_name;
         
         type *param_type  = inp_param->t;
+
+        /**
+         * @brief Check if param type is dynamic array, make it static by copying the range values from stack
+         * And if static, do range checking
+         */
+
+        if(param_type->name == ARRAY){
+
+            if(param_type->typeinfo.array.is_dynamic.range_low){
+            //    param_type->typeinfo.array.is_dynamic.range_low = false;
+                // param_type->typeinfo.array.range_low.value = 
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d] ;take range_low value coming from caller\n", inp_param_num);
+                int offset_rlow;
+                type *rlow_entry = (type*)key_search_recursive(quad.curr_scope_table_ptr, param_type->typeinfo.array.range_low.lexeme,
+                        quad.encl_fun_type_ptr, NULL);
+                offset_rlow = rlow_entry->offset_used;
+                fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX ;copy it to my local location\n", offset_rlow);
+                inp_param_num++;
+            }
+            else{
+                char *rlow_match_label = newlabel();
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d] ;take range_low value coming from caller\n", inp_param_num);
+                fprintf(assembly_file_ptr, "\t\t\t\t;Check if this value is not equal to that stored in symbol table\n");
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, %d\n\
+                cmp RAX, RBX \n\
+                jz %s; indices matched, continue normal execution\n\
+                print_str \"Indices in function calling do not match at low index, exiting program\"\n\
+                mov RDI, 0\n\
+                call exit\n\
+%s:\n", param_type->typeinfo.array.range_low.value, rlow_match_label, rlow_match_label);
+            }
+
+            if(param_type->typeinfo.array.is_dynamic.range_high){
+            //    param_type->typeinfo.array.is_dynamic.range_high = false;
+                // param_type->typeinfo.array.range_high.value = 
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d] ;take range_high value coming from caller\n", inp_param_num);
+                int offset_rhigh;
+                type *rhigh_entry = (type*)key_search_recursive(quad.curr_scope_table_ptr, param_type->typeinfo.array.range_high.lexeme,
+                        quad.encl_fun_type_ptr, NULL);
+                offset_rhigh = rhigh_entry->offset_used;
+                fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX ;copy it to my local location\n", offset_rhigh);
+                inp_param_num++;
+            }
+            else{
+                char *rhigh_match_label = newlabel();
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP + 16 + 8 + 8*%d] ;take range_high value coming from caller\n", inp_param_num);
+                fprintf(assembly_file_ptr, "\t\t\t\t;Check if this value is not equal to that stored in symbol table\n");
+                fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, %d\n\
+                cmp RAX, RBX \n\
+                jz %s; indices matched, continue normal execution\n\
+                print_str \"Indices in function calling do not match at high index, exiting program\"\n\
+                mov RDI, 0\n\
+                call exit\n\
+%s:\n", param_type->typeinfo.array.range_high.value, rhigh_match_label, rhigh_match_label);
+            }
+
+        }
+
+
+
         param_type->offset = quad.encl_fun_type_ptr->typeinfo.module.curr_offset;
         param_type->offset_used = quad.encl_fun_type_ptr->typeinfo.module.curr_offset_used;
         // printf("Assigned offset %d to a param %s\n", param_type->offset_used, param_str);
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset += param_type->width;
         quad.encl_fun_type_ptr->typeinfo.module.curr_offset_used += WIDTH_POINTER;
+
+        if(param_type->name == ARRAY){
+            quad.encl_fun_type_ptr->typeinfo.module.curr_offset += (WIDTH_INTEGER*2);
+            quad.encl_fun_type_ptr->typeinfo.module.curr_offset_used += 2*WIDTH_POINTER;            
+        }
+
         hash_insert_ptr_val(quad.curr_scope_table_ptr->table, param_str, param_type);
 
         fprintf(assembly_file_ptr, "\t\t\t\t; Allocating space to %s inp param on stack\n", inp_param->param_name);
@@ -1141,7 +1261,6 @@ void fn_space_code_gen(quad_node quad){
         outp_param_num++;
         outp_param = outp_param->next;
     }    
-    print_regs_code_gen();
 }
 
 void call_code_gen(quad_node quad){    
@@ -1293,16 +1412,133 @@ void generate_code(){
     ;Yash Vijay           -   2017A7PS0072P\n\
 ;*****************************************\n");
     fprintf(assembly_file_ptr, "extern printf, scanf, exit\n");
-    fprintf(assembly_file_ptr, "%%include \"utility.asm\"\n");
     fprintf(assembly_file_ptr, "section .data\n");
     fprintf(assembly_file_ptr, "\t\tffour_reg_fmt: db `RAX = %%ld, RBX = %%ld, RCX = %%ld, RDX = %%ld`, 10, 0\n");
     fprintf(assembly_file_ptr, "\t\tlfour_reg_fmt: db `RSP = %%ld, RBP = %%ld, RSI = %%ld, RDI = %%ld\\n`, 10, 0\n");
     fprintf(assembly_file_ptr, "\t\tint_fmt: db \"%%d\", 0\n");
     fprintf(assembly_file_ptr, "\t\treal_fmt: db \"%%lf\", 0\n");
     fprintf(assembly_file_ptr, "\t\tbool_fmt: db \"%%d\", 0\n");
-    fprintf(assembly_file_ptr, "\t\tstr_fmt: db \"%%s\", 0\n");
+    fprintf(assembly_file_ptr, "\t\tstr_fmt: db \"%%s\",10, 0\n");
+    fprintf(assembly_file_ptr, "\t\tstr_no_new_line_fmt: db \"%%s\",0\n");    
     
     fprintf(assembly_file_ptr, "section .text\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t; Push all registers on stack to prevent value loss\n");
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\t%%macro push_all 0 \n\
+                    push RAX \n\
+                    push RBX \n\
+                    push RCX \n\
+                    push RDX \n\
+                    push RSP \n\
+                    push RBP \n\
+                    push RSI \n\
+                    push RDI \n\
+                %%endmacro \n\n");
+    
+    fprintf(assembly_file_ptr, "\t\t\t\t; Restore values of registers from stack\n");
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\t%%macro pop_all 0 \n\
+                    pop RDI \n\
+                    pop RSI \n\
+                    pop RBP \n\
+                    pop RSP \n\
+                    pop RDX \n\
+                    pop RCX \n\
+                    pop RBX \n\
+                    pop RAX \n\
+                %%endmacro \n\n");
+
+    fprintf(assembly_file_ptr, "\t\t\t\t; Print RAX, RBX, RCX, RDX values\n");
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\t%%macro print_first_four 0 \n\
+                    push_all\n\
+                    push RDX \n\
+                    push RCX \n\
+                    push RBX \n\
+                    push RAX \n\
+                    mov RDI, ffour_reg_fmt		; first arg, format \n\
+                    pop RSI \n\
+                    pop RDX \n\
+                    pop RCX \n\
+                    pop R8 \n\
+                    mov RAX, 0 \n\
+                    align_16_rsp ;align RSP to 16 byte boundary\n\
+                    call printf \n\
+                    remove_align_16_rsp ;realign RSP\n\
+                    pop_all\n\
+                %%endmacro \n\n");
+    
+    fprintf(assembly_file_ptr, "\t\t\t\t; Print RSP, RBP, RSI, RDI values\n");
+    fprintf(assembly_file_ptr,
+            "\t\t\t\t%%macro print_last_four 0 \n\
+                    push_all\n\
+                    push RDI \n\
+                    push RSI \n\
+                    push RBP \n\
+                    push RSP \n\
+                    mov RDI, lfour_reg_fmt		; first arg, format \n\
+                    pop RSI \n\
+                    add RSI, 88 ; 88 because RSP has pushed additional 11 registers(8 in push_all, and 4 after that), so original value is 88 more than current\n\
+                    pop RDX \n\
+                    pop RCX \n\
+                    pop R8 \n\
+                    mov RAX, 0 \n\
+                    align_16_rsp ;align RSP to 16 byte boundary\n\
+                    call printf \n\
+                    remove_align_16_rsp ;realign RSP\n\
+                    pop_all\n\
+                %%endmacro \n\n");
+
+    fprintf(assembly_file_ptr,
+            "\t\t\t\t%%macro print_str 1 \n\
+                    section .data\n\
+                        %%%%str db %%1,0 ;%% is to make label local to this macro, to enable mutiple calls within same label\n\
+                    section .text\n\
+                        push_all\n\
+                        mov RDI, str_fmt    ;\"%%s\\n\"\n\
+                        mov RSI, %%%%str\n\
+                        mov RAX, 0 \n\
+                        align_16_rsp ;align RSP to 16 byte boundary\n\
+                        call printf \n\
+                        remove_align_16_rsp ;realign RSP\n\
+                        pop_all\n\
+                %%endmacro \n\n");
+    fprintf(assembly_file_ptr,
+            "\t\t\t\t%%macro print_str_no_new_line 1 \n\
+                    section .data\n\
+                        %%%%str db %%1,0 ;%% is to make label local to this macro, to enable mutiple calls within same label\n\
+                    section .text\n\
+                        push_all\n\
+                        mov RDI, str_no_new_line_fmt    ;\"%%s\"\n\
+                        mov RSI, %%%%str\n\
+                        mov RAX, 0 \n\
+                        align_16_rsp ;align RSP to 16 byte boundary\n\
+                        call printf \n\
+                        remove_align_16_rsp ;realign RSP\n\
+                        pop_all\n\
+                %%endmacro \n\n");
+
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\t%%macro align_16_rsp 0 \n\
+                    push RBX\n\
+					push RDX\n\
+					push RAX\n\
+					mov RDX, 0\n\
+					mov RAX, RSP\n\
+					mov RBX, 16\n\
+					idiv RBX\n\
+					mov RBX, RDX\n\
+					pop RAX\n\
+					pop RDX\n\
+					sub RSP, RBX\n\
+                %%endmacro \n\n");
+    
+    fprintf(assembly_file_ptr, 
+            "\t\t\t\t%%macro remove_align_16_rsp 0 \n\
+                    add RSP, RBX\n\
+					pop RBX\n\
+                %%endmacro \n\n");
+
     fprintf(assembly_file_ptr, "\t\t\t\tglobal main\n");
 
     for(int i = 0; i < quad_count; i++){
@@ -1415,7 +1651,6 @@ void generate_code(){
             break;
             case RETURN_OP:
             {
-                print_regs_code_gen();
                 return_code_gen(quadruples[i]);
             }
             break;

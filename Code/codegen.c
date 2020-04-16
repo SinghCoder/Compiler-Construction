@@ -891,33 +891,35 @@ void param_code_gen(quad_node quad){
     /**
      * @brief If type is array, push range values on stack
      */
-    if(arg1_type_ptr->typeinfo.array.is_dynamic.range_high){
-        char *range_high = arg1_type_ptr->typeinfo.array.range_high.lexeme;
-        fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array high range param %s\n", range_high);
-        type *rhigh_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_high, quad.encl_fun_type_ptr, NULL);
-        int rhigh_offset = rhigh_type->offset_used;
-        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rhigh_offset);
-    }
-    else{
-        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_high.value);
-    }
+    if(arg1_type_ptr->name == ARRAY){
+        if(arg1_type_ptr->typeinfo.array.is_dynamic.range_high){
+            char *range_high = arg1_type_ptr->typeinfo.array.range_high.lexeme;
+            fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array high range param %s\n", range_high);
+            type *rhigh_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_high, quad.encl_fun_type_ptr, NULL);
+            int rhigh_offset = rhigh_type->offset_used;
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rhigh_offset);
+        }
+        else{
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_high.value);
+        }
 
-    fprintf(assembly_file_ptr, "\t\t\t\t;Push the high range value on stack\n");
-    fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
+        fprintf(assembly_file_ptr, "\t\t\t\t;Push the high range value on stack\n");
+        fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
 
-    if(arg1_type_ptr->typeinfo.array.is_dynamic.range_low){
-        char *range_low = arg1_type_ptr->typeinfo.array.range_low.lexeme;
-        fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array low range param %s\n", range_low);
-        type *rlow_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_low, quad.encl_fun_type_ptr, NULL);
-        int rlow_offset = rlow_type->offset_used;
-        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rlow_offset);
-    }
-    else{
-        fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_low.value);
-    }
+        if(arg1_type_ptr->typeinfo.array.is_dynamic.range_low){
+            char *range_low = arg1_type_ptr->typeinfo.array.range_low.lexeme;
+            fprintf(assembly_file_ptr, "\t\t\t\t;get the value of array low range param %s\n", range_low);
+            type *rlow_type = (type*)key_search_recursive(quad.curr_scope_table_ptr, range_low, quad.encl_fun_type_ptr, NULL);
+            int rlow_offset = rlow_type->offset_used;
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", rlow_offset);
+        }
+        else{
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, %d\n", arg1_type_ptr->typeinfo.array.range_low.value);
+        }
 
-    fprintf(assembly_file_ptr, "\t\t\t\t;Push the low range value on stack\n");
-    fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
+        fprintf(assembly_file_ptr, "\t\t\t\t;Push the low range value on stack\n");
+        fprintf(assembly_file_ptr, "\t\t\t\tpush RAX\n");
+    }
 }
 
 void index_copy_code_gen(quad_node quad){
@@ -1196,6 +1198,7 @@ void fn_space_code_gen(quad_node quad){
                 mov RDI, 0\n\
                 call exit\n\
 %s:\n", param_type->typeinfo.array.range_low.value, rlow_match_label, rlow_match_label);
+                inp_param_num++;
             }
 
             if(param_type->typeinfo.array.is_dynamic.range_high){
@@ -1220,6 +1223,7 @@ void fn_space_code_gen(quad_node quad){
                 mov RDI, 0\n\
                 call exit\n\
 %s:\n", param_type->typeinfo.array.range_high.value, rhigh_match_label, rhigh_match_label);
+                inp_param_num++;
             }
 
         }
@@ -1317,6 +1321,7 @@ void return_code_gen(quad_node quad){
 
     params_list_node *outp_param = NULL;
     int total_offset_reqd = 0;
+    int extra_inp_param_num = 0;    // will be 2 when inp param is of array type
 
     params_list_node *inp_param = NULL;
     if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params)
@@ -1326,6 +1331,8 @@ void return_code_gen(quad_node quad){
         type *param_type  = inp_param->t;
         total_offset_reqd += WIDTH_POINTER;
         inp_param = inp_param->next;
+        if(param_type->name == ARRAY)
+            extra_inp_param_num = 2;
     }
 
     if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params)
@@ -1351,7 +1358,7 @@ void return_code_gen(quad_node quad){
             outp_param_type_ptr_callee = (type *)key_search_recursive(quad.curr_scope_table_ptr, outp_param->param_name, quad.encl_fun_type_ptr, NULL);
             outp_param_offset_callee = outp_param_type_ptr_callee->offset_used;
             fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", outp_param_offset_callee);
-            fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP + 16 + 8*%d + 8*%d]\n", num_inp_params,outp_param_num);
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP + 16 + 8*%d + 8*%d]\n", num_inp_params + extra_inp_param_num,outp_param_num);
             fprintf(assembly_file_ptr, "\t\t\t\tmov [RBX], RAX\n");
             outp_param_num++;
             outp_param = outp_param->next;

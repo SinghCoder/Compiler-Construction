@@ -366,8 +366,19 @@ int main(int argc, char *argv[]) {
 				tree_node *ast_tree = construct_ast(ptr);
 				construct_symtable(ast_tree);        
 				second_ast_pass(ast_tree);			
-
-				print_symbol_table(ast_tree->scope_sym_tab);
+				pretty_print("variable_name");
+				pretty_print("scope(module_name)");
+				pretty_print("scope(line_numbers)");
+				pretty_print("width");
+				pretty_print("isArray");
+				pretty_print("static_or_dynamic");
+				pretty_print("range_lexemes");
+				pretty_print("type_of_element");
+				pretty_print("offset");
+				pretty_print("nesting_level");
+				printf("\n");
+				printf("-------------------------------------------------------------------------------------------------------------------------------------------------\n");
+				print_symbol_table(root_sym_tab_ptr);
 
 				free_grammar();
 				fclose(fptr);
@@ -493,6 +504,21 @@ int main(int argc, char *argv[]) {
 
 				print_errors();
 
+				if(sem_err_num){
+					free_grammar();
+					fclose(fptr);
+
+					end_time = clock();
+
+					total_CPU_time  =  (double) (end_time - start_time);
+
+					total_CPU_time_in_seconds =   total_CPU_time / CLOCKS_PER_SEC;
+
+					printf("Total CPU time : %lf\n", total_CPU_time);
+					printf("Total CPU time(in seconds) : %lf\n", total_CPU_time_in_seconds);
+					break;
+				}
+				
 				generate_ir(ast_tree);	
 				// print_quadruples();
 				// print_symbol_table(root_sym_tab_ptr);	

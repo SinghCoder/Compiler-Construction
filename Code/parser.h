@@ -57,4 +57,5 @@ void free_grammar();
 
 void print_symbol(symbol sym);
 
+void pretty_print(char *s);
 #endif

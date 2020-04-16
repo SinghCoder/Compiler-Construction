@@ -441,7 +441,7 @@ void insert_param_in_list(params_list *list, type *t, char *param_name){
     list->length++;
 }
 
-void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list, int def_line_num){
+void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme, tree_node *inp_par_node_list, tree_node *outp_par_node_list, int def_line_num, int start_line_num, int end_line_num){
     // /**  printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");  */
     type *existing_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, lexeme);    
     type *t = (type*) malloc( sizeof(type) );
@@ -488,8 +488,14 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         type *inp_param_type_ptr = NULL;
         while(inp_param_node != NULL){
             inp_param_type_ptr = retreive_type(inp_param_node);
+            if(inp_param_type_ptr->name == ARRAY){
+                inp_param_type_ptr->width = WIDTH_POINTER + 2 * (WIDTH_INTEGER);
+            }
             inp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
             inp_param_type_ptr->offset_used = t->typeinfo.module.curr_offset_used;
+            inp_param_type_ptr->encl_mod_name = lexeme;
+            inp_param_type_ptr->line_nums.start = start_line_num;
+            inp_param_type_ptr->line_nums.end = end_line_num;
             // t->typeinfo.module.curr_offset += inp_param_type_ptr->width;
             insert_param_in_list(t->typeinfo.module.input_params, inp_param_type_ptr, id_str);
             inp_param_node = inp_param_node->sibling;     // rn at node labelled ID
@@ -508,6 +514,9 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
             
             outp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
             outp_param_type_ptr->offset_used = t->typeinfo.module.curr_offset_used;
+            outp_param_type_ptr->encl_mod_name = lexeme;
+            outp_param_type_ptr->line_nums.start = start_line_num;
+            outp_param_type_ptr->line_nums.end = end_line_num;
             // t->typeinfo.module.curr_offset += outp_param_type_ptr->width;
 
             insert_param_in_list(t->typeinfo.module.output_params, outp_param_type_ptr, id_str);
@@ -714,84 +723,122 @@ void print_a_type(type *type_ptr){
     }
 }
 
-void print_symbol_table(struct symbol_table_wrapper *sym_tab_ptr){
+void print_sym_tab_entry(char *lexeme, st_wrapper *sym_tab_ptr, type *type_ptr){
+    if(type_ptr != NULL)
+    {
+        token_name type_name = type_ptr->name;
+        pretty_print(lexeme);
+        
+        if(type_ptr && type_ptr->encl_mod_name)
+            pretty_print( type_ptr->encl_mod_name);
+        else
+            pretty_print( "---");
+
+        char line_nums_str[MAX_LEXEME_LEN];
+        snprintf(line_nums_str, MAX_LEXEME_LEN, "%d-%d",type_ptr->line_nums.start, type_ptr->line_nums.end );
+        pretty_print(line_nums_str);
+
+        char width_str[MAX_LEXEME_LEN];
+        if(type_ptr->width != -1)
+            snprintf(width_str, MAX_LEXEME_LEN, "%d", type_ptr->width);
+        else
+            strcpy(width_str,"---");
+
+        pretty_print(width_str);
+        
+        if(type_ptr->name == ARRAY){
+            bool is_dyn = false;
+            char *low_range, *high_range;
+
+            type_name = type_ptr->typeinfo.array.primitive_type;
+            pretty_print("yes");
+            if(type_ptr->typeinfo.array.is_dynamic.range_low){
+                is_dyn = true;
+                low_range = type_ptr->typeinfo.array.range_low.lexeme;
+            }
+            else{
+                low_range = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+                snprintf(low_range, MAX_LEXEME_LEN, "%4d", type_ptr->typeinfo.array.range_low.value);
+            }
+            if(type_ptr->typeinfo.array.is_dynamic.range_high){
+                is_dyn = true;
+                high_range = type_ptr->typeinfo.array.range_high.lexeme;
+            }
+            else{
+                high_range = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+                snprintf(high_range, MAX_LEXEME_LEN, "%4d", type_ptr->typeinfo.array.range_high.value);
+            }
+            
+            if(is_dyn)
+                pretty_print("dynamic");
+            else
+                pretty_print("static");
+
+            char range_str[MAX_LEXEME_LEN];
+            snprintf(range_str, MAX_LEXEME_LEN, "[%s,%s]", low_range, high_range);
+            pretty_print(range_str);
+        }
+
+        else if(type_ptr->name == MODULE){
+            pretty_print("no");
+            pretty_print("---");
+            pretty_print("---");
+            // print_params_list(type_ptr->typeinfo.module.input_params);
+            // print_params_list(type_ptr->typeinfo.module.output_params);          
+        }
+        else{
+            pretty_print("no");
+            pretty_print("---");
+            pretty_print("---");
+        }
+
+        pretty_print(terminal_string[ type_name] );
+
+        char offset_str[MAX_LEXEME_LEN];
+        if(type_ptr->offset != -1)
+            snprintf(offset_str, MAX_LEXEME_LEN, "%d", type_ptr->offset);
+        else
+            snprintf(offset_str, MAX_LEXEME_LEN, "---");
+        
+        pretty_print(offset_str);
+        
+        int level_num = sym_tab_ptr->level_num;
+
+        printf("%10d", level_num);
+        printf("\n%90s\n", "-----------------------------------------------------------------------------------------------------------------------------------");
+    }
+}
+
+void print_symbol_table(st_wrapper *sym_tab_ptr){
     if(sym_tab_ptr == NULL){
         return;
     }
     // printf("************************Printing Symbol table for a new scope**********************\n");
     for(int i=0; i < HASH_SIZE; i++){
         type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
-        if(type_ptr != NULL)
-        {
-            token_name type_name = type_ptr->name;
-            printf("%10s | ",sym_tab_ptr->table[i].lexeme);
-            
-            if(type_ptr && type_ptr->encl_mod_name)
-                printf("%10s | ", type_ptr->encl_mod_name);
-            else
-                printf("%10s | ", "---");
-
-            printf(" %4d - %4d | ", type_ptr->line_nums.start, type_ptr->line_nums.end);      
-
-            if(type_ptr->width != -1)
-                printf("%10d | ", type_ptr->width);            
-            else
-                printf("%10s | ", "---");
-            
-            if(type_ptr->name == ARRAY){
-                bool is_dyn = false;
-                char *low_range, *high_range;
-
-                type_name = type_ptr->typeinfo.array.primitive_type;
-                printf("%10s | ","yes");
-                if(type_ptr->typeinfo.array.is_dynamic.range_low){
-                    is_dyn = true;
-                    low_range = type_ptr->typeinfo.array.range_low.lexeme;
+        if(type_ptr != NULL){
+            if(type_ptr->name == MODULE){
+                params_list *inp_params = type_ptr->typeinfo.module.input_params;
+                if(inp_params){
+                    params_list_node *inp_param = inp_params->first;
+                    while(inp_param){
+                        print_sym_tab_entry(inp_param->param_name, sym_tab_ptr, inp_param->t);
+                        inp_param = inp_param->next;
+                    }
                 }
-                else{
-                    low_range = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
-                    snprintf(low_range, MAX_LEXEME_LEN, "%4d", type_ptr->typeinfo.array.range_low.value);
-                }
-                if(type_ptr->typeinfo.array.is_dynamic.range_high){
-                    is_dyn = true;
-                    high_range = type_ptr->typeinfo.array.range_high.lexeme;
-                }
-                else{
-                    high_range = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
-                    snprintf(high_range, MAX_LEXEME_LEN, "%4d", type_ptr->typeinfo.array.range_high.value);
-                }
-                
-                if(is_dyn)
-                    printf("%10s | ","dynamic");
-                else
-                    printf("%10s | ","static");
 
-                printf(" %4s-%4s | " ,low_range, high_range);
-            }
-
-            else if(type_ptr->name == MODULE){
-                printf("%10s | ","no");
-                printf("%10s | ","---");
-                printf("%10s | ","---");
-                // print_params_list(type_ptr->typeinfo.module.input_params);
-                // print_params_list(type_ptr->typeinfo.module.output_params);          
+                params_list *outp_params = type_ptr->typeinfo.module.output_params;
+                if(outp_params){
+                    params_list_node *outp_param = outp_params->first;
+                    while(outp_param){
+                        print_sym_tab_entry(outp_param->param_name, sym_tab_ptr, outp_param->t);
+                        outp_param = outp_param->next;
+                    }
+                }
             }
             else{
-                printf("%10s | ","no");
-                printf("%10s | ","---");
-                printf("%10s | ","---");
-            }
-
-            printf("%10s | ",terminal_string[ type_name] );
-            if(type_ptr->offset != -1)
-                printf("%10d | ", type_ptr->offset);
-            else
-                printf("%10s | ","---");
-            
-            int level_num = sym_tab_ptr->level_num;
-
-            printf("%10d", level_num);
-            printf("\n%90s\n", "-----------------------------------------------------------------------------------------------------------------------------------");
+                print_sym_tab_entry(sym_tab_ptr->table[i].lexeme, sym_tab_ptr, type_ptr);
+            }        
         }
     }
     if(sym_tab_ptr->leftmost_child_table){
@@ -1661,7 +1708,8 @@ void construct_symtable(tree_node *ast_root) {
              */
             if(node->sym.is_terminal == false){
                 if(node->sym.nt == NTMODULE){
-                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, get_nth_child(node, 3)->leftmost_child, node->leftmost_child->token.line_no); //pass the list heads for input and output types
+                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, 
+                        get_nth_child(node, 3)->leftmost_child, node->leftmost_child->token.line_no, node->leftmost_child->line_nums.start, node->leftmost_child->line_nums.end); //pass the list heads for input and output types
                     // encl fun ptr stores ptr to module's type entry
                     node->encl_fun_type_ptr = search_hash_table_ptr_val(root_sym_tab_ptr->table,node->leftmost_child->token.id.str);
                     if(node->encl_fun_type_ptr){

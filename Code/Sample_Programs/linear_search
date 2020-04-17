@@ -1,0 +1,48 @@
+**returns the last index at which element is found or -1 if element not found**
+<<module linearSearch>>
+takes input[m: integer, A: array[1..7] of integer, x: integer];
+returns [index: integer];
+start
+    **print array once inside function to check if it is reveived correctly**
+    **print(A);**
+
+    declare b : integer;
+    b := 1;
+
+    index := -(b);  **We need to correct uexpr in codegen.c to avoid this workaround**
+
+    declare flag : boolean;
+
+    declare i: integer;
+
+    for(i in 1..7)
+    start
+        flag := A[i] == x;
+
+        switch(flag)
+        start
+            case true: index := i;
+                       break;
+            case false:
+                       break;
+        end
+    end
+end
+
+<<<driver program>>>
+start
+    declare m: integer;     **size of array**
+    m := 7;
+    **get_value(m);**
+	declare A: array [1..7] of integer;
+
+	get_value(A);
+
+    declare search: integer;
+    **Enter element to search**
+    get_value(search);
+
+    declare idx : integer;
+    [idx] := use module linearSearch with parameters m, A, search;	
+    print(idx);
+end

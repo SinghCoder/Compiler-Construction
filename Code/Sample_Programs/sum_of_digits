@@ -1,0 +1,33 @@
+<< module sum_of_digits >>
+takes input [a : integer];
+returns [ sum_digs : integer];
+start
+
+    sum_digs := 0;
+
+    declare i : integer;
+    i := 1;
+    while( a != 0)
+    start
+        sum_digs := sum_digs + (a - (a/10)*10);
+        a := a / 10;
+    end
+
+end
+
+<<< driver program >>>
+start
+
+    declare n : integer;
+    declare n_sum_digs : integer;
+
+    get_value(n);
+
+    while ( n != 0)     ** take input from user until he presses 0 **
+    start
+        [n_sum_digs] := use module sum_of_digits with parameters n;
+        print(n_sum_digs);
+        get_value(n);
+    end
+
+end

@@ -1,0 +1,33 @@
+<< module factorial >>
+takes input [a : integer];
+returns [ fact : integer];
+start
+
+    fact := 1;
+
+    declare i : integer;
+    i := 1;
+    while( i <= a)
+    start
+        fact := fact * i;
+        i := i + 1;
+    end
+
+end
+
+<<< driver program >>>
+start
+
+    declare n : integer;
+    declare n_fact : integer;
+
+    get_value(n);
+
+    while ( n != 0)     ** take input from user until he presses 0 **
+    start
+        [n_fact] := use module factorial with parameters n;
+        print(n_fact);
+        get_value(n);
+    end
+
+end

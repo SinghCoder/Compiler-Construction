@@ -1,0 +1,46 @@
+<<module isPrime>>
+takes input [a : integer];
+returns [b : boolean];
+start
+
+b := true;
+
+declare m, i : integer;
+declare temp : boolean;
+declare quo : integer;
+m := a - 1;
+
+i := 2;
+while(i <= m)  
+start
+    
+    quo := a/i;
+    temp := quo*i == a;
+    
+    
+    switch (temp)
+    start
+        case true:
+            b := false;
+        break;
+        case false:
+        break;
+    end
+
+    i := i+1;
+end
+
+end
+<<<driver program>>>
+start
+    declare num : integer;
+    declare is_prime : boolean;
+    get_value(num);
+    
+    while(num != 0)
+    start   
+        [is_prime] := use module isPrime with parameters num;
+        print(is_prime);
+        get_value(num);        
+    end
+end

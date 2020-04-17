@@ -1,0 +1,33 @@
+<< module reverse_num >>
+takes input [a : integer];
+returns [ rnum : integer];
+start
+
+    rnum := 0;
+
+    declare i : integer;
+    i := 1;
+    while( a != 0)
+    start
+        rnum := rnum*10 + (a - (a/10)*10);
+        a := a / 10;
+    end
+
+end
+
+<<< driver program >>>
+start
+
+    declare n : integer;
+    declare n_rnum : integer;
+
+    get_value(n);
+
+    while ( n != 0)     ** take input from user until he presses 0 **
+    start
+        [n_rnum] := use module reverse_num with parameters n;
+        print(n_rnum);
+        get_value(n);
+    end
+
+end

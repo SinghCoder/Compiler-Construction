@@ -602,6 +602,7 @@ int main(int argc, char *argv[]) {
 
 				generate_code();
 
+				// print_symbol_table(root_sym_tab_ptr);
 				fclose(assembly_file_ptr);
 
 				printf("Code compiles successfully..........\n\n");

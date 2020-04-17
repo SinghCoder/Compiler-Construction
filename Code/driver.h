@@ -39,6 +39,8 @@
 #define SEMANTIC_ERROR 2
 #define INTERNAL_ERROR 3
 
+#define MAX_NESTING 200
+
 char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 char non_terminal_string[NUM_OF_NONTERMINALS][MAX_SYMBOL_LENGTH];
 

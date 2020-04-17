@@ -413,10 +413,10 @@ type *retreive_type(tree_node *node){
                 break;
         }
         if(!is_dynamic_arr && !basic_type)
-            type_ptr->width += WIDTH_POINTER;   // An array name will also have to store the base address of first array element
+            type_ptr->width += 1;   // An array name will also have to store the base address of first array element
     }
     else{
-        type_ptr->width = WIDTH_POINTER;
+        type_ptr->width = 1;
     }
 
     type_ptr->is_assigned = false;
@@ -489,7 +489,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         while(inp_param_node != NULL){
             inp_param_type_ptr = retreive_type(inp_param_node);
             if(inp_param_type_ptr->name == ARRAY){
-                inp_param_type_ptr->width = WIDTH_POINTER + 2 * (WIDTH_INTEGER);
+                inp_param_type_ptr->width = 1 + 2 * (WIDTH_INTEGER);
             }
             
             inp_param_type_ptr->offset = t->typeinfo.module.offset_params;
@@ -637,7 +637,6 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
                 tree_node *grand_par = par->parent;
                 if(grand_par->parent && grand_par->parent->sym.nt == INPUT_PLIST){
                     type_ptr->name = INTEGER;
-                    printf("%s\n", terminal_string[type_ptr->name]);
                     type_ptr->width = WIDTH_INTEGER;
                     type_ptr->offset = node->encl_fun_type_ptr->typeinfo.module.curr_offset;
                     type_ptr->offset_used = node->encl_fun_type_ptr->typeinfo.module.curr_offset_used;
@@ -840,6 +839,8 @@ void print_symbol_table(st_wrapper *sym_tab_ptr){
                 }
             }
             else{
+                // if(sym_tab_ptr == root_sym_tab_ptr)
+                //     continue;
                 print_sym_tab_entry(sym_tab_ptr->table[i].lexeme, sym_tab_ptr, type_ptr);
             }        
         }
@@ -1837,6 +1838,18 @@ void construct_symtable(tree_node *ast_root) {
                             store_error(node->token.line_no, SEMANTIC_ERROR, msg);
                         }
                     }
+                    // else if(node->parent->sym.nt == RANGE){
+                    //     /**
+                    //      * @brief Check if the ID is part of array and the array is a input parameter             * 
+                    //      */
+                    //     if(node->parent->parent && node->parent->parent->sym.nt == NT_ARRAY){
+                    //         tree_node *gpar = node->parent->parent;
+                    //         if(gpar->parent && gpar->parent->sym.nt == INPUT_PLIST){
+                    //             // insert it in root symbol table
+                    //             insert_in_sym_table(root_sym_tab_ptr, node);
+                    //         }
+                    //     }
+                    // }
                     else{
                         /**
                          * @brief Check if this ID is on lhs of while loop
@@ -1992,7 +2005,7 @@ void print_activation_records()
     st_wrapper *sym_tab_ptr = root_sym_tab_ptr;
     for(int i=0; i < HASH_SIZE; i++){
         type *type_ptr = (type*)(sym_tab_ptr->table[i].value);
-        if(type_ptr != NULL)
+        if(type_ptr != NULL && type_ptr->name == MODULE)
         {
             printf("%10s | ",sym_tab_ptr->table[i].lexeme);
             printf("%10d \n", type_ptr->typeinfo.module.curr_offset);

@@ -517,21 +517,21 @@ void input_code_gen(quad_node quad){
         case INTEGER:
         {
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter an integer value\"\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter an integer value for %s\"\n", quad.arg1);
             one_input_code_gen(INTEGER, offset);
         }
         break;
         case REAL:
         {
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a real value\"\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a real value for %s\"\n", quad.arg1);
             one_input_code_gen(REAL, offset);
         }
         break;
         case BOOLEAN:
         {
             fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"\"\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a boolean value\"\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter a boolean value for %s\"\n", quad.arg1);
             one_input_code_gen(BOOLEAN, offset);
         }
         break;
@@ -602,9 +602,40 @@ void input_code_gen(quad_node quad){
             fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, RBX\n");
             fprintf(assembly_file_ptr, "\t\t\t\tsub RCX, RAX\n");
             fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
-            fprintf(assembly_file_ptr, "\t\t\t\t;just check RCX value to verify\n");            
-            print_regs_code_gen();
-            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Input: Enter {RCX} number of aray elements of %s type for range %s to %s\"\n",prim_type, range_low, range_high);
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str_no_new_line \"Input: Enter \"\n");
+            
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RSI, RCX  ;count of array elems\n\
+                push_all\n\
+                mov RAX, 0 \n\
+                align_16_rsp ;align RSP to 16 byte boundary for printf call\n\
+                call printf \n\
+                remove_align_16_rsp ;realign RSP\n\
+                pop_all\n");
+
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str_no_new_line \" number of array elements of %s type for range \"\n",prim_type);
+
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RSI, RAX  ;count of array elems\n\
+                push_all\n\
+                mov RAX, 0 \n\
+                align_16_rsp ;align RSP to 16 byte boundary for printf call\n\
+                call printf \n\
+                remove_align_16_rsp ;realign RSP\n\
+                pop_all\n");
+            
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str_no_new_line \" to \"\n");
+
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, int_fmt		;first arg, format \"%%d\" \n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RSI, RBX  ;count of array elems\n\
+                push_all\n\
+                mov RAX, 0 \n\
+                align_16_rsp ;align RSP to 16 byte boundary for printf call\n\
+                call printf \n\
+                remove_align_16_rsp ;realign RSP\n\
+                pop_all\n");
+
+            fprintf(assembly_file_ptr, "\t\t\t\tprint_str \" for array %s\"\n", quad.arg1);
 
             fprintf(assembly_file_ptr, "\t\t\t\t;taking input for array elements\n");
             fprintf(assembly_file_ptr, "\t\t\t\tmov RDX, [RBP - %d] ;address of arr[0] in RDX from contents of [%s]\n", offset, quad.arg1);            
@@ -1025,7 +1056,7 @@ void array_access_code_gen(quad_node quad){
     fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
     fprintf(assembly_file_ptr, "\t\t\t\t; array access\n");
     fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, %s\n", arg2_str);
-    fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP - %d]\n", offset_arg1);
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP - %d]\n", offset_arg1);   // pick up BA of array in RBX
     fprintf(assembly_file_ptr, "\t\t\t\tsub RBX, RCX\n");
     fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBX]\n");
     fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX\n", offset_result);
@@ -1192,7 +1223,7 @@ void fn_space_code_gen(quad_node quad){
         type *param_type  = inp_param->t;
 
         /**
-         * @brief Check if param type is dynamic array, make it static by copying the range values from stack
+         * @brief Check if param type is dynamic array, copy the range values from stack
          * And if static, do range checking
          */
 

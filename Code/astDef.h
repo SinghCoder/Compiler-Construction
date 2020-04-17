@@ -17,4 +17,9 @@ extern char terminal_string[NUM_OF_TERMINALS][MAX_SYMBOL_LENGTH];
 extern int curr_start;
 extern int curr_end;
 
+int start_scope[MAX_NESTING];
+int end_scope[MAX_NESTING];
+
+int total_starts;
+
 #endif

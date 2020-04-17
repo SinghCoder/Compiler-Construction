@@ -19,6 +19,7 @@
 #define COLUMN_SIZE 20
 #define NUM_TAC_OP 30
 #define MAX_SWITCH_CASES 200
+#define MAX_NESTING 200
 
 #define MAX_LABEL_LEN 20
 #define MAX_TEMP_LEN 20

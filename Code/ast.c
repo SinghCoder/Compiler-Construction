@@ -10,6 +10,7 @@
 #include "astDef.h"
 #include "parser.h"
 #include "treeADT.h"
+#include "stackADT.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -139,8 +140,67 @@ void extend_inh_node(tree_node *node1, tree_node *node2) {
   return;
 }
 
+void populate_start_end_mapping(tree_node *parse_tree_root)
+{
+	total_starts = 0;
+
+	stack *scope_stack = stack_init();
+
+	int start_num;
+	int start_line, end_line;
+
+	tree_node *temp = parse_tree_root;
+
+	while(temp != NULL)
+	{
+        if(temp->visited == false)
+		{
+            temp->visited = true;
+
+			if(temp->sym.is_terminal == true)
+			{
+				
+				if(temp->sym.t == START)
+				{
+					push(scope_stack, &(temp->token.line_no));
+				}
+
+				if(temp->sym.t == END)
+				{
+					end_line = temp->token.line_no;
+					
+					start_line = *(int *)(pop(scope_stack));
+
+					start_scope[total_starts] = start_line;
+					end_scope[total_starts] = end_line;		
+
+					total_starts++;		
+				}
+			}
+
+            if(temp->leftmost_child != NULL){
+                temp = temp->leftmost_child;
+            }
+        }
+        else
+		{
+            temp->visited = false;
+
+            if(temp->sibling)
+                temp = temp->sibling;
+            else
+                temp = temp->parent;
+        }
+    }
+}
+
 tree_node *construct_ast(tree_node *parse_tree_root) {
   tree_node *temp = parse_tree_root;
+
+  populate_start_end_mapping(parse_tree_root);
+
+  for(int i = 0; i < total_starts; i++)
+	  printf("%d -- %d\n", start_scope[i], end_scope[i]);
 
   do {
 	// print_symbol(temp->sym);printf("\n");
@@ -159,9 +219,26 @@ tree_node *construct_ast(tree_node *parse_tree_root) {
 	  if(temp->sym.is_terminal && temp->sym.t == ID){   // assign begin and end line nums to this id if it's part of declarestmt
 		  tree_node *tmp_node = temp;          
 		  while(tmp_node){
-			if(tmp_node->sym.nt == DECLARESTMT){
+			if(tmp_node->sym.nt == DECLARESTMT)
+			{
 			  temp->line_nums.start = curr_start;
 			  temp->line_nums.end = curr_end;
+
+			  if(temp->line_nums.end < temp->token.line_no)
+			  {
+				  int min_till_now = 10000;
+				  int best = 0;
+				  for(int i = 0; i < total_starts; i++)
+				  {
+					  if(end_scope[i] > temp->token.line_no && end_scope[i] < min_till_now)
+					  {
+						  min_till_now = end_scope[i];
+						  best = i;
+					  }
+				  }
+				  temp->line_nums.start = start_scope[best];
+			  	  temp->line_nums.end = end_scope[best];
+			  }
 			  break;
 			}
 			tmp_node = tmp_node->parent;

@@ -19,5 +19,6 @@ tree_node *copy_node(tree_node *src);
 void extend_inh_node(tree_node *node1, tree_node *node2);
 tree_node *construct_ast(tree_node *parse_tree_root);
 void traverse_ast(tree_node *ast_node);
+void populate_start_end_mapping(tree_node *parse_tree_root);
 
 #endif

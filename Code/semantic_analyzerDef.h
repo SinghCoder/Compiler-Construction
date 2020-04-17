@@ -70,6 +70,7 @@ struct type{
             bool is_declrn_valid;
             int curr_offset;
             int curr_offset_used;
+            int offset_params;
             int base_addr;
         }module;
             

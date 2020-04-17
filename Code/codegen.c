@@ -95,38 +95,52 @@ void arithexpr_code_gen(quad_node quad){
     }
     else if(res_type_ptr->name == REAL)
     {
+        if(!arg1_type_ptr)  // immediate value
+        {
+            char *real1_str = newlabel();
+            fprintf(assembly_file_ptr,"\t\t\t\tsection .data\n");
+            fprintf(assembly_file_ptr,"\t\t\t\t%s: dq %s\n", real1_str, arg1_str);
+            fprintf(assembly_file_ptr,"\t\t\t\tsection .text\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM0, [%s]\n", real1_str);            
+        }
+        else
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM0, %s\n", arg1_str);
+
+        if(!arg2_type_ptr)  // immediate value
+        {
+            char *real2_str = newlabel();
+            fprintf(assembly_file_ptr,"\t\t\t\tsection .data\n");
+            fprintf(assembly_file_ptr,"\t\t\t\t%s: dq %s\n", real2_str, arg2_str);
+            fprintf(assembly_file_ptr,"\t\t\t\tsection .text\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM2, [%s]\n", real2_str);
+        }
+        else
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM2, %s\n", arg2_str);
+        
         switch(quad.op)
         {
             case PLUS_OP: 
             fprintf(assembly_file_ptr, "\t\t\t\t;Addition of reals\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
-                mov XMM2, %s\n\
-                addsd XMM0, XMM2 \n\
-                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            fprintf(assembly_file_ptr,"\t\t\t\taddsd XMM0, XMM2 \n\
+                movsd [RBP - %d], XMM0 \n",offset_result);
             break;
 
             case MINUS_OP: 
             fprintf(assembly_file_ptr, "\t\t\t\t;Subtraction of reals\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
-                mov XMM2, %s\n\
-                subsd XMM0, XMM2 \n\
-                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            fprintf(assembly_file_ptr,"\t\t\t\tsubsd XMM0, XMM2 \n\
+                movsd [RBP - %d], XMM0 \n", offset_result);
             break;
 
             case MUL_OP: 
             fprintf(assembly_file_ptr, "\t\t\t\t;Multiplication of reals\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
-                mov XMM2, %s\n\
-                mulsd XMM2 \n\
-                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            fprintf(assembly_file_ptr,"\t\t\t\tmulsd XMM0, XMM2 \n\
+                movsd [RBP - %d], XMM0 \n",offset_result);
             break;
 
             case DIV_OP: 
             fprintf(assembly_file_ptr, "\t\t\t\t;Division of reals\n");
-            fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n\
-                mov XMM2, %s\n\
-                divsd XMM2 \n\
-                mov [RBP - %d], XMM0 \n",arg1_str, arg2_str, offset_result);
+            fprintf(assembly_file_ptr,"\t\t\t\tdivsd XMM0, XMM2 \n\
+                movsd [RBP - %d], XMM0 \n", offset_result);
             break;
             
         }
@@ -834,8 +848,16 @@ void assign_code_gen(quad_node quad){
     fprintf(assembly_file_ptr, "\t\t\t\tpush_all\n");
     if(res_type_ptr->name == REAL){
         fprintf(assembly_file_ptr, "\t\t\t\t;Assignment to a real\n");
-        fprintf(assembly_file_ptr, "\t\t\t\tmov XMM0, %s\n", arg1_str);
-        fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], XMM0\n", offset_result);
+        if(!arg1_type_ptr){
+            char *real_str = newlabel();
+            fprintf(assembly_file_ptr, "\t\t\t\tsection .data\n");
+            fprintf(assembly_file_ptr, "\t\t\t\t%s: dq %s\n",real_str, arg1_str);
+            fprintf(assembly_file_ptr, "\t\t\t\tsection .text\n");
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM0, [%s]\n", real_str);
+        }
+        else
+            fprintf(assembly_file_ptr, "\t\t\t\tmovsd XMM0, %s\n", arg1_str);
+        fprintf(assembly_file_ptr, "\t\t\t\tmovsd [RBP - %d], XMM0\n", offset_result);
     }
     else{
         fprintf(assembly_file_ptr, "\t\t\t\t;Assignment to a %s\n", terminal_string[res_type_ptr->name]);

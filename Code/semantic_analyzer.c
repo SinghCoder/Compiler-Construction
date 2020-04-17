@@ -491,8 +491,10 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
             if(inp_param_type_ptr->name == ARRAY){
                 inp_param_type_ptr->width = WIDTH_POINTER + 2 * (WIDTH_INTEGER);
             }
-            inp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
-            inp_param_type_ptr->offset_used = t->typeinfo.module.curr_offset_used;
+            
+            inp_param_type_ptr->offset = t->typeinfo.module.offset_params;
+            t->typeinfo.module.offset_params += inp_param_type_ptr->width;
+
             inp_param_type_ptr->encl_mod_name = lexeme;
             inp_param_type_ptr->line_nums.start = start_line_num;
             inp_param_type_ptr->line_nums.end = end_line_num;
@@ -512,8 +514,9 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
         while(outp_param_node != NULL){
             outp_param_type_ptr = retreive_type(outp_param_node);
             
-            outp_param_type_ptr->offset = t->typeinfo.module.curr_offset;
-            outp_param_type_ptr->offset_used = t->typeinfo.module.curr_offset_used;
+            outp_param_type_ptr->offset = t->typeinfo.module.offset_params;
+            t->typeinfo.module.offset_params += outp_param_type_ptr->width;
+
             outp_param_type_ptr->encl_mod_name = lexeme;
             outp_param_type_ptr->line_nums.start = start_line_num;
             outp_param_type_ptr->line_nums.end = end_line_num;

@@ -89,7 +89,7 @@ void hash_insert(hash_table table, char *lexeme, int value) {
 		probe_num++;
 	}
 
-	strcpy(table[hashValue].lexeme, lexeme);
+	strncpy(table[hashValue].lexeme, lexeme, MAX_LEXEME_LEN);
 	table[hashValue].present = true;
 	table[hashValue].value = malloc(sizeof(int));
 	*(int*)(table[hashValue].value) = value;
@@ -107,7 +107,7 @@ void hash_insert_ptr_val(hash_table table, char *lexeme, void *value_ptr){
 		hashValue = (hashValue + probe_num * probe_num) % HASH_SIZE;
 		probe_num++;
 	}
-	strcpy(table[hashValue].lexeme, lexeme);
+	strncpy(table[hashValue].lexeme, lexeme, MAX_LEXEME_LEN);
 
 	table[hashValue].present = true;
 	table[hashValue].value = value_ptr;

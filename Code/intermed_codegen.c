@@ -24,8 +24,8 @@ void assign_next_label(tree_node *ast_node)
         if(ast_node->label.next_label == NULL){
             char *fun_name = ast_node->encl_fun_type_ptr->typeinfo.module.module_name;
             char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
-            strcpy(fn_end_str, fun_name);
-            strcat(fn_end_str, "_end");
+            strncpy(fn_end_str, fun_name, MAX_LABEL_LEN);
+            strncat(fn_end_str, "_end", MAX_LABEL_LEN);
             ast_node->label.next_label = fn_end_str;
         }
         else{
@@ -104,7 +104,7 @@ void intermed_codegen_init()
                                         "||","u_plus", "u_minus", "label","input", "output", "assign", "jmp", "jmp_if_true",
         "inp_param" ,"outp_param", "call", "indexed_copy", "array_access", "dyn_arr_dec","stat_arr_dec", "ret", "function", "exit_if_true"};
     for(int i=0; i<NUM_TAC_OP; i++){        
-        strcpy(tac_op_str[i], tac_op_str_tmp[i]);
+        strncpy(tac_op_str[i], tac_op_str_tmp[i], MAX_SYMBOL_LENGTH);
     }
 
     to_be_attached_label = NULL;
@@ -113,7 +113,7 @@ void intermed_codegen_init()
 char *newlabel()
 {
     char *label = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
-    sprintf(label, "label_%d", label_count);
+    snprintf(label, MAX_LABEL_LEN, "label_%d", label_count);
     // printf("Emitted label %s\n", label);
     label_count++;
     return label;
@@ -124,7 +124,7 @@ tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node, to
     // printf("Called newtemp()\n");
     tree_node *tmp_node = create_tree_node();        
     char *tmp_str = (char*)malloc(sizeof(char) * MAX_TEMP_LEN);
-    sprintf(tmp_str, "temp_%d", temp_count);
+    snprintf(tmp_str, MAX_LEXEME_LEN, "temp_%d", temp_count);
     temp_count++;
     
     tmp_node->addr = tmp_str;
@@ -132,7 +132,7 @@ tree_node *newtemp(tree_node *expr1_node, operator op, tree_node *expr2_node, to
     tmp_node->scope_sym_tab = expr1_node->scope_sym_tab;
     tmp_node->sym.is_terminal = true;
     tmp_node->sym.t = ID;
-    strcpy( tmp_node->token.id.str, tmp_str);
+    strncpy( tmp_node->token.id.str, tmp_str, MAX_LEXEME_LEN);
     tmp_node->token.name = ID;
     
     type *tmp_type, *e1_type, *e2_type, *e_type;
@@ -193,24 +193,24 @@ char *node2_tkn_str_val(tree_node *node)
     char *str_val = (char *)malloc( sizeof(char) * MAX_SYMBOL_LENGTH);
     switch(node->token.name){
         case ID:        
-            strcpy(str_val, node->token.id.str);
+            strncpy(str_val, node->token.id.str, MAX_SYMBOL_LENGTH);
         break;
 
         case NUM:
-            sprintf(str_val, "%d", node->token.num);
+            snprintf(str_val, MAX_SYMBOL_LENGTH, "%d", node->token.num);
         break;
 
         case RNUM:
-            sprintf(str_val, "%lf", node->token.rnum);
+            snprintf(str_val, MAX_SYMBOL_LENGTH, "%lf", node->token.rnum);
         break;
         case TRUE:
-            sprintf(str_val,"1");
+            snprintf(str_val, MAX_SYMBOL_LENGTH,"1");
         break;
         case FALSE:
-            sprintf(str_val,"0");
+            snprintf(str_val, MAX_SYMBOL_LENGTH,"0");
         break;
         default:
-            strcpy(str_val, "");
+            strncpy(str_val, "", MAX_SYMBOL_LENGTH);
         break;
     }
 
@@ -300,11 +300,15 @@ void code_emit(tac_op op, char *arg1, char *arg2, char *result, st_wrapper *curr
 void module_first_time(tree_node *module_node){
     // assign_next_label(module_node);
     char *fun_name;
-    fun_name = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
-    strcpy(fun_name, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
+    fun_name = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    strncpy(fun_name, module_node->encl_fun_type_ptr->typeinfo.module.module_name, MAX_LEXEME_LEN);
     code_emit(FN_DEFN_OP, fun_name, NULL, NULL, module_node->scope_sym_tab,  module_node->encl_fun_type_ptr, NULL);
-    char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LABEL_LEN);
-    strcpy(fn_end_str, module_node->encl_fun_type_ptr->typeinfo.module.module_name);
+    char *fn_end_str = (char*)malloc(sizeof(char) * MAX_LEXEME_LEN);
+    if(fn_end_str == NULL){
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+    strncpy(fn_end_str, module_node->encl_fun_type_ptr->typeinfo.module.module_name, MAX_LEXEME_LEN);
     strcat(fn_end_str, "_end");
     module_node->label.next_label = fn_end_str;
     // printf("Assigning module label : %s\n", fun_name);

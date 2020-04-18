@@ -35,11 +35,10 @@ tree_node *create_tree_node() {
   node->num_child = 0;
   node->scope_sym_tab = NULL;
   node->extra_args = NULL;
-  // strcpy(node->addr, "");
   node->addr = NULL;
   node->label.next_label = NULL;
   node->label.cnstrct_code_begin = NULL;
-  strcpy(node->token.id.str, "");
+  strncpy(node->token.id.str, "", MAX_LEXEME_LEN);
   node->encl_fun_type_ptr = NULL;
   node->line_nums.start = 0;
   node->line_nums.end = 0;

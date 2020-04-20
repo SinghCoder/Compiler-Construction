@@ -1,0 +1,170 @@
+**Code Generation test case 11: Function call implementation using array parameters- usage of both static and dynamic
+
+Multiple modules with the driver module with single level of nesting 
+
+
+
+**
+<<module array_parameter_demo>>
+takes input[ B: array[10..14] of integer, C:array[low..high] of integer];
+returns [sum1:integer, sum2: integer, sum3:integer];
+start
+	print(B);
+	print(C);               
+
+	declare k, i, j, index, p, q: integer;
+	get_value(p);	
+	get_value(q);
+	declare A, D: array[10..14] of integer;                          
+	declare E: array[p..q] of integer;         
+
+	get_value(A);
+	get_value(E);
+	print(E);
+
+**Using local variable A - static array**
+	print(A);
+	sum1:= 0;
+	print(E);
+	for(k in 10..14)
+        start	
+		print(A[k]);		**requires dynamic bound checking- value of k is available at run time**
+		sum1:= sum1+A[k];
+		print(sum1);
+	end
+	print(A);                   **printing A again to verify that the data of its elements in corresponding locations is intact**
+	print(sum1);
+
+**using local variable E - dynamic array**
+	print(E);
+	E[5]:= E[6]+E[7];                **requires dynamic bound checking - ranges of E are available at run time**
+	print(E);
+
+**using parameter B - static array**
+	sum2:=0;
+	D:=B;
+	print(D);
+	for(i in 10..14)
+        start
+		print(D[i]);			**requires dynamic bound checking- value of i is available at run time**
+		sum2:= sum2+D[i];
+		print(sum2);
+	end
+	print(D);
+	print(sum2);
+
+**using parameter C - dynamic array**
+	sum3:=0;
+	print(C);
+	for(j in 1..4)
+	start
+		get_value(index);
+		sum3:= sum3 + C[index];                 **runtime bound checking required**
+		print(sum3);
+	end
+	print(sum3);
+end
+
+<<<driver program>>>
+start
+	declare  m, n :integer;
+	declare s1, s2, s3:integer;
+	get_value(m);
+	get_value(n);
+	declare array_A: array[10..14] of integer;
+	declare array_B: array[m..n] of integer;
+	get_value(array_A);
+	get_value(array_B);
+	[s1, s2, s3]:= use module array_parameter_demo with parameters array_A, array_B;	
+**formal parameter C of the callee function array_parameter_demo receives the range values from the actual parameter array_B**		
+	print(s1);
+	print(s2);
+	print(s3);
+end
+
+** On the console                                                 Following Notes are for reference and are not supposed be printed on the console
+
+Input: Enter an integer value                                     [Note: Reading values of m and n in driver as 3 and 8 respectively]
+3
+Input: Enter an integer value  
+8
+Input: Enter 5 array elements of integer type for range 10 to 14
+-10
+16
+12
+-8
+4
+Input: Enter 6 array elements of integer type for range 3 to 8
+55
+-17
+12
+105
+-87
+10
+Output: -10 16 12 -8 4
+Output:  55 -17 12 105 -87 10
+Input: Enter an integer value                                     [Note: Reading values of p and q in array_parameter_demo as 3 and 8 respectively]
+3
+Input: Enter an integer value  
+8
+Input: Enter 5 array elements of integer type for range 10 to 14     [reading array A]
+2
+6
+8
+-15
+12
+Input: Enter 6 array elements of integer type for range 3 to 8     [reading array E]
+1
+2
+3
+4
+5
+6
+Output: 2 6 8 -15 12                                              [printing A]
+Output: 2							  [printing values while in for loop of scope 28-32]
+Output: 2
+Output: 6
+Output: 8
+Output: 8
+Output: 16
+Output: -15
+Output: 1 
+Output: 12
+Output: 13
+Output: 2 6 8 -15 12                                              [printing A]
+Output: 13
+//Output: 1 2 9 4 5 6                                               [printing E after an element was modified at line 37]
+Output: -10 16 12 -8 4 						  [printing D after D:=B at line 42]
+Output: 10							  [printing values while in for loop of scope 45-49]
+Output: -10
+Output: 16
+Output: 6
+Output: 12
+Output: 18
+Output: -8
+Output: 10
+Output: 4
+Output: 14
+Output: -10 16 12 -8 4 						  [printing D]
+Output: 14
+Output: 55 -17 12 105 -87 10 					  [printing C at line 55 - input formal parameter receiving values of actual parameter array_B]
+
+Input: Enter an integer value                                     [Note: Reading values of index in 4 iterations and computing sum3]
+4
+Output: -17                                                       [sum3 computed as sum3+C[4]]
+Input: Enter an integer value  
+8
+Output: -7                                                       [sum3 computed as sum3+C[8]]
+Input: Enter an integer value                                      
+6
+Output: 98                                                       [sum3 computed as sum3+C[6]]
+Input: Enter an integer value  
+7
+Output: 11                                                      [sum3 computed as sum3+C[7]]
+Output: 11 
+Output: 13							[in driver printing values of return parameters s1, s2, s3]
+Output: 14
+Output: 11
+
+Similarly run the generated assembly code for other input values and verify.
+**

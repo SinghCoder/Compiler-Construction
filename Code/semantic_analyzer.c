@@ -465,16 +465,23 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
     /**  printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", lexeme);  */
     
     t->typeinfo.module.is_defined = true;
-    strcpy(t->typeinfo.module.module_name, lexeme);
-    t->typeinfo.module.input_params = (params_list*) malloc( sizeof(params_list));
-    t->typeinfo.module.input_params->first = NULL;
-    t->typeinfo.module.input_params->last = NULL;
-    t->typeinfo.module.input_params->length = 0;
+    strncpy(t->typeinfo.module.module_name, lexeme, MAX_LEXEME_LEN);
 
-    t->typeinfo.module.output_params = (params_list*) malloc( sizeof(params_list));
-    t->typeinfo.module.output_params->first = NULL;
-    t->typeinfo.module.output_params->last = NULL;
-    t->typeinfo.module.output_params->length = 0;
+    if(strncmp(lexeme, "driver", MAX_LEXEME_LEN) == 0){
+        t->typeinfo.module.input_params = NULL;
+        t->typeinfo.module.output_params = NULL;    
+    }
+    else{
+        t->typeinfo.module.input_params = (params_list*) malloc( sizeof(params_list));
+        t->typeinfo.module.input_params->first = NULL;
+        t->typeinfo.module.input_params->last = NULL;
+        t->typeinfo.module.input_params->length = 0;
+
+        t->typeinfo.module.output_params = (params_list*) malloc( sizeof(params_list));
+        t->typeinfo.module.output_params->first = NULL;
+        t->typeinfo.module.output_params->last = NULL;
+        t->typeinfo.module.output_params->length = 0;
+    }
     t->typeinfo.module.base_addr = 0;
     t->typeinfo.module.curr_offset = 0;
     t->typeinfo.module.curr_offset_used = 0;
@@ -1108,7 +1115,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
                     sprintf(msg, "presence of default statement is incorrect as condiiton variable type is boolean");
 
-                    store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
+                    store_error(default_node->leftmost_child->token.line_no, SEMANTIC_ERROR, msg);
                 }
             }
             break;
@@ -1193,8 +1200,8 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
     while(fncall_list_node && fndefn_list_node){
         type *fncall_list_node_type_ptr = (type*)key_search_recursive(curr_sym_tab_ptr, fncall_list_node->token.id.str, encl_fun_type_ptr, NULL);
         /**  printf("Checking types of %s and %s at line %d\n", fncall_list_node->token.id.str, fndefn_list_node->param_name, line_no);  */
-        if(is_types_matching(fncall_list_node_type_ptr, fndefn_list_node->t) == false){
-            sprintf(msg, "%d parameters type mismatch at param number %s", arg_cnt, parameters_type);
+        if(fncall_list_node_type_ptr && fndefn_list_node->t && is_types_matching(fncall_list_node_type_ptr, fndefn_list_node->t) == false){
+            sprintf(msg, "%s parameters type mismatch at param number %d", parameters_type, arg_cnt);
             store_error(line_no, SEMANTIC_ERROR, msg);
         }
 
@@ -1219,7 +1226,7 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
     /**  printf("Function called properly\n\n");  */
 }
 
-void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_ptr){
+void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_ptr, int pass_num){
     if(fn_call_node == NULL)
         return;
     
@@ -1231,14 +1238,13 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
         
     /**  printf("My fun name is %s\n", encl_fun_name);  */
     char *called_fun_name = fn_id_node->token.id.str;
-
-    if(strcmp(encl_fun_name, called_fun_name) == 0 && strcmp(encl_fun_name, "main") != 0){
-        
+    type *fn_sym_tab_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, called_fun_name);
+    
+    if(strcmp(encl_fun_name, called_fun_name) == 0 && strcmp(encl_fun_name, "driver") != 0 && pass_num != 1){        
         store_error(fn_id_node->token.line_no, SEMANTIC_ERROR, "Function cannot call itself");
     }
 
-    //mark the declaration of this function valid if it is not already defined
-    type *fn_sym_tab_entry = (type *)search_hash_table_ptr_val(root_sym_tab_ptr->table, called_fun_name);
+    //mark the declaration of this function valid if it is not already defined    
     if(fn_sym_tab_entry && fn_sym_tab_entry->typeinfo.module.is_defined == false){
         /**  printf("||||||||||||||||||||||||Marked declrn valid for %s||||||||||||||||||||||\n", called_fun_name);  */
         fn_sym_tab_entry->typeinfo.module.is_declrn_valid = true;
@@ -1247,7 +1253,7 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
     tree_node *fncall_outp_list = fn_call_node->leftmost_child;
     tree_node *fncall_inp_list = fn_call_node->rightmost_child;    
 
-    if(fn_sym_tab_entry != NULL && fn_sym_tab_entry->typeinfo.module.is_defined){
+    if(fn_sym_tab_entry != NULL && fn_sym_tab_entry->typeinfo.module.is_defined && pass_num != 1){
         params_list *fndefn_outp_params_list = fn_sym_tab_entry->typeinfo.module.output_params;
         params_list *fndefn_inp_params_list = fn_sym_tab_entry->typeinfo.module.input_params;
         // print_symbol_table(curr_sym_tab_ptr);
@@ -1524,7 +1530,7 @@ void verify_construct_semantics(tree_node *node){
         break;
         case FUNCTIONCALLSTMT:
         {            
-            verify_fncall_semantics(node, curr_sym_tab_ptr);
+            verify_fncall_semantics(node, curr_sym_tab_ptr, 1);
         }
         break;
         case IOSTMT:
@@ -1711,39 +1717,23 @@ void construct_symtable(tree_node *ast_root) {
              * If it's NTMODULE, install function parameters and return types in symbol table
              */
             if(node->sym.is_terminal == false){
-                if(node->sym.nt == NTMODULE){
-                    insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, 
-                        get_nth_child(node, 3)->leftmost_child, node->leftmost_child->token.line_no, node->leftmost_child->line_nums.start, node->leftmost_child->line_nums.end); //pass the list heads for input and output types
-                    // encl fun ptr stores ptr to module's type entry
-                    node->encl_fun_type_ptr = search_hash_table_ptr_val(root_sym_tab_ptr->table,node->leftmost_child->token.id.str);
-                    if(node->encl_fun_type_ptr){
-                        node->encl_fun_type_ptr->line_nums.start = node->leftmost_child->line_nums.start;
-                        node->encl_fun_type_ptr->line_nums.end = node->leftmost_child->line_nums.end;
-                    }
-                }
-                else{
-                    /**
-                     * @brief Any non-terminal except NTMODULE and DRIVERMODULE inherits encl_fun_type_ptr value from it's parent
-                     */
-                    if(node->sym.nt == DRIVERMODULE){
-                        type *driver_encl_ptr = (type *)malloc(sizeof(type));
-                        driver_encl_ptr->name = MODULE;
-                        driver_encl_ptr->is_assigned = false;
-                        driver_encl_ptr->typeinfo.module.input_params = NULL;
-                        driver_encl_ptr->typeinfo.module.is_declared = false;
-                        driver_encl_ptr->typeinfo.module.is_declrn_valid = false;
-                        driver_encl_ptr->typeinfo.module.is_defined = true;
-                        driver_encl_ptr->typeinfo.module.curr_offset = 0;
-                        driver_encl_ptr->typeinfo.module.curr_offset_used = 0;
-                        strcpy(driver_encl_ptr->typeinfo.module.module_name, "main");
-                        driver_encl_ptr->typeinfo.module.output_params = NULL;
-                        driver_encl_ptr->line_nums.start = node->leftmost_child->line_nums.start;
-                        driver_encl_ptr->line_nums.end = node->leftmost_child->line_nums.end;
-                        node->encl_fun_type_ptr = driver_encl_ptr;
+                if(node->sym.nt == DRIVERMODULE || node->sym.nt == NTMODULE){
+                        if(node->sym.nt == NTMODULE){
+                            insert_function_definition(root_sym_tab_ptr,node->leftmost_child->token.id.str, get_nth_child(node, 2)->leftmost_child, 
+                                get_nth_child(node, 3)->leftmost_child, node->leftmost_child->token.line_no, node->leftmost_child->line_nums.start, node->leftmost_child->line_nums.end); //pass the list heads for input and output types                            
+                        }
+                        else{
+                            insert_function_definition(root_sym_tab_ptr,"driver", NULL, NULL, node->leftmost_child->token.line_no, node->leftmost_child->line_nums.start, node->leftmost_child->line_nums.end); //pass the list heads for input and output types
+                        }
+                        // encl fun ptr stores ptr to module's type entry
+                        node->encl_fun_type_ptr = search_hash_table_ptr_val(root_sym_tab_ptr->table,node->leftmost_child->token.id.str);
+                        if(node->encl_fun_type_ptr){
+                            node->encl_fun_type_ptr->line_nums.start = node->leftmost_child->line_nums.start;
+                            node->encl_fun_type_ptr->line_nums.end = node->leftmost_child->line_nums.end;
+                        }
                     }
                     else if(node->parent)
-                        node->encl_fun_type_ptr = node->parent->encl_fun_type_ptr;
-                }
+                        node->encl_fun_type_ptr = node->parent->encl_fun_type_ptr;                
                 if(is_new_scope_openable(node->sym.nt) == true){
                     st_wrapper *new_sym_tab_ptr = symbol_table_init();
 
@@ -1976,7 +1966,7 @@ void second_ast_pass(tree_node *ast_root){
                 switch(ast_node->sym.nt){
                     case FUNCTIONCALLSTMT:
                     {                        
-                        verify_fncall_semantics(ast_node, ast_node->scope_sym_tab);
+                        verify_fncall_semantics(ast_node, ast_node->scope_sym_tab, 2);
                     }
                     break;
                 }

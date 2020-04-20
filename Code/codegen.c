@@ -1140,8 +1140,10 @@ void fn_space_code_gen(quad_node quad){
      * @brief Reserve number of bytes equal to offset value
      * of this function, Also output function's label
      */
-
-    fprintf(assembly_file_ptr, "%s:\n", quad.arg1);
+    if(strncmp(quad.arg1, "driver", MAX_LEXEME_LEN) == 0)
+        fprintf(assembly_file_ptr, "main:\n");
+    else
+        fprintf(assembly_file_ptr, "%s:\n", quad.arg1);
     
     int num_elems = 0;
     type *type_ptr;
@@ -1335,6 +1337,9 @@ void call_code_gen(quad_node quad){
     
     while(inp_param){
         fprintf(assembly_file_ptr, "\t\t\t\tpop RAX\n");
+        if(inp_param->t->name == ARRAY){
+            fprintf(assembly_file_ptr, "\t\t\t\tmov [RBP - %d], RAX\n", inp_param->t->offset_used);
+        }
         inp_param = inp_param->next;
     }
     
@@ -1398,7 +1403,7 @@ void return_code_gen(quad_node quad){
     }
 
 
-    if(fn_type_ptr && strcmp(fn_type_ptr->typeinfo.module.module_name, "main") != 0){
+    if(fn_type_ptr && strcmp(fn_type_ptr->typeinfo.module.module_name, "driver") != 0){
         if(fn_type_ptr->typeinfo.module.output_params)
             outp_param = fn_type_ptr->typeinfo.module.output_params->first;
     

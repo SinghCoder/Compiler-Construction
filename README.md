@@ -61,6 +61,11 @@ The asm code is compatible with NASM, version 2.14.02
     - [IR](./Images/ir.png)
     - [asm file generated](./Code/code_gen_tcs/code_c9.asm)
     
+### Known Problems / Future Scope
+
+- Ranges of the dynamic array input variable are stored in current scope's symbol table. This has following problems
+    - Offsets get shifted accordingly.
+    - testcases containing more than one dynamic array with same range lexemes won't work because ranges will be overwritten by the last array input parameter. :cry:
 
 
 ## Team Members

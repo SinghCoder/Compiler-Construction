@@ -8,7 +8,7 @@
 *****************************************/
 #ifndef INTERMED_CODE_GEN_H
 #define INTERMED_CODE_GEN_H
-#include "intermed_codegen_def.h"
+#include "intermed_codegenDef.h"
 #include "semantic_analyzer.h"
 #include "treeADT.h"
 void generate_ir(tree_node *ast_node);

@@ -1061,7 +1061,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
             case INTEGER:
             {
                 tree_node *case_node = cases_head;
-                while(case_node != NULL && case_node->sym.nt != DEFAULTSTMT){
+                while(case_node != NULL && case_node->sym.is_terminal == false && case_node->sym.nt != DEFAULTSTMT){
                     // /**  printf("Checking case value's type, got : ");  */
                     if(case_node->leftmost_child->token.name != NUM){
                         // /**  printf("%s", terminal_string[case_node->leftmost_child->sym.t]);  */

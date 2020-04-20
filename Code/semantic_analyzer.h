@@ -37,7 +37,7 @@ void print_symbol_(tree_node *temp);
 
 void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_tab_ptr);
 void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_ptr);
-void verify_fncall_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr);
+void verify_fncall_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr, int pass_num);
 void verify_fndefn_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr);
 void verify_construct_semantics(tree_node *node);
 void verify_declarations_validity(tree_node *node);

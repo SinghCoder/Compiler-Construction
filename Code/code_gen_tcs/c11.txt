@@ -25,9 +25,8 @@ start
 **Using local variable A - static array**
 	print(A);
 	sum1:= 0;
-	print(E);
 	for(k in 10..14)
-        start	
+        start
 		print(A[k]);		**requires dynamic bound checking- value of k is available at run time**
 		sum1:= sum1+A[k];
 		print(sum1);
@@ -36,7 +35,6 @@ start
 	print(sum1);
 
 **using local variable E - dynamic array**
-	print(E);
 	E[5]:= E[6]+E[7];                **requires dynamic bound checking - ranges of E are available at run time**
 	print(E);
 
@@ -133,7 +131,7 @@ Output: 12
 Output: 13
 Output: 2 6 8 -15 12                                              [printing A]
 Output: 13
-//Output: 1 2 9 4 5 6                                               [printing E after an element was modified at line 37]
+Output: 1 2 9 4 5 6                                               [printing E after an element was modified at line 37]
 Output: -10 16 12 -8 4 						  [printing D after D:=B at line 42]
 Output: 10							  [printing values while in for loop of scope 45-49]
 Output: -10

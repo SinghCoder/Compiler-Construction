@@ -134,7 +134,7 @@ void populate_terminal_string() {
 	tk_read = strtok(t_file, ", \n");
 
 	for (i = 0; tk_read != NULL; i++) {
-		strcpy(terminal_string[i], tk_read);
+		strncpy(terminal_string[i], tk_read, MAX_SYMBOL_LENGTH);
 		tk_read = strtok(NULL, ", \n");
 	}
 
@@ -169,7 +169,7 @@ void populate_non_terminal_string() {
 	nt_read = strtok(nt_file, ", \n");
 
 	for (i = 0; nt_read != NULL; i++) {
-		strcpy(non_terminal_string[i], nt_read);
+		strncpy(non_terminal_string[i], nt_read, MAX_SYMBOL_LENGTH);
 		nt_read = strtok(NULL, ", \n");
 	}
 	free(nt_file);
@@ -188,9 +188,9 @@ int main(int argc, char *argv[]) {
 	populate_terminal_string();
 
 	int choice;
-	char source_file[100];
-	strcpy(source_file, argv[1]);
-	strcpy(assembly_file, argv[2]);
+	char source_file[MAX_FILE_NAME_LEN];
+	strncpy(source_file, argv[1], MAX_FILE_NAME_LEN);
+	strncpy(assembly_file, argv[2], MAX_FILE_NAME_LEN);
 
 	FILE *source = fopen(source_file, "r");
 	if (source == NULL) {
@@ -595,14 +595,14 @@ int main(int argc, char *argv[]) {
 				}
 
 				generate_ir(ast_tree);	
-				// print_quadruples();
+				print_quadruples();
 				// print_symbol_table(root_sym_tab_ptr);	
 
 				assembly_file_ptr = fopen(assembly_file, "w");
 
 				generate_code();
 
-				// print_symbol_table(root_sym_tab_ptr);
+				print_symbol_table(root_sym_tab_ptr);
 				fclose(assembly_file_ptr);
 
 				printf("Code compiles successfully..........\n\n");

@@ -16,7 +16,7 @@
 
 #define RHS_MAX_LENGTH 100
 #define NO_MATCHING_RULE -1
-#define MAX_ERR_TYPE_STR_LEN 100
+#define MAX_ERR_TYPE_STR_LEN 300
 
 typedef enum
 {

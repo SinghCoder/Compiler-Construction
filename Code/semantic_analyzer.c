@@ -376,7 +376,7 @@ type *retreive_type(tree_node *node){
             type_ptr->typeinfo.array.is_dynamic.range_low = false;
         }
         else{
-            strcpy(type_ptr->typeinfo.array.range_low.lexeme, low_range_node->token.id.str);
+            strncpy(type_ptr->typeinfo.array.range_low.lexeme, low_range_node->token.id.str, MAX_LEXEME_LEN );
             type_ptr->typeinfo.array.is_dynamic.range_low = true;
             is_dynamic_arr = true;        
         }
@@ -386,7 +386,7 @@ type *retreive_type(tree_node *node){
             type_ptr->typeinfo.array.is_dynamic.range_high= false;
         }
         else{
-            strcpy(type_ptr->typeinfo.array.range_high.lexeme, high_range_node->token.id.str);
+            strncpy(type_ptr->typeinfo.array.range_high.lexeme, high_range_node->token.id.str, MAX_LEXEME_LEN );
             type_ptr->typeinfo.array.is_dynamic.range_high= true;            
             is_dynamic_arr = true;
         }         
@@ -426,7 +426,7 @@ type *retreive_type(tree_node *node){
 void insert_param_in_list(params_list *list, type *t, char *param_name){
     params_list_node *param_node = (params_list_node*) malloc( sizeof(params_list_node) );
     param_node->t = t;
-    strcpy( param_node->param_name, param_name);
+    strncpy( param_node->param_name, param_name, MAX_LEXEME_LEN );
     param_node->next = NULL;
 
     if(list->first == NULL){                
@@ -453,7 +453,7 @@ void insert_function_definition(struct symbol_table_wrapper *table,char *lexeme,
     else{
         if(existing_entry->typeinfo.module.is_defined){
             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-            sprintf(msg, "Function %s cannot be overloaded", existing_entry->typeinfo.module.module_name);
+            snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Function %s cannot be overloaded", existing_entry->typeinfo.module.module_name);
             
             store_error(def_line_num, SEMANTIC_ERROR, msg);
             return;
@@ -596,7 +596,7 @@ void insert_in_sym_table(struct symbol_table_wrapper *sym_table,tree_node *node)
             type_ptr->typeinfo.module.is_defined = false;
             type_ptr->typeinfo.module.is_declrn_valid = false;
             /**  printf("||||||||||||||||||||||||Marked declrn invalid for %s||||||||||||||||||||||\n", node->token.id.str);  */
-            strcpy(type_ptr->typeinfo.module.module_name, node->token.id.str);
+            strncpy(type_ptr->typeinfo.module.module_name, node->token.id.str, MAX_LEXEME_LEN );
             type_ptr->typeinfo.module.input_params = NULL;
             type_ptr->typeinfo.module.output_params = NULL;
             type_ptr->typeinfo.module.curr_offset = 0;
@@ -751,7 +751,7 @@ void print_sym_tab_entry(char *lexeme, st_wrapper *sym_tab_ptr, type *type_ptr){
         if(type_ptr->width != -1)
             snprintf(width_str, MAX_LEXEME_LEN, "%d", type_ptr->width);
         else
-            strcpy(width_str,"---");
+            strncpy(width_str,"---", MAX_LEXEME_LEN );
 
         pretty_print(width_str);
         
@@ -805,7 +805,7 @@ void print_sym_tab_entry(char *lexeme, st_wrapper *sym_tab_ptr, type *type_ptr){
 
         char offset_str[MAX_LEXEME_LEN];
         if(type_ptr->offset != -1)
-            snprintf(offset_str, MAX_LEXEME_LEN, "%d", type_ptr->offset);
+            snprintf(offset_str, MAX_LEXEME_LEN, "%d", type_ptr->offset_used);
         else
             snprintf(offset_str, MAX_LEXEME_LEN, "---");
         
@@ -884,7 +884,7 @@ void arrindex_type_n_bounds_check(tree_node *index_node, int lb, int ub, st_wrap
                  * 
                  */
                 char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                sprintf(msg, "INVALID ARRAY ACCESS(%s)", index_node->token.id.str);
+                snprintf(msg, MAX_ERR_TYPE_STR_LEN, "INVALID ARRAY ACCESS(%s)", index_node->token.id.str);
 
                 store_error(index_node->token.line_no, SEMANTIC_ERROR, msg);
             }
@@ -898,7 +898,7 @@ void arrindex_type_n_bounds_check(tree_node *index_node, int lb, int ub, st_wrap
                     type index_id_type = *index_type_ptr;
                     if(index_id_type.name != INTEGER){
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                        sprintf(msg, "array index %s is not integer", index_node->token.id.str);
+                        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "array index %s is not integer", index_node->token.id.str);
 
                         store_error(index_node->token.line_no, SEMANTIC_ERROR, msg);
                     }
@@ -916,7 +916,7 @@ void arrindex_type_n_bounds_check(tree_node *index_node, int lb, int ub, st_wrap
              */
             if(!(index >= lb && index <= ub) ){
                 char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                sprintf(msg, "array index %d is out of bounds", index_node->token.num);
+                snprintf(msg, MAX_ERR_TYPE_STR_LEN, "array index %d is out of bounds", index_node->token.num);
                 /**
                  * @brief array identifier is left sibling of index_node or leftmost child of assign_node
                  * 
@@ -954,7 +954,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
             tree_node *iter_var_node = forloop_node->leftmost_child;
             if(strcmp(iter_var_node->token.id.str, id_node->token.id.str) == 0){   // assigning to iterating variable
                 char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                sprintf(msg, "Assignment to loop variable is not allowed");
+                snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Assignment to loop variable is not allowed");
 
                 store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
                 
@@ -1023,7 +1023,7 @@ void verify_assignment_semantics(tree_node *assign_node, st_wrapper *curr_sym_ta
         if(type_err){
             
             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-            sprintf(msg, "type mismatch error");
+            snprintf(msg, MAX_ERR_TYPE_STR_LEN, "type mismatch error");
 
             store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
         }
@@ -1067,7 +1067,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                         // /**  printf("%s", terminal_string[case_node->leftmost_child->sym.t]);  */
                         // /**  printf("\n");  */
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                        sprintf(msg, "Case value is incorrect as condiiton variable type is integer");
+                        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Case value is incorrect as condiiton variable type is integer");
 
                         store_error(case_node->leftmost_child->token.line_no, SEMANTIC_ERROR, msg);
                     }
@@ -1082,7 +1082,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                 
                 if(default_node->sym.is_terminal && default_node->token.name == EPSILON){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                    sprintf(msg, "default statement is missing- the type of switch variable is integer");
+                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "default statement is missing- the type of switch variable is integer");
                     
                     store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
                 }
@@ -1098,7 +1098,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                         // /**  printf("%s", terminal_string[case_node->leftmost_child->sym.t]);  */
                         // /**  printf("\n");  */
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                        sprintf(msg, "Case value is incorrect as condiiton variable type is boolean");
+                        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Case value is incorrect as condiiton variable type is boolean");
                         
                         store_error(case_node->leftmost_child->token.line_no, SEMANTIC_ERROR, msg);
                     }
@@ -1113,7 +1113,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
                 
                 if(default_node->token.name != EPSILON){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                    sprintf(msg, "presence of default statement is incorrect as condiiton variable type is boolean");
+                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "presence of default statement is incorrect as condiiton variable type is boolean");
 
                     store_error(default_node->leftmost_child->token.line_no, SEMANTIC_ERROR, msg);
                 }
@@ -1122,7 +1122,7 @@ void verify_switch_semantics(tree_node *switch_node, st_wrapper *curr_sym_tab_pt
             default:
             {
                 char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                sprintf(msg, "INVALID TYPE switch variable(%s), must be integer / boolean", id_node->token.id.str);
+                snprintf(msg, MAX_ERR_TYPE_STR_LEN, "INVALID TYPE switch variable(%s), must be integer / boolean", id_node->token.id.str);
 
                 store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
             }
@@ -1185,12 +1185,12 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
         return; // both empty => fn doesn't returns anything and is called accordingly
     
     if(fndefn_list_node == NULL){
-        sprintf(msg, "Number of %s parametters does not match with that of formal parameters, too many present", parameters_type);
+        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Number of %s parametters does not match with that of formal parameters, too many present", parameters_type);
         store_error(line_no, SEMANTIC_ERROR, msg);
         return;
     }
     if(fncall_list_node == NULL){
-        sprintf(msg, "Number of %s parametters does not match with that of formal parameters, too few present", parameters_type);
+        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Number of %s parametters does not match with that of formal parameters, too few present", parameters_type);
         store_error(line_no, SEMANTIC_ERROR, msg);
         return;
     }
@@ -1212,13 +1212,13 @@ void compare_args_list(params_type parm_type, tree_node *fncall_args_list, param
     }
     
     if(fndefn_list_node){
-        sprintf(msg, "Number of %s parametters does not match with that of formal parameters, too few present", parameters_type);
+        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Number of %s parametters does not match with that of formal parameters, too few present", parameters_type);
         store_error(line_no, SEMANTIC_ERROR, msg);
         return;
     }
     
     if(fncall_list_node){
-        sprintf(msg, "Number of %s parametters does not match with that of formal parameters, too many present", parameters_type);
+        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Number of %s parametters does not match with that of formal parameters, too many present", parameters_type);
         store_error(line_no, SEMANTIC_ERROR, msg);
         return;
     }
@@ -1298,7 +1298,7 @@ void verify_fncall_semantics(tree_node *fn_call_node, st_wrapper *curr_sym_tab_p
                     tree_node *iter_var_node = forloop_node->leftmost_child;
                     if(strcmp(iter_var_node->token.id.str, fncall_list_node->token.id.str) == 0){   // assigning to iterating variable
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                        sprintf(msg, "Assignment to loop variable is not allowed");
+                        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Assignment to loop variable is not allowed");
                         
                         store_error(fncall_list_node->token.line_no, SEMANTIC_ERROR, msg);
                         
@@ -1327,7 +1327,7 @@ void verify_fndefn_semantics(tree_node *node, st_wrapper *curr_sym_tab_ptr){
 
         if(outp_list_node_type_ptr && outp_list_node_type_ptr->is_assigned == false){
             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-            sprintf(msg, " Output parameter %s is not assigned any value for function defn of %s", outp_list_node->token.id.str, node->leftmost_child->token.id.str);
+            snprintf(msg, MAX_ERR_TYPE_STR_LEN, " Output parameter %s is not assigned any value for function defn of %s", outp_list_node->token.id.str, node->leftmost_child->token.id.str);
             
             store_error(outp_list_node->token.line_no, SEMANTIC_ERROR, msg);
         }
@@ -1456,7 +1456,7 @@ void install_id_in_loop_args(tree_node *while_node, char *id_str)
 
     loop_args = loop_args + (entry_size*num_vars);
 
-    strcpy((char*)loop_args, id_str);
+    strncpy((char*)loop_args, id_str, MAX_LEXEME_LEN );
     /**  printf("installed %s???\n", (char*)loop_args);  */
     loop_args = loop_args + id_size;
     *(bool*)loop_args = false;
@@ -1571,7 +1571,7 @@ void verify_construct_semantics(tree_node *node){
                         tree_node *iter_var_node = forloop_node->leftmost_child;
                         if(strcmp(iter_var_node->token.id.str, id_node->token.id.str) == 0){   // assigning to iterating variable
                             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                            sprintf(msg, "Assignment to loop variable is not allowed");
+                            snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Assignment to loop variable is not allowed");
 
                             store_error(id_node->token.line_no, SEMANTIC_ERROR, msg);
                             
@@ -1615,22 +1615,40 @@ void verify_construct_semantics(tree_node *node){
             tree_node *range_node = node->leftmost_child;
             tree_node *low_range_node = range_node->leftmost_child;
             tree_node *high_range_node = range_node->rightmost_child;
+            bool low_static = false, high_static = false;
+            int low_rval = -1, high_rval = -1;
+
             if(low_range_node->sym.t == ID){
                 type *low_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, low_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
                 if(low_range_type && low_range_type->name != INTEGER){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                    sprintf(msg, "Range %s must be integer type", low_range_node->token.id.str);
+                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Range %s must be integer type", low_range_node->token.id.str);
 
                     store_error(low_range_node->token.line_no, SEMANTIC_ERROR, msg);
                 }
             }
-
+            else{
+                low_static = true;
+                low_rval = low_range_node->token.num;
+            }
             if(high_range_node && high_range_node->sym.t == ID){
                 type *high_range_type = (type *)key_search_recursive(curr_sym_tab_ptr, high_range_node->token.id.str, node->encl_fun_type_ptr, NULL);
                 if(high_range_type && high_range_type->name != INTEGER){
                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                    sprintf(msg, "Range %s must be integer type", high_range_node->token.id.str);
+                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Range %s must be integer type", high_range_node->token.id.str);
 
+                    store_error(high_range_node->token.line_no, SEMANTIC_ERROR, msg);
+                }
+            }
+            else{
+                high_static = true;
+                high_rval = high_range_node->token.num;
+            }
+
+            if(low_static && high_static){
+                if(low_rval > high_rval){
+                    char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
+                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Low range must be <= high range");
                     store_error(high_range_node->token.line_no, SEMANTIC_ERROR, msg);
                 }
             }
@@ -1790,7 +1808,7 @@ void construct_symtable(tree_node *ast_root) {
                             while(output_param != NULL){
                                 if(strcmp(node->token.id.str, output_param->param_name) == 0){
                                     char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                                    sprintf(msg, "Redeclaration of output parameter %s", node->token.id.str);
+                                    snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Redeclaration of output parameter %s", node->token.id.str);
                                     
                                     store_error(node->token.line_no, SEMANTIC_ERROR, msg);
                                     outp_redec_err = true;
@@ -1823,7 +1841,7 @@ void construct_symtable(tree_node *ast_root) {
                              * @brief Id exists in current symbol table and is being declared again, flag an error
                              */                            
                             char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                            sprintf(msg, "Variable %s is redeclared", node->token.id.str);
+                            snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Variable %s is redeclared", node->token.id.str);
 
                             store_error(node->token.line_no, SEMANTIC_ERROR, msg);
                         }
@@ -1938,7 +1956,7 @@ void construct_symtable(tree_node *ast_root) {
                          * flag an error
                          */
                         char *msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-                        sprintf(msg, "Variable %s is not declared", node->token.id.str);
+                        snprintf(msg, MAX_ERR_TYPE_STR_LEN, "Variable %s is not declared", node->token.id.str);
 
                         store_error(node->token.line_no, SEMANTIC_ERROR, msg);
                     }

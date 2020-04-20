@@ -57,13 +57,13 @@ TOKEN get_token() {
   if (2 == state) {
     if (lex_size > 20) {
       tkn.name = LEX_ERROR;
-      strcpy(tkn.id.str, lexeme);
+      strncpy(tkn.id.str, lexeme, MAX_LEXEME_LEN);
       return tkn;
     }
 
     token_name name = search_lookup_table(lexeme);
     tkn.name = name;
-    strcpy(tkn.id.str, lexeme);
+    strncpy(tkn.id.str, lexeme, MAX_LEXEME_LEN);
     return tkn;
   }
 
@@ -400,7 +400,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 15:;
       tkn.name = PLUS;
-      strcpy(tkn.id.str, "+");
+      strncpy(tkn.id.str, "+", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -408,7 +408,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 16:;
       tkn.name = MINUS;
-      strcpy(tkn.id.str, "-");
+      strncpy(tkn.id.str, "-", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -426,7 +426,7 @@ TOKEN get_next_token(FILE *fp) {
     case 18:;
       retract(1);
       tkn.name = MUL;
-      strcpy(tkn.id.str, "*");
+      strncpy(tkn.id.str, "*", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -464,7 +464,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 22:;
       tkn.name = DIV;
-      strcpy(tkn.id.str, "/");
+      strncpy(tkn.id.str, "/", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -484,7 +484,7 @@ TOKEN get_next_token(FILE *fp) {
     case 24:;
       retract(1);
       tkn.name = LT;
-      strcpy(tkn.id.str, "<");
+      strncpy(tkn.id.str, "<", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -492,7 +492,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 25:;
       tkn.name = LE;
-      strcpy(tkn.id.str, "<=");
+      strncpy(tkn.id.str, "<=", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -505,7 +505,7 @@ TOKEN get_next_token(FILE *fp) {
       } else {
         retract(1);
         tkn.name = DEF;
-        strcpy(tkn.id.str, "<<");
+        strncpy(tkn.id.str, "<<", MAX_LEXEME_LEN);
         lexeme_begin = forward_ptr;
         state = 0;
         return tkn;
@@ -526,7 +526,7 @@ TOKEN get_next_token(FILE *fp) {
     case 28:;
       retract(1);
       tkn.name = GT;
-      strcpy(tkn.id.str, ">");
+      strncpy(tkn.id.str, ">", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -534,7 +534,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 29:;
       tkn.name = GE;
-      strcpy(tkn.id.str, ">=");
+      strncpy(tkn.id.str, ">=", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -547,7 +547,7 @@ TOKEN get_next_token(FILE *fp) {
       } else {
         retract(1);
         tkn.name = ENDDEF;
-        strcpy(tkn.id.str, ">>");
+        strncpy(tkn.id.str, ">>", MAX_LEXEME_LEN);
         lexeme_begin = forward_ptr;
         state = 0;
         return tkn;
@@ -566,7 +566,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 32:;
       tkn.name = EQ;
-      strcpy(tkn.id.str, "==");
+      strncpy(tkn.id.str, "==", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -584,7 +584,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 34:;
       tkn.name = NE;
-      strcpy(tkn.id.str, "!=");
+      strncpy(tkn.id.str, "!=", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -601,7 +601,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 36:;
       tkn.name = ASSIGNOP;
-      strcpy(tkn.id.str, ":=");
+      strncpy(tkn.id.str, ":=", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -610,7 +610,7 @@ TOKEN get_next_token(FILE *fp) {
     case 37:;
       retract(1);
       tkn.name = COLON;
-      strcpy(tkn.id.str, ":");
+      strncpy(tkn.id.str, ":", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -628,7 +628,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 39:;
       tkn.name = RANGEOP;
-      strcpy(tkn.id.str, "..");
+      strncpy(tkn.id.str, "..", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -636,7 +636,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 40:;
       tkn.name = SEMICOL;
-      strcpy(tkn.id.str, ";");
+      strncpy(tkn.id.str, ";", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -644,7 +644,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 41:;
       tkn.name = COMMA;
-      strcpy(tkn.id.str, ",");
+      strncpy(tkn.id.str, ",", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -652,7 +652,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 42:;
       tkn.name = SQBO;
-      strcpy(tkn.id.str, "[");
+      strncpy(tkn.id.str, "[", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -660,7 +660,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 43:;
       tkn.name = SQBC;
-      strcpy(tkn.id.str, "]");
+      strncpy(tkn.id.str, "]", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -668,7 +668,7 @@ TOKEN get_next_token(FILE *fp) {
 
     case 44:;
       tkn.name = BO;
-      strcpy(tkn.id.str, "(");
+      strncpy(tkn.id.str, "(", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -676,21 +676,21 @@ TOKEN get_next_token(FILE *fp) {
 
     case 45:;
       tkn.name = BC;
-      strcpy(tkn.id.str, ")");
+      strncpy(tkn.id.str, ")", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
     case 46:;
       tkn.name = DRIVERDEF;
-      strcpy(tkn.id.str, "<<<");
+      strncpy(tkn.id.str, "<<<", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
       break;
     case 47:;
       tkn.name = DRIVERENDDEF;
-      strcpy(tkn.id.str, ">>>");
+      strncpy(tkn.id.str, ">>>", MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;
@@ -705,7 +705,7 @@ TOKEN get_next_token(FILE *fp) {
       int last_index =
           (lex_size < MAX_LEXEME_LEN) ? lex_size : MAX_LEXEME_LEN - 1;
       lexeme[last_index] = '\0';
-      strcpy(tkn.id.str, lexeme);
+      strncpy(tkn.id.str, lexeme, MAX_LEXEME_LEN);
       lexeme_begin = forward_ptr;
       state = 0;
       return tkn;

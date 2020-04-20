@@ -220,7 +220,7 @@ tree_node *parse_input_source_code(FILE *source) {
 	if ((node != NULL) && (node->sym).is_terminal == true) {
 	  if (node->sym.t == EPSILON) {
 		  node->token.name = EPSILON;
-		  strcpy(node->token.id.str, "epsilon");
+		  strncpy(node->token.id.str, "epsilon", MAX_LEXEME_LEN);
 		continue;
 	  }
 	  if (node->sym.t != tkn.name) // terminal on top of stack does not match
@@ -228,7 +228,7 @@ tree_node *parse_input_source_code(FILE *source) {
 	  {
 		// node->token.name = LEX_ERROR;		
 		char *err_msg = (char*) malloc(sizeof(char) * MAX_ERR_TYPE_STR_LEN);
-		sprintf(err_msg, "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET,terminal_string[node->sym.t], terminal_string[tkn.name]);
+		snprintf(err_msg, MAX_ERR_TYPE_STR_LEN,  "Expected " ANSI_COLOR_YELLOW "\"%s\"," ANSI_COLOR_RESET " Found " ANSI_COLOR_YELLOW "\"%s\" \n" ANSI_COLOR_RESET,terminal_string[node->sym.t], terminal_string[tkn.name]);
 		
 		store_error(tkn.line_no, SYNTACTIC_ERROR, err_msg);        
 		
@@ -255,7 +255,7 @@ tree_node *parse_input_source_code(FILE *source) {
 
 		default:
 		  // node->token.id.str = (char *)malloc(sizeof(MAX_LEXEME_LEN));
-		  strcpy(node->token.id.str, tkn.id.str);
+		  strncpy(node->token.id.str, tkn.id.str, MAX_LEXEME_LEN);
 		}
 	  }
 
@@ -373,8 +373,8 @@ void pretty_print(char *s) {
  */
 void print_node(tree_node *node) 
 {
-	char *s = (char *)calloc(30, sizeof(char));
-	for (int i = 0; i < 30; i++) 
+	char *s = (char *)calloc(MAX_LEXEME_LEN, sizeof(char));
+	for (int i = 0; i < MAX_LEXEME_LEN; i++) 
 	{
 		s[i] = '\0';
 	}
@@ -388,19 +388,19 @@ void print_node(tree_node *node)
 
 		if((node->token.name != NUM && node->token.name != RNUM) && node->token.id.str != NULL)
 		{
-			sprintf(s, "%s", (node->token).id.str);
+			snprintf(s, MAX_LEXEME_LEN, "%s", (node->token).id.str);
 			pretty_print(s);
 		} 
 		else
 		{
 			pretty_print("----");
 		}
-		sprintf(s, "%d", (node->token).line_no);
+		snprintf(s, MAX_LEXEME_LEN, "%d", (node->token).line_no);
 		pretty_print(s);
 
 		if(node->token.id.str != NULL) 
 		{
-			sprintf(s, "%s", terminal_string[(node->token).name]);
+			snprintf(s, MAX_LEXEME_LEN, "%s", terminal_string[(node->token).name]);
 			pretty_print(s);
 		} 
 		else
@@ -412,13 +412,13 @@ void print_node(tree_node *node)
 		{
 			case NUM:
 			{
-				sprintf(s, "%d", (node->token).num);
+				snprintf(s, MAX_LEXEME_LEN, "%d", (node->token).num);
 				pretty_print(s);
 			}
 			break;
 			case RNUM:
 			{
-				sprintf(s, "%f", (node->token).rnum);
+				snprintf(s, MAX_LEXEME_LEN, "%f", (node->token).rnum);
 				pretty_print(s);
 			}        
 			break;
@@ -430,7 +430,7 @@ void print_node(tree_node *node)
 			break;
 		}
 
-		sprintf(s, "%s", non_terminal_string[(node->parent->sym).nt]);
+		snprintf(s, MAX_LEXEME_LEN, "%s", non_terminal_string[(node->parent->sym).nt]);
 
 		pretty_print(s);
 		pretty_print("yes");
@@ -529,7 +529,7 @@ void print_node_for_tool(tree_node *node, tree_type typ) {
 		// 	printf("ast :  %s, s : %d, e : %d\n", node->token.id.str, node->line_nums.start, node->line_nums.end);
 		// }
 	  char tkn_name[MAX_LEXEME_LEN];
-	  strcpy(tkn_name, terminal_string[(node->sym).t]);
+	  strncpy(tkn_name, terminal_string[(node->sym).t], MAX_LEXEME_LEN);
 
 	  for (int i = 0; i < strlen(tkn_name); i++)
 		tkn_name[i] = tolower(tkn_name[i]);

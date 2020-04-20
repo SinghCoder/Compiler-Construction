@@ -1101,6 +1101,13 @@ void dynamic_arr_space_code_gen(quad_node quad){
 
     fprintf(assembly_file_ptr, "\t\t\t\t;Store count of array elements in RCX\n");
     fprintf(assembly_file_ptr, "\t\t\t\tmov RCX, RBX\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tcmp ECX, EAX\n");
+    char *range_validity_chk_lbl = newlabel();
+    fprintf(assembly_file_ptr, "\t\t\t\tjge %s\n", range_validity_chk_lbl);
+    fprintf(assembly_file_ptr, "\t\t\t\tprint_str \"Low range must be <= high range, exiting program\"\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tmov RDI, 0\n");
+    fprintf(assembly_file_ptr, "\t\t\t\tcall exit\n");
+    fprintf(assembly_file_ptr, "\t\t\t\t%s:\n", range_validity_chk_lbl);
     fprintf(assembly_file_ptr, "\t\t\t\tsub RCX, RAX\n");
     fprintf(assembly_file_ptr, "\t\t\t\tadd RCX, 1  ; count = high_range - low_range + 1\n");
 
@@ -1207,6 +1214,8 @@ void fn_space_code_gen(quad_node quad){
     if(fn_type_ptr && fn_type_ptr->typeinfo.module.input_params){
         inp_param = fn_type_ptr->typeinfo.module.input_params->first;
         total_offset_reqd += fn_type_ptr->typeinfo.module.input_params->length * WIDTH_POINTER;
+        if(inp_param->t->name == ARRAY)
+            total_offset_reqd += 2 * WIDTH_POINTER;     // for range values
     }
 
     params_list_node *outp_param = NULL;
@@ -1390,7 +1399,7 @@ void return_code_gen(quad_node quad){
         total_offset_reqd += WIDTH_POINTER;
         inp_param = inp_param->next;
         if(param_type->name == ARRAY)
-            extra_inp_param_num = 2;
+            extra_inp_param_num += 2;
     }
 
     if(fn_type_ptr && fn_type_ptr->typeinfo.module.output_params)
@@ -1408,7 +1417,7 @@ void return_code_gen(quad_node quad){
             outp_param = fn_type_ptr->typeinfo.module.output_params->first;
     
         int num_inp_params = fn_type_ptr->typeinfo.module.input_params->length;    
-        int outp_param_num = 1;
+        int outp_param_num = 0;
         int outp_param_offset_callee;
         type *outp_param_type_ptr_callee = NULL;
         fprintf(assembly_file_ptr, "\t\t\t\t; copy values to output parameters that u have computed so far\n");
@@ -1416,7 +1425,7 @@ void return_code_gen(quad_node quad){
             outp_param_type_ptr_callee = (type *)key_search_recursive(quad.curr_scope_table_ptr, outp_param->param_name, quad.encl_fun_type_ptr, NULL);
             outp_param_offset_callee = outp_param_type_ptr_callee->offset_used;
             fprintf(assembly_file_ptr, "\t\t\t\tmov RAX, [RBP - %d]\n", outp_param_offset_callee);
-            fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP + 16 + 8*%d + 8*%d]\n", num_inp_params + extra_inp_param_num,outp_param_num);
+            fprintf(assembly_file_ptr, "\t\t\t\tmov RBX, [RBP + 16 + 8 + 8*%d + 8*%d]\n", num_inp_params + extra_inp_param_num,outp_param_num);
             fprintf(assembly_file_ptr, "\t\t\t\tmov [RBX], RAX\n");
             outp_param_num++;
             outp_param = outp_param->next;

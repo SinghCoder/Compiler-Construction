@@ -1,0 +1,17 @@
+** Test case c4.txt: Handles iterative statements with two level of scope nesting**
+<<<driver program>>>
+start
+	declare x:integer; 
+	get_value(x);		**This x is bound to the offset 0, scope nesting level 1**
+	declare sum, k:integer;
+	sum:=100;
+	for(k in 1..10)
+	start
+		declare x:integer;
+		x:= 5;		**This x is bound to the offset 6, scope nesting level 2**
+		sum:= sum + k*x;
+		print(sum);	**Each print statement inside the loop displays result in a new line of the console**
+	end	
+	print(sum);
+end
+

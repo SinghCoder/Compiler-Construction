@@ -1,0 +1,160 @@
+**Code Generation test case 4: Computing expressions using integer, boolean and static array data types**
+
+**Single driver module with two levels of nesting 
+Variant of test case 3**
+
+<<<driver program>>>
+start
+	declare x, y, z, k:integer;
+	declare a, b, c:integer;
+	declare u, v: boolean;
+	declare Q: array[25..32] of integer;
+	u:= true;
+	a:= 5;
+	b:= 9;
+	get_value(x);
+	get_value(y);
+	z:= (x + y*b)*3;
+        y:= (a-b)*y+ a*2 - z;
+	x:=-(b*x+y);	
+        print(x);
+	print(y);
+	print(z);
+	u:= x>y OR y>z;	
+	v:= z > 190 AND x<y ;	**follows left to right associativity**
+        print(u);
+	print(v); 
+ 
+	for(k in 4..8)
+        start
+              declare a, b:integer;
+              get_value(a);
+              get_value(b);
+              a:= a*b;
+              print(a);
+              z:= z*b-k*a;
+              print(z);
+        end
+        y:= (a-b)*y+ a*2 - z;
+	x:=-(b*x+y);	
+        print(x);
+	print(y);
+	print(z);
+	u:= x>y OR y>z;	
+	v:= z > 190 AND x<y ;	**follows left to right associativity**
+        print(u);
+	print(v); 
+	get_value(Q); 
+	print(Q);
+
+                          
+**Note: Implement get_value(A) using type information of A. Your code template should first inform user of the size, range indices and type of data and read accordingly to populate the memory locations allocated for elements of A**
+   
+        x:= Q[25]+Q[26]+Q[27]+Q[28]+Q[29]+Q[30]+Q[31]+Q[32];
+        y:= a+x+Q[26]*2 + Q[32]*3 +Q[30];                **bound checking at compile time must have been done before code generation**
+	Q[29]:= Q[31]-13*Q[30];
+	print(x);	
+	print(y);	
+	print(Q[29]);
+	print(Q);
+
+end
+
+** Expected output
+Input: Enter an integer value 
+3
+
+Input: Enter an integer value 
+7
+
+Output: 189
+
+Output: -216
+
+Output: 198
+
+Output: true
+
+Output: false
+
+Input: Enter an integer value
+2
+
+Input: Enter an integer value 
+3
+
+Output: 6
+
+Output: 570
+
+Input: Enter an integer value 
+-4
+
+Input: Enter an integer value 
+7
+
+Output: -28
+
+Output: 4130
+
+Input: Enter an integer value 
+8
+
+Input: Enter an integer value 
+-2
+
+Output: -16
+
+Output: -8164
+
+Input: Enter an integer value 
+5
+
+Input: Enter an integer value 
+11
+
+Output: 55
+
+Output: -90189
+
+Input: Enter an integer value 
+9
+
+Input: Enter an integer value 
+2
+
+Output: 18
+
+Output: -180522
+
+Output: -183097
+
+Output: 181396
+
+Output: -180522
+
+Output: true
+
+Output: false
+Input: Enter 8 array elements of integer type for range 25 to 32 
+7
+-10
+12
+1
+-16
+3
+47
+33
+
+Output: 7 -10 12 1 -16 3 47 33 
+
+Output: 77
+
+Output: 164
+
+Output: 8
+
+Output: 7 -10 12 1 8 3 47 33 
+
+
+**

@@ -1,0 +1,84 @@
+** Test case t2.txt: Variable declarations, nested scope and type checking **
+** in arithmetic and boolean expressions and in assignment statements**
+
+declare module readArr;
+<<module arraySum>>
+takes input[list:array[1..15] of real, n:integer];		    **scope: Nesting level 1; module: arraySum; lines: 8 to 57**
+returns  [sum:real];						    **scope: Nesting level 1; module: arraySum; lines: 8 to 57 **
+start
+	declare index:integer;					    **scope: Nesting level 1; module: arraySum; lines: 8 to 57 **
+	declare t, a:boolean;					    **scope: Nesting level 1; module: arraySum; lines: 8 to 57 **
+	sum:=0.0;						    **No type mismatch**
+        t := sum >= 20.0;						    **No type mismatch**
+	while(sum)					    **No type mismatch**
+        start
+		declare p,q,r: array[1..12] of boolean;		    **scope: Nesting level 2; module: arraySum; lines: 14 to 31 **
+		declare newarr: array[1..15] of real;		    **scope: Nesting level 2; module: arraySum; lines: 14 to 31 **
+		declare u,v: boolean;				    **scope: Nesting level 2; module: arraySum; lines: 14 to 31 **
+		while(sum-3.0 OR sum<=20.3)			    **ERROR_T: type mismatch of real and boolean operands with logical OR**
+		start
+			declare x,y: integer;			    **scope: Nesting level 3; module: arraySum; lines: 19 to 24 **
+			x :=y+3*index-32*5;			    **No type mismatch, variable index is visible here**
+			sum:= p+23.5;				    **ERROR_T: type mismatch of array and real operands of plus operator**
+			**t := true OR y+23>=x AND 23.5<=newarr[10]; ** **No type mismatch; t is visible here**
+		end
+		index:= 34*20*index+x+12;			    **ERROR_V: variable x not declared **
+		 	end
+	for(index in  1..15)
+	start
+           	declare y_1, y_2: real;				    ** scope: Nesting level 2; module: arraySum; lines: 33 to 55 **
+           	declare k,l,m: array[1..10] of real;		    ** scope: Nesting level 2; module: arraySum; lines: 33 to 55 **
+		declare x:real;					    ** scope: Nesting level 2; module: arraySum; lines: 33 to 55 **	
+		t:= index<=n;
+		switch(t)
+		start
+			case true: print(list[index]);
+                                    m[j]:= k[j]+34.5;               **No type mismatch** 
+				    sum:=sum+list[index]+ k[index]; **ERROR_T: Array types mismatch** 
+                                    value:= sum+15;                 **ERROR_V: variable value not declared**
+                                    x_2:= x_1+x_2;                  **variables declared in the current scope, so this is not an error**      
+                                    x_1:= 11+index;                 **No type mismatch**                                    
+                                    declare x_1, x_2: integer;     **scope: Nesting level 3; module: arraySum; lines: 39 to 54 **
+                                    
+				    declare u1, u2:real;            **scope: Nesting level 3; module: arraySum; lines: 39 to 54 **
+				    u2:= n +  u1*23.5; 		    **ERROR_T: type mismatch of integer and real operands of plus operator; n is visible**      
+				    break;                    
+			case false:
+                    print(sum);
+				    declare u1, x, x_5: integer;    **ERROR_V: variables u1 and x are already declared**
+				    print(index);
+				    break;
+		end
+	end     
+	print(x_2); 						   **ERROR_V: x_2 is not declared in the current scope**
+end
+<<<driver program>>>
+start
+	declare A:array[1..15] of real;                            **scope: Nesting level 1; module: driver; lines: 59 to 67 **
+	declare k:integer;					   **scope: Nesting level 1; module: driver; lines: 59 to 67 **
+	declare s:real;						   **scope: Nesting level 1; module: driver; lines: 59 to 67 **
+	get_value(k);
+	use module readArr with parameters A,u1;		   **ERROR_V: variable u1 not declared**
+	[s]:= use module arraySum with parameters A,k;
+	print(s);
+end
+
+<<module readArr>>
+takes input [arr1:array[1..15] of boolean,k:integer];		**scope: Nesting level 1; module: readArr; lines: 71 to 87 **
+start
+	declare tempvar:real;			  		**scope: Nesting level 1; module: readArr; lines: 71 to 87 **
+	declare i:integer; 					**scope: Nesting level 1; module: readArr; lines: 71 to 87 **
+	i:=1;
+        x_1:= i + u1;  						**ERROR_V: variable x_1 and u1 are not declared**
+        declare i:real;						**ERROR_V: variable i alreday declared**
+	while(i<=k)
+	start
+		declare x_1, x_2:boolean;			**scope: Nesting level 2; module: readArr; lines: 78 to 85 **
+ 		x_1:= (1>2 AND u2<=10);				**ERROR_V: variable u2 is not declared**
+		get_value(tempvar);
+		declare x_1, x_3: integer; 			**ERROR_V: variable x_1 is already declared in the current scope**
+		arr1[i]:=tempvar;				**ERROR_T: type mismatch, tempvar is visible and is of type real while the array element is boolean**
+		i:=i+1;
+	end
+	declare x_1, x_2, x_3: boolean;				**scope: Nesting level 1; module: readArr; lines: 71 to 87 **
+end

@@ -1,0 +1,170 @@
+**Code Generation test case 12: Function call implementation using array parameters- usage of both static and dynamic
+
+Multiple modules with the driver module with single level of nesting 
+
+
+
+**
+<<module array_parameter_demo>>
+takes input[ B: array[10..14] of integer, C:array[low..high] of integer, A_1: array[L..H] of integer];
+returns [sum1:integer, sum2:integer, sum3:integer];
+start
+	print(B);
+	print(C);
+	print(A_1);               
+
+	declare k, i, j, p, q, temp: integer;
+	declare index_A, index_B, index_C, index_A_1:integer;
+	declare index_E:integer;
+	get_value(p);	
+	get_value(q);
+	declare A, D: array[10..14] of integer;                          
+	declare E: array[p..q] of integer;         
+
+	get_value(A);
+	get_value(E);
+
+
+**using local variables A and E, and the parameters B,C and A_1: both static and dynamic arrays**
+	sum1:=0;
+	sum2:=0;
+	sum3:=0;
+	for(j in 1..4)
+	start
+		get_value(index_A);
+		get_value(index_B);
+		get_value(index_C);
+		get_value(index_A_1);
+		get_value(index_E);	
+		sum1:= sum1+A[index_A]*B[index_B]-C[index_C]*A_1[index_A_1];
+		sum2:= sum2 + E[index_E]*B[index_B]-A_1[index_A_1]; 
+		sum3:= sum3 + B[index_B]+C[index_C]+A_1[index_A_1];                 **runtime bound checking required**
+		print(sum1);
+		print(sum2);
+		print(sum3);
+	end
+	k:= sum1+A[12]-E[index_E]*A_1[index_A_1];
+	print(k);
+end
+
+<<<driver program>>>
+start
+	declare  m, n :integer;
+	declare s1, s2, s3:integer;
+	get_value(m);
+	get_value(n);
+	declare array_A: array[10..14] of integer;
+	declare array_B: array[m..n] of integer;
+	declare array_C: array[2..5] of integer;
+	get_value(array_A);
+	get_value(array_B);
+	get_value(array_C);
+	[s1, s2, s3]:= use module array_parameter_demo with parameters array_A, array_B, array_C;	
+**formal parameter C of the callee function array_parameter_demo receives the range values from the actual parameter array_B**		
+	print(s1);
+	print(s2);
+	print(s3);
+end
+
+
+
+
+** On the console 
+ Input: Enter an integer value
+3
+Input: Enter an integer value
+8
+Input: Enter 5 array elements of integer type for range 10 to 14
+2
+4
+6
+-10
+-18
+Input: Enter 6 array elements of integer type for range 3 to 8
+13
+-14
+61
+28
+-63
+19
+Input: Enter 4 array elements of integer type for range 2 to 5
+15
+26
+-71
+22
+Output: 2 4 6 -10 -18 
+Output: 13 -14 61 28 -63 19 
+Output: 15 26 -71 22 
+Input: Enter an integer value
+2
+Input: Enter an integer value
+5
+Input: Enter 5 array elements of integer type for range 10 to 14
+91
+-2
+3
+14
+62
+Input: Enter 4 array elements of integer type for range 2 to 5
+13
+4
+-18
+16
+Input: Enter an integer value
+14
+Input: Enter an integer value
+10
+Input: Enter an integer value
+8
+Input: Enter an integer value
+3
+Input: Enter an integer value
+5
+Output: -370 
+Output: 6 
+Output: 47 
+Input: Enter an integer value
+12
+Input: Enter an integer value
+13
+Input: Enter an integer value
+3
+Input: Enter an integer value
+2
+Input: Enter an integer value
+3
+Output: -595 
+Output: -49 
+Output: 65 
+Input: Enter an integer value
+10
+Input: Enter an integer value
+14
+Input: Enter an integer value
+5
+Input: Enter an integer value
+5
+Input: Enter an integer value
+3
+Output: -3575 
+Output: -143 
+Output: 130 
+Input: Enter an integer value
+11
+Input: Enter an integer value
+11
+Input: Enter an integer value
+6
+Input: Enter an integer value
+4
+Input: Enter an integer value
+4
+Output: -1595 
+Output: -144 
+Output: 91 
+Output:-2870 
+Output:-1595 
+Output:-144 
+Output: 91  
+                                     
+**

@@ -1,0 +1,75 @@
+**Code Generation test case 5: Loops for static arrays
+
+Single driver module with multiple levels of nesting 
+
+Assuming run time bound checking of array elements E1[m], E2[m] and E3[m] in the background for each value of m during the execution of for loop**
+
+<<<driver program>>>
+start
+	declare m, temp, n:integer;	
+	declare A, B, C: array[6..10] of integer;
+	declare E1, E2, E3: array[37..43] of integer;
+	get_value(n);
+	get_value(E1);
+	get_value(E2);
+	for(m in 37..43)
+        start
+		E3[m]:= E1[m]*2+E2[m]-n*3+m;
+		print(m);
+		print(E3[m]);
+	end
+	print(E3);
+end
+
+** On the console
+
+Input: Enter an integer value
+6
+Input: Enter 7 array elements of integer type for range 37 to 43 
+-7
+2
+8
+-16
+11
+-23
+-81
+Input: Enter 7 array elements of integer type for range 37 to 43       
+63
+42
+-91
+-29
+69
+-8
+7
+
+Output: 37
+
+Output: 68
+
+Output: 38
+
+Output: 66
+
+Output: 39
+
+Output: -54
+
+Output: 40
+
+Output: -39
+
+Output: 41
+
+Output: 114
+
+Output: 42
+
+Output: -30
+
+Output: 43
+
+Output: -130
+
+Output: 68 66 -54 -39 114 -30 -130 
+
+**

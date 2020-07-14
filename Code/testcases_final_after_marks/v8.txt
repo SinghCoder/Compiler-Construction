@@ -1,0 +1,70 @@
+**Code Generation test case 8: Switch Case statement
+
+Single driver module with multiple levels of nesting 
+
+
+
+**
+
+<<<driver program>>>
+start
+	declare x, y, z, u:integer;
+	declare b: boolean;
+	get_value(x);
+	get_value(y);
+	get_value(z);
+	get_value(u);
+	switch(u)
+	start
+		case 1: y:= x*2-y*z+34;
+			z:= y*2-z+12;
+			b:= y<=z OR x<y;
+			print(x);
+			print(y);
+			print(z);
+			print(b);
+                        break;
+		case 2: z:= x*3-z;
+			y:= z*x-78;
+			b:=true AND x==2;
+			print(x);
+			print(y);
+			print(z);
+			print(b);
+                        break;
+		default:print(x);
+			print(y);
+			print(z);
+			b:= false OR x>2;
+			print(b);
+			break;
+	end
+	print(u);
+end
+
+** On the console 
+
+Input: Enter an integer value 
+3
+
+Input: Enter an integer value 
+5
+
+Input: Enter an integer value 
+-6
+
+Input: Enter an integer value 
+1
+
+Output: 3
+
+Output: 70
+
+Output: 158
+
+Output: true
+
+Output: 1
+
+Similarly verify the output for other values of the switch variable u
+**

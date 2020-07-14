@@ -1,0 +1,89 @@
+**Code Generation test case 10: Function call implementation
+
+Multiple modules with the driver module with single level of nesting 
+
+
+
+**
+<<module compute_expr>>
+takes input[A_1:integer, a: integer, b:integer, c:boolean];
+returns [u:integer, v:boolean];
+start
+	declare p, q, d, A_2: integer;
+	declare m: boolean;
+	get_value(d);
+	get_value(q);
+	p:= a*b+ d*2-3;
+	m:= c AND a<=b;
+	A_2:= a*b + q - A_1*a - b;
+	u:= p+q*A_1-A_2;
+	v:= A_2<A_1 AND p<=q ;
+	u:=u + A_2 - 100;
+	print(A_1);
+	print(A_2);
+	print(a);
+	print(b);
+	print(c);
+	print(d);
+	print(p);
+	print(q);
+	print(u);
+	print(v);
+end
+
+<<<driver program>>>
+start
+	declare x, y, z, A_3, A_4:integer;
+	get_value(x);
+	get_value(y);
+	get_value(A_3);
+	declare k, h, B_1:boolean;
+	h:= false;
+	[A_4, B_1]:= use module compute_expr with parameters A_3, x, y, h;				
+	print(A_4);
+	print(B_1);
+end
+
+** On the console    
+
+
+Input: Enter an integer value 
+-2
+
+Input: Enter an integer value 
+-8
+
+Input: Enter an integer value 
+7
+
+Input: Enter an integer value 
+-16
+
+Input: Enter an integer value 
+11
+
+Output: 7
+
+Output: 49
+
+Output: -2
+
+Output: -8
+
+Output: false
+
+Output: -16
+
+Output: -19
+
+Output: 11
+
+Output: -42
+
+Output: false
+
+Output: -42
+
+Output: false
+                                             
+**

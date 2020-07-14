@@ -1,0 +1,89 @@
+**Code Generation test case 6: Dynamic bound checking with static arrays
+
+Single driver module with multiple levels of nesting 
+
+**
+
+<<<driver program>>>
+start
+	declare m, n,p, k, x, y, z:integer;	
+	declare A, B, C: array[6..10] of integer;
+	declare D1: array[69..75] of integer;
+	declare E1: array[37..43] of integer;
+	get_value(D1);
+	get_value(E1);
+	get_value(p);
+	for(k in 4..9)
+        start
+		get_value(m);
+		get_value(n);
+		x:= D1[m]+E1[n];
+		print(x);                       **As long as there is no run time error with respect to the bounds, x getS printed**
+	end                    
+end
+
+** On the console
+Input: Enter 7 array elements of integer type for range 69 to 75
+2
+4
+-1
+3
+8
+20
+-15
+Input: Enter 7 array elements of integer type for range 37 to 43 
+6
+-15
+10
+11
+-20
+8
+19
+
+Input: Enter an integer value
+20
+
+Input: Enter an integer value
+70
+
+Input: Enter an integer value
+41
+
+Output: -16				[Note: Run time bound checking went successful in iteration 1]
+
+Input: Enter an integer value 
+72
+
+Input: Enter an integer value 
+37
+
+Output: 9				[Note: Run time bound checking went successful in iteration 2]
+
+Input: Enter an integer value 
+73
+
+Input: Enter an integer value 
+43
+
+Output: 27				[Note: Run time bound checking went successful in iteration 3]
+
+Input: Enter an integer value 
+69
+
+Input: Enter an integer value 
+40
+
+Output: 13				[Note: Run time bound checking went successful in iteration 4]
+
+Input: Enter an integer value 
+70
+
+Input: Enter an integer value 
+44
+
+RUN TIME ERROR:  Array index out of bound  
+[Note: Run time bound checking is done and reported here as E1[44] is an out of bound error, Aborted execution]
+
+**
+
+

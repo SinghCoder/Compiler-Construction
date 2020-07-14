@@ -1,0 +1,17 @@
+<<<driver program>>>
+start
+	
+end
+<<module empty>>
+takes input[a:integer, b:array[1..3] of integer];
+returns [res:integer];
+start
+	res:=4;
+	declare c,d:array [1..3] of integer;
+	declare e:integer;
+	declare u,v,w,x,y,z:boolean;
+	declare f:array [1..5] of integer;
+	c:=4;
+	d:=a+4;
+	res:=d;
+end

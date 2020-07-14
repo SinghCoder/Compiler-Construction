@@ -1,0 +1,65 @@
+** Test case s1.txt: Symbol table printing**
+
+<<module function1>>
+takes input [data: array[100..150] of boolean, weight: real, length: integer, b:array[35..50] of real, q:integer];
+returns [R1: real, R2: integer, R3: boolean, R4: integer];
+start
+	declare e,f,k: integer;
+	declare a: real;
+	switch(k)
+	start
+		case 10: declare A:real;
+			declare Q1: integer;
+			declare B: array[10..30] of integer;
+			declare E: array[4..10] of integer;
+			B:=C;           	      **not an error**
+			break;
+		case 20: A:= 12.90 + u*y - c; 
+			declare B: array[10..30] of integer;
+			declare E: array[4..10] of real;
+			declare Q2: integer;
+			while(Q1<100)
+			start
+				declare U1:real;
+				declare U2: boolean;
+				declare U3: array[10..15] of integer;
+				declare U4: array[Q1..Q2] of real;
+				a:= U1+32.65;
+			end	       
+			break;
+		default: E[9]:= B[15]+Q;	      **not an error**	
+			 declare W1, W2: array[2..8] of integer;
+			 for(Q2 in 1..8)
+			 start
+				declare Q3: integer;
+				declare Q4: array[10..29] of boolean;
+				for (Q3 in 10..50)
+				start
+					declare Q5: real;
+					declare Q4: array[90..130] of integer;
+					Q5:= 120.45;
+				end
+				Q3:= 6;
+			 end
+			 break;			 	
+	end
+	declare Q6:integer;
+	R2:= q+1;
+	get_value(a);
+	R1:= a+weight/20.50;
+	R3:= true;
+	R4:=f + 100;
+end								
+
+
+
+<<<driver program>>>
+start
+	declare v_1_2_3, A:integer;
+	
+	declare a,b:integer;
+	get_value(b);
+
+end
+
+

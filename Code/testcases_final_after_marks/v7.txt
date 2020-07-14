@@ -1,0 +1,128 @@
+**Code Generation test case 7: Dynamic type checking with static and dynamic arrays
+
+Single driver module with single level of nesting 
+
+
+
+**
+
+<<<driver program>>>
+start
+	declare m, n,p, k, x, y, z:integer;
+	declare	range_low_end_1, range_high_end_1: integer;
+	declare	range_low_end_2, range_high_end_2: integer;
+	get_value(range_low_end_1);
+	get_value(range_high_end_1);
+	get_value(range_low_end_2);
+	get_value(range_high_end_2);                                                      
+	declare D1, D2: array[range_low_end_1..range_high_end_1] of integer;
+	declare E1: array[range_low_end_2..range_high_end_2] of integer;
+	declare A, B: array[14..18] of integer;
+	get_value(D1);
+	get_value(D2);
+	get_value(E1);
+	get_value(A);
+	get_value(B);
+	** Printing arrays before assignments**
+	print(D1);
+	print(D2);
+	print(E1);
+	print(A);
+	print(B);
+	A:=B;            **no error-structurally equivalent types**
+	print(A);
+	print(B);
+	B:=D1;		  
+	print(D1);
+	print(B);
+	D2:=D1;
+	print(D1);
+	print(D2);
+	E1:=D1;
+	print(E1);
+	print(D1);
+	D1:= A;
+	print(D1);
+	print(A);
+                   
+end
+
+**
+Input: Enter an integer value 
+14
+
+Input: Enter an integer value 
+18
+
+Input: Enter an integer value 
+3
+
+Input: Enter an integer value 
+8
+Input: Enter 5 array elements of integer type for range 14 to 18 
+2
+5
+-10
+11
+20
+Input: Enter 5 array elements of integer type for range 14 to 18 
+16
+-6
+18
+23
+51
+Input: Enter 6 array elements of integer type for range 3 to 8 
+6
+-3
+-1
+100
+105
+-99
+Input: Enter 5 array elements of integer type for range 14 to 18 
+16
+-37
+28
+-88
+15
+Input: Enter 5 array elements of integer type for range 14 to 18 
+13
+91
+77
+-72
+18
+
+Output: 2 5 -10 11 20 
+
+
+Output: 16 -6 18 23 51 
+
+
+Output: 6 -3 -1 100 105 -99 
+
+
+Output: 16 -37 28 -88 15 
+
+
+Output: 13 91 77 -72 18 
+
+
+Output: 13 91 77 -72 18 
+
+
+Output: 13 91 77 -72 18 
+
+
+Output: 2 5 -10 11 20 
+
+
+Output: 2 5 -10 11 20 
+
+
+Output: 2 5 -10 11 20 
+
+
+Output: 2 5 -10 11 20 
+
+Run time error: Types of E1 and D1 are structurally different.
+
+**

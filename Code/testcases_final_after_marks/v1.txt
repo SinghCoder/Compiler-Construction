@@ -1,0 +1,45 @@
+**Code Generation test case 1: Computing expressions using integer and real data types**
+
+**Single driver module with single level nesting **
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	declare a, b, c:integer;
+	declare R1, R2, R3:real;
+	a:= 5;
+	b:= 9;
+	R1:= 2.4536e+2;
+	get_value(x);
+	get_value(y);
+	get_value(R2);
+	z:= (x + y*b)*3;
+        y:= (a-b)*y+ a*2 - z;
+	x:=-(b*x+y);
+	R3:= R2*15.36-R1;	
+        print(x);
+	print(y);
+	print(z);
+	print(R3);
+end
+
+** On the console
+
+Input: Enter an integer value
+3
+
+Input: Enter an integer value
+7
+
+Input: Enter a real value
+87.52
+
+Output: 189 
+Output: -216 
+Output: 198 
+Output: 1098.947199
+
+
+**
+
+

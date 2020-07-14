@@ -1,0 +1,77 @@
+**Code Generation test case 3: Computing expressions using integer, boolean and static array data types**
+
+**Single driver module with single level nesting **
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	declare a, b, c:integer;
+	declare u, v: boolean;
+	declare Q: array[25..32] of integer;
+	u:= true;
+	a:= 5;
+	b:= 9;
+	get_value(x);
+	get_value(y);
+	z:= (x + y*b)*3;
+        y:= (a-b)*y+ a*2 - z;
+	x:=-(b*x+y);	
+        print(x);
+	print(y);
+	print(z);
+	u:= x>y OR y>z;	
+	v:= z > 190 AND x<y ;	**follows left to right associativity**
+        print(u);
+	print(v); 
+	get_value(Q); 
+	print(Q);
+                          
+**Note: Implement get_value(Q) using type information of Q. Your code template should first inform user of the size, range indices and type of data and read accordingly to populate the memory locations allocated for elements of A**
+   	x:= Q[25]+Q[26]+Q[27]+Q[28]+Q[29]+Q[30]+Q[31]+Q[32];
+        y:= a+x+Q[26]*2 + Q[32]*3 +Q[30];                **bound checking at compile time must have been done before code generation**
+	Q[29]:= Q[31]-13*Q[30];
+	print(x);	
+	print(y);	
+	print(Q[29]);
+	print(Q);
+
+end
+
+** Expected output
+Input: Enter an integer value for x
+3
+
+Input: Enter an integer value for y
+7
+
+Output: 189
+
+Output: -216
+
+Output: 198
+
+Output: true
+
+Output: false
+
+Input: Enter 8 array elements of integer type for range 25 to 32
+7
+-10
+12
+1
+-16
+3
+47
+-33
+
+Output: 7 -10 12 1 -16 3 47 -33 
+
+Output: 11
+
+Output: -100
+
+Output: 8
+
+Output: 7 -10 12 1 8 3 47 -33 
+
+**

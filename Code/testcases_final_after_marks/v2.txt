@@ -1,0 +1,38 @@
+**Code Generation test case 2: Computing expressions using integer and boolean data type**
+
+**Single driver module with single level nesting **
+
+<<<driver program>>>
+start
+	declare x, y, z:integer;
+	declare a, b, c:integer;
+	declare u, v: boolean;
+	u:= true;
+	a:= 5;
+	b:= 9;
+	get_value(x);
+	get_value(y);
+	z:= (x + y*b)*3;
+        y:= (a-b)*y+ a*2 - z;
+	x:=-(b*x+y);	
+        print(x);
+	print(y);
+	print(z);
+	u:= x>y OR y>z;	
+	v:= z > 190 AND x<y ;	**follows left to right associativity**
+        print(u);
+	print(v);
+end
+
+** On the console
+Input: Enter an integer value for x
+3
+Input: Enter an integer value for y
+7
+Output: 189
+Output: -216
+Output: 198
+Output: true
+Output: false
+
+**

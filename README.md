@@ -75,3 +75,11 @@ The asm code is compatible with NASM, version 2.14.02
 3. Yash Vijay [Profile](https://github.com/yashvijay018)
 4. Jaladi Lakshmi Teja [Profile](https://github.com/LakshmiTeja17)
 5. Aditya Upadhyay [Profile](https://github.com/adhyay2000)
+
+## Commit History Visualizer
+
+![GIF](CommitHistoryVisualizer/CompilerConstruction.gif)
+
+[video](CommitHistoryVisualizer/CompilerConstruction.mp4)
+
+- Above video is made using ![Visual Source](https://img.shields.io/badge/visual-source-orange)

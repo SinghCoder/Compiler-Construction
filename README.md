@@ -76,6 +76,14 @@ The asm code is compatible with NASM, version 2.14.02
 4. Jaladi Lakshmi Teja [Profile](https://github.com/LakshmiTeja17)
 5. Aditya Upadhyay [Profile](https://github.com/adhyay2000)
 
+## Current Contributors
+
+<a href="https://github.com/SinghCoder/Compiler-Construction/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=SinghCoder/Compiler-Construction" />
+</a>
+
+Made with [contributors-img](https://contrib.rocks).
+
 ## Commit History Visualizer
 
 ![GIF](CommitHistoryVisualizer/CompilerConstruction.gif)
